@@ -1,0 +1,151 @@
+{
+	"info": {
+		"_postman_id": "ecomind-ai-collection-id-2026",
+		"name": "EcoMind AI - Smart Sustainability Assistant API",
+		"description": "Complete Postman API Collection for EcoMind AI Node.js/Express Backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Jane Doe\",\n  \"email\": \"jane@ecomind.ai\",\n  \"password\": \"password123\",\n  \"organization\": \"EcoMind Labs\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "register"]
+						}
+					}
+				},
+				{
+					"name": "Login User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"demo@ecomind.ai\",\n  \"password\": \"demopassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/auth/profile",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "profile"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Resource Usage",
+			"item": [
+				{
+					"name": "Record Usage Entry",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"date\": \"2026-08-05\",\n  \"electricity_kwh\": 18.5,\n  \"water_liters\": 140,\n  \"waste_kg\": 3.2,\n  \"fuel_liters\": 2.0,\n  \"public_transport_km\": 12.0,\n  \"renewable_energy_pct\": 25,\n  \"recycling_pct\": 40,\n  \"notes\": \"Daily office metric log\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/usage",
+							"host": ["{{baseUrl}}"],
+							"path": ["usage"]
+						}
+					}
+				},
+				{
+					"name": "Fetch Usage History",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/usage?limit=30",
+							"host": ["{{baseUrl}}"],
+							"path": ["usage"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "AI & Analytics",
+			"item": [
+				{
+					"name": "Analyze Sustainability (Gemini)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"electricity_kwh\": 18.5,\n  \"water_liters\": 140,\n  \"waste_kg\": 3.2,\n  \"renewable_energy_pct\": 25,\n  \"recycling_pct\": 40\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ai/analyze",
+							"host": ["{{baseUrl}}"],
+							"path": ["ai", "analyze"]
+						}
+					}
+				},
+				{
+					"name": "Get Analytics Dashboard Data",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/analytics",
+							"host": ["{{baseUrl}}"],
+							"path": ["analytics"]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5000/api"
+		},
+		{
+			"key": "token",
+			"value": ""
+		}
+	]
+}
