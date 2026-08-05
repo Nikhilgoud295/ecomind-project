@@ -6,9 +6,14 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABAS
 
 let supabase = null;
 
+const ws = require('ws');
+
 if (supabaseUrl && supabaseKey && !supabaseUrl.includes('your-supabase')) {
   try {
-    supabase = createClient(supabaseUrl, supabaseKey);
+    supabase = createClient(supabaseUrl, supabaseKey, {
+      auth: { persistSession: false },
+      realtime: { transport: ws },
+    });
     console.log('✅ Supabase PostgreSQL Client Initialized Successfully');
   } catch (err) {
     console.warn('⚠️ Failed to initialize Supabase client:', err.message);
