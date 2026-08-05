@@ -16,7 +16,7 @@ const register = async (req, res, next) => {
         .from('users')
         .select('id')
         .eq('email', email.toLowerCase())
-        .single();
+        .maybeSingle();
 
       if (existingUser) {
         return res.status(400).json({ success: false, message: 'User with this email already exists' });
@@ -93,7 +93,7 @@ const login = async (req, res, next) => {
         .from('users')
         .select('*')
         .eq('email', email.toLowerCase())
-        .single();
+        .maybeSingle();
 
       if (error || !data) {
         return res.status(401).json({ success: false, message: 'Invalid email or password' });
