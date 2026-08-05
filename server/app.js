@@ -5,6 +5,7 @@ require('dotenv').config();
 
 const { apiLimiter } = require('./middleware/rateLimiter');
 const errorHandler = require('./middleware/errorHandler');
+const { supabase } = require('./config/db');
 
 // Routes
 const authRoutes = require('./routes/authRoutes');
@@ -57,6 +58,7 @@ app.get('/health', (req, res) => {
     service: 'EcoMind AI Backend API',
     timestamp: new Date().toISOString(),
     env: process.env.NODE_ENV || 'development',
+    database: supabase ? 'Supabase PostgreSQL (Connected)' : 'Fallback Mock Layer (Environment variables missing)',
   });
 });
 
