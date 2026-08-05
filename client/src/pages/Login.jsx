@@ -36,7 +36,14 @@ export default function Login() {
       await authService.login(formData);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid login credentials. Please try again.');
+      const serverMessage = err.response?.data?.message;
+      if (serverMessage) {
+        setError(serverMessage);
+      } else if (err.message === 'Network Error' || !err.response) {
+        setError('Network Error: Unable to connect to backend API server. Please check your VITE_API_URL or backend status.');
+      } else {
+        setError(err.message || 'Invalid login credentials. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
