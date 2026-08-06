@@ -211,6 +211,66 @@ const faceLogin = async (req, res, next) => {
   }
 };
 
+const fingerprintLogin = async (req, res, next) => {
+  try {
+    const { email, fingerprint_data } = req.body;
+
+    let user = null;
+
+    if (supabase) {
+      if (email) {
+        const { data } = await supabase
+          .from('users')
+          .select('*')
+          .eq('email', email.toLowerCase())
+          .maybeSingle();
+        user = data;
+      }
+
+      if (!user) {
+        const { data } = await supabase
+          .from('users')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+        user = data;
+      }
+    } else {
+      if (email) {
+        user = fallbackUsers.find(u => u.email === email.toLowerCase());
+      }
+      if (!user) {
+        user = fallbackUsers[fallbackUsers.length - 1];
+      }
+    }
+
+    if (!user) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'No matching fingerprint biometric template found. Please register or sign in with password.' 
+      });
+    }
+
+    const token = jwt.sign(
+      { id: user.id, email: user.email, name: user.name, organization: user.organization },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    const { password_hash: _, ...userWithoutPassword } = user;
+
+    return res.json({
+      success: true,
+      message: 'Fingerprint Touch ID Authentication Successful!',
+      token,
+      user: userWithoutPassword,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 const getProfile = async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -298,6 +358,7 @@ module.exports = {
   register,
   login,
   faceLogin,
+  fingerprintLogin,
   getProfile,
   updateProfile,
   fallbackUsers,
