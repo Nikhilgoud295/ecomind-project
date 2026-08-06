@@ -9,7 +9,7 @@ export default function Navbar() {
   const currentUser = authService.getCurrentUser();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
-  // EcoMind Brand Logo Natural Crack & Slanted Slide State (1-Second Reset)
+  // EcoMind Brand Logo Natural Crack & Slanted Slide State (0.4-Second Ultra-Smooth Re-attaching)
   const [isLogoSplit, setIsLogoSplit] = useState(false);
 
   const triggerLogoSplit = () => {
@@ -17,7 +17,7 @@ export default function Navbar() {
     setIsLogoSplit(true);
     setTimeout(() => {
       setIsLogoSplit(false);
-    }, 1000);
+    }, 400);
   };
 
   // Real-time environmental alerts notification panel state
@@ -73,7 +73,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 glass-panel border-b border-slate-800/80 backdrop-blur-md bg-dark-bg/80 transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Brand Logo with 1-Second Natural Crack & Slanted Slide Animation */}
+          {/* Brand Logo with 0.4-Second Natural Crack & Smooth Magnetic Re-attaching Animation */}
           <Link
             to="/"
             onMouseEnter={triggerLogoSplit}
@@ -92,9 +92,9 @@ export default function Navbar() {
                 EcoMind <span className="text-xs px-2 py-0.5 rounded-full bg-eco-500/20 text-eco-400 border border-eco-500/30">AI</span>
               </span>
 
-              {/* Fractured Top Half (Slides Slopingly Over Base) */}
+              {/* Fractured Top Half (Slides Slopingly Over Base with Smooth Magnetic Re-attachment) */}
               <span
-                className={`absolute left-0 top-0 text-emerald-300 flex items-center gap-1.5 transition-all duration-300 ease-out transform origin-bottom-left ${
+                className={`absolute left-0 top-0 text-emerald-300 flex items-center gap-1.5 transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] transform origin-bottom-left ${
                   isLogoSplit 
                     ? '-translate-y-3 translate-x-3.5 -rotate-3 scale-[1.04] opacity-100 drop-shadow-[0_0_18px_rgba(16,185,129,1)]' 
                     : 'translate-y-0 translate-x-0 rotate-0 scale-100 opacity-0'
@@ -106,7 +106,7 @@ export default function Navbar() {
 
               {/* Base Bottom Half */}
               <span
-                className={`absolute left-0 top-0 text-teal-300 flex items-center gap-1.5 transition-all duration-300 ease-out transform ${
+                className={`absolute left-0 top-0 text-teal-300 flex items-center gap-1.5 transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] transform ${
                   isLogoSplit 
                     ? 'translate-y-1.5 rotate-1 opacity-100 drop-shadow-[0_0_15px_rgba(20,184,166,0.9)]' 
                     : 'translate-y-0 rotate-0 opacity-0'
