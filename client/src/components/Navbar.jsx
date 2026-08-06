@@ -9,7 +9,7 @@ export default function Navbar() {
   const currentUser = authService.getCurrentUser();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
-  // EcoMind Brand Logo Natural Crack Hover State (Active strictly while cursor is placed on word)
+  // EcoMind Brand Logo Energy Blast Explosion State (Active strictly while cursor is placed on word)
   const [isLogoHovered, setIsLogoHovered] = useState(false);
 
   // Real-time environmental alerts notification panel state
@@ -65,48 +65,68 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 glass-panel border-b border-slate-800/80 backdrop-blur-md bg-dark-bg/80 transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Brand Logo with Cursor-Driven Natural Crack & Smooth Magnetic Re-attaching */}
+          {/* Brand Logo with Cursor-Driven Energy Blast Explosion & Magnetic Re-attachment */}
           <Link
             to="/"
             onMouseEnter={() => setIsLogoHovered(true)}
             onMouseLeave={() => setIsLogoHovered(false)}
             className="flex items-center gap-3 group relative cursor-pointer select-none"
           >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-eco-600 via-emerald-500 to-teal-400 p-0.5 shadow-glow-eco flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-6">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-eco-600 via-emerald-500 to-teal-400 p-0.5 shadow-glow-eco flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-12">
               <div className="w-full h-full bg-dark-bg rounded-[10px] flex items-center justify-center">
-                <Leaf className="w-5 h-5 text-eco-400 group-hover:animate-bounce" />
+                <Leaf className={`w-5 h-5 transition-transform duration-300 ${isLogoHovered ? 'text-emerald-300 scale-125 rotate-45' : 'text-eco-400'}`} />
               </div>
             </div>
 
-            {/* Natural Jagged Crack Text Container */}
+            {/* Energy Blast Explosive Text Container */}
             <div className="relative font-bold font-display tracking-tight text-xl h-8 flex items-center min-w-[145px] overflow-visible">
               {/* Normal Unbroken Text */}
-              <span className={`text-white flex items-center gap-1.5 transition-opacity duration-300 ${isLogoHovered ? 'opacity-0' : 'opacity-100'}`}>
+              <span className={`text-white flex items-center gap-1.5 transition-all duration-300 ${isLogoHovered ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
                 EcoMind <span className="text-xs px-2 py-0.5 rounded-full bg-eco-500/20 text-eco-400 border border-eco-500/30">AI</span>
               </span>
 
-              {/* Fractured Top Half (Slides Slopingly Over Base While Hovered) */}
+              {/* Center Energy Blast Flare */}
+              {isLogoHovered && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                  <div className="w-8 h-8 rounded-full bg-emerald-400/40 blur-md animate-ping" />
+                  <Sparkles className="w-6 h-6 text-emerald-300 animate-spin absolute" style={{ animationDuration: '0.8s' }} />
+                </div>
+              )}
+
+              {/* Blast Fragment 1: Top-Left Fragment ("Eco") */}
               <span
-                className={`absolute left-0 top-0 text-emerald-300 flex items-center gap-1.5 transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] transform origin-bottom-left ${
+                className={`absolute left-0 top-0 text-emerald-400 flex items-center gap-1.5 transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] transform ${
                   isLogoHovered 
-                    ? '-translate-y-3 translate-x-3.5 -rotate-3 scale-[1.04] opacity-100 drop-shadow-[0_0_18px_rgba(16,185,129,1)]' 
+                    ? '-translate-y-4 -translate-x-5 -rotate-12 scale-125 opacity-100 drop-shadow-[0_0_25px_rgba(16,185,129,1)]' 
                     : 'translate-y-0 translate-x-0 rotate-0 scale-100 opacity-0'
                 }`}
-                style={{ clipPath: 'polygon(0 0, 100% 0, 100% 48%, 80% 54%, 60% 42%, 40% 56%, 20% 44%, 0 52%)' }}
+                style={{ clipPath: 'polygon(0 0, 50% 0, 40% 100%, 0 100%)' }}
               >
                 EcoMind <span className="text-xs px-2 py-0.5 rounded-full bg-eco-500/30 text-emerald-300 border border-emerald-400">AI</span>
               </span>
 
-              {/* Base Bottom Half */}
+              {/* Blast Fragment 2: Top-Right Fragment ("Mind AI") */}
               <span
                 className={`absolute left-0 top-0 text-teal-300 flex items-center gap-1.5 transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] transform ${
                   isLogoHovered 
-                    ? 'translate-y-1.5 rotate-1 opacity-100 drop-shadow-[0_0_15px_rgba(20,184,166,0.9)]' 
-                    : 'translate-y-0 rotate-0 opacity-0'
+                    ? '-translate-y-4 translate-x-5 rotate-12 scale-125 opacity-100 drop-shadow-[0_0_25px_rgba(20,184,166,1)]' 
+                    : 'translate-y-0 translate-x-0 rotate-0 scale-100 opacity-0'
                 }`}
-                style={{ clipPath: 'polygon(0 52%, 20% 44%, 40% 56%, 60% 42%, 80% 54%, 100% 48%, 100% 100%, 0 100%)' }}
+                style={{ clipPath: 'polygon(50% 0, 100% 0, 100% 100%, 40% 100%)' }}
               >
                 EcoMind <span className="text-xs px-2 py-0.5 rounded-full bg-eco-500/30 text-teal-300 border border-teal-400">AI</span>
+              </span>
+
+              {/* Blast Fragment 3: Bottom Energy Shard */}
+              <span
+                className={`absolute left-0 top-0 text-emerald-200 flex items-center gap-1.5 transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] transform ${
+                  isLogoHovered 
+                    ? 'translate-y-3.5 scale-110 opacity-100 drop-shadow-[0_0_20px_rgba(52,211,153,1)]' 
+                    : 'translate-y-0 scale-100 opacity-0'
+                }`}
+                style={{ clipPath: 'polygon(0 60%, 100% 60%, 100% 100%, 0 100%)' }}
+              >
+                EcoMind <span className="text-xs px-2 py-0.5 rounded-full bg-eco-500/30 text-emerald-200 border border-emerald-300">AI</span>
               </span>
             </div>
           </Link>
