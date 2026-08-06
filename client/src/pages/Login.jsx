@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Leaf, Mail, Lock, LogIn, AlertCircle, Sparkles, Scan, ShieldCheck, CheckCircle2, UserCheck, RefreshCw, User } from 'lucide-react';
+import { Leaf, Mail, Lock, LogIn, AlertCircle, Sparkles, Scan, ShieldCheck, CheckCircle2, UserCheck, RefreshCw, ShieldAlert, LockKeyhole } from 'lucide-react';
 import { authService } from '../services/authService';
 import FaceRecognitionScanner from '../components/FaceRecognitionScanner';
 
@@ -8,7 +8,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [loginMethod, setLoginMethod] = useState('password'); // 'password' | 'face'
   const [formData, setFormData] = useState({ email: '', password: '' });
-  const [faceBiometricData, setFaceBiometricData] = useState('face_token_verified');
+  const [faceBiometricData, setFaceBiometricData] = useState(null);
   const [isFaceVerified, setIsFaceVerified] = useState(false);
   
   const [registeredUsers, setRegisteredUsers] = useState([]);
@@ -70,12 +70,20 @@ export default function Login() {
     }
   };
 
-  const handleFaceCaptured = (biometricSnapshot) => {
+  // Callback from Strict Facial Biometric Scanner
+  const handleFaceCaptured = (biometricSnapshot, passed, reason, confidenceScore) => {
+    if (!passed) {
+      setIsFaceVerified(false);
+      setFaceBiometricData(null);
+      setError(`❌ ${reason || 'Strict Biometric Verification Failed: Access Denied.'}`);
+      return;
+    }
+
     setFaceBiometricData(biometricSnapshot);
     setIsFaceVerified(true);
     setError('');
 
-    // Look up the selected user or latest registered account
+    // Look up the selected user or active registered account
     const user = registeredUsers.find(u => u.email === selectedUserEmail) ||
       registeredUsers[0] ||
       JSON.parse(localStorage.getItem('ecomind_user') || 'null') ||
@@ -90,6 +98,11 @@ export default function Login() {
   };
 
   const handleFaceLoginSubmit = async () => {
+    if (!isFaceVerified || !faceBiometricData) {
+      setError('❌ Strict Security Rule: Facial scan verification required (>85% match confidence). Please complete face scan above.');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -103,7 +116,7 @@ export default function Login() {
     try {
       const res = await authService.faceLogin({
         email: targetUser.email,
-        face_biometric_data: faceBiometricData || 'face_token_snapshot'
+        face_biometric_data: faceBiometricData
       });
 
       if (res.user) {
@@ -180,7 +193,7 @@ export default function Login() {
           </div>
         </Link>
         <h2 className="text-3xl font-extrabold font-display tracking-tight text-white">Sign In to EcoMind AI</h2>
-        <p className="text-xs text-slate-400">Choose Email & Password or Face ID Biometric Sign In</p>
+        <p className="text-xs text-slate-400">Choose Email & Password or Strict Face ID Biometric Sign In</p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md z-10 px-4">
@@ -229,9 +242,9 @@ export default function Login() {
           )}
 
           {error && (
-            <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 flex items-center gap-2.5 text-xs">
-              <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-400" />
-              <span>{error}</span>
+            <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 flex items-center gap-2.5 text-xs animate-fade-in">
+              <ShieldAlert className="w-4 h-4 flex-shrink-0 text-rose-400" />
+              <span className="leading-relaxed font-semibold">{error}</span>
             </div>
           )}
 
@@ -302,7 +315,7 @@ export default function Login() {
               {registeredUsers.length > 0 && (
                 <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-1.5">
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    Select Enrolled Face ID Account:
+                    Select Target Account to Authenticate:
                   </label>
                   <select
                     value={selectedUserEmail}
@@ -318,7 +331,7 @@ export default function Login() {
                 </div>
               )}
 
-              {/* Facial Recognition Scanner */}
+              {/* Strict Facial Recognition Scanner */}
               <FaceRecognitionScanner onScanComplete={handleFaceCaptured} mode="login" />
 
               {/* Display Recognized Account Details with REAL DYNAMIC USER NAME */}
@@ -326,24 +339,28 @@ export default function Login() {
                 <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-3 animate-fade-in">
                   <UserCheck className="w-5 h-5 text-emerald-400 flex-shrink-0" />
                   <div className="text-xs">
-                    <span className="text-slate-400 block text-[10px]">Recognized Biometric Account:</span>
+                    <span className="text-slate-400 block text-[10px]">Strict Biometric Verification Passed:</span>
                     <span className="font-bold text-white block text-sm">{recognizedUser.name}</span>
                     <span className="text-[11px] text-emerald-400">{recognizedUser.email}</span>
                   </div>
                 </div>
               )}
 
-              {/* DYNAMIC FACE ID SIGN IN BUTTON */}
+              {/* DYNAMIC FACE ID SIGN IN BUTTON (STRICTLY DISABLED UNTIL FACE IS VERIFIED) */}
               <button
                 type="button"
                 onClick={handleFaceLoginSubmit}
-                disabled={loading}
-                className="group relative w-full py-3.5 rounded-xl bg-gradient-to-r from-eco-600 via-emerald-500 to-teal-500 hover:from-eco-500 hover:to-teal-400 text-white font-bold shadow-glow-eco transition-all duration-300 transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 text-sm cursor-pointer overflow-hidden"
+                disabled={loading || !isFaceVerified}
+                className={`group relative w-full py-3.5 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 text-sm cursor-pointer overflow-hidden ${
+                  isFaceVerified
+                    ? 'bg-gradient-to-r from-eco-600 via-emerald-500 to-teal-500 hover:from-eco-500 hover:to-teal-400 text-white shadow-glow-eco transform hover:scale-[1.02]'
+                    : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed opacity-75'
+                }`}
               >
                 {loading ? (
                   <span className="flex items-center gap-2">
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    Authenticating Face ID...
+                    Verifying Biometric Hash Key...
                   </span>
                 ) : isFaceVerified ? (
                   <>
@@ -352,8 +369,8 @@ export default function Login() {
                   </>
                 ) : (
                   <>
-                    <ShieldCheck className="w-4 h-4 text-emerald-300 group-hover:scale-110 transition-transform" />
-                    <span>Sign In with Face ID</span>
+                    <LockKeyhole className="w-4 h-4 text-slate-500" />
+                    <span>Complete Face Scan Above to Unlock Sign In</span>
                   </>
                 )}
               </button>
