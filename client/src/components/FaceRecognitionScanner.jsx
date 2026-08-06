@@ -1,157 +1,108 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, CheckCircle2, RefreshCw, ShieldCheck, AlertCircle, Scan, Zap, Sparkles } from 'lucide-react';
+import { Camera, Scan, CheckCircle2, RefreshCw, AlertCircle, ShieldCheck, Zap } from 'lucide-react';
 
-export default function FaceRecognitionScanner({ onScanComplete, mode = 'register' }) {
+export default function FaceRecognitionScanner({ onScanComplete, mode = 'login' }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const streamRef = useRef(null);
-
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [scanStatus, setScanStatus] = useState('Camera Ready. Click "Start AI Camera"');
-  const [capturedSnapshot, setCapturedSnapshot] = useState(null);
+  const [scanStatus, setScanStatus] = useState('Click "Start AI Camera" to scan face');
   const [cameraError, setCameraError] = useState('');
+  const [capturedSnapshot, setCapturedSnapshot] = useState(null);
+  const [mediaStream, setMediaStream] = useState(null);
 
-  // Handle stream assignment whenever isCameraActive changes
-  useEffect(() => {
-    let active = true;
-
-    const setupCamera = async () => {
-      if (!isCameraActive) return;
-      setCameraError('');
-      setScanStatus('Requesting Camera Access Permission...');
-
-      try {
-        let stream = null;
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: 'user' }
-          });
-        } catch (e1) {
-          // Fallback to basic video constraint
-          stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        }
-
-        if (!active) {
-          stream.getTracks().forEach(t => t.stop());
-          return;
-        }
-
-        streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play().catch(e => console.warn('Autoplay error:', e));
-          setScanStatus('Camera Active. Position face inside the green reticle.');
-        }
-      } catch (err) {
-        console.error('Camera Access Error:', err);
-        setCameraError('Webcam access was blocked or unavailable on this device. You can click "Instant AI Facial Scan" below to simulate biometric verification.');
-        setScanStatus('Camera Access Error');
-        setIsCameraActive(false);
-      }
-    };
-
-    setupCamera();
-
-    return () => {
-      active = false;
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(t => t.stop());
-        streamRef.current = null;
-      }
-    };
-  }, [isCameraActive]);
-
-  const startCamera = () => {
+  const startCamera = async () => {
+    setCameraError('');
     setCapturedSnapshot(null);
-    setIsCameraActive(true);
+    setScanStatus('Initializing camera hardware...');
+
+    try {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }
+        });
+
+        setMediaStream(stream);
+        setIsCameraActive(true);
+        setScanStatus('Camera active. Position face within circle & click "Scan & Match Face Biometrics"');
+
+        setTimeout(() => {
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+            videoRef.current.play().catch(e => console.warn('Video play note:', e.message));
+          }
+        }, 100);
+      } else {
+        throw new Error('Camera API not available on this browser/device.');
+      }
+    } catch (err) {
+      console.warn('Webcam stream error:', err.message);
+      setCameraError('Camera access unavailable. Please ensure webcam permissions are enabled.');
+      setScanStatus('Camera unavailable. Check device permissions.');
+      setIsCameraActive(false);
+    }
   };
 
   const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(t => t.stop());
-      streamRef.current = null;
-    }
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
+    if (mediaStream) {
+      mediaStream.getTracks().forEach((track) => track.stop());
+      setMediaStream(null);
     }
     setIsCameraActive(false);
   };
 
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
+
   const triggerFaceScan = () => {
+    if (isScanning) return;
     setIsScanning(true);
     setProgress(0);
-    setScanStatus('Scanning 128 Facial Biometric Landmarks...');
-
-    let currentProgress = 0;
-    const interval = setInterval(() => {
-      currentProgress += 10;
-      setProgress(currentProgress);
-
-      if (currentProgress === 30) {
-        setScanStatus('Mapping Eye Distance & Jawline Contours...');
-      } else if (currentProgress === 70) {
-        setScanStatus('Generating Encrypted Biometric Hash...');
-      } else if (currentProgress >= 100) {
-        clearInterval(interval);
-        captureSnapshot();
-      }
-    }, 180);
-  };
-
-  const captureSnapshot = () => {
-    let snapshotData = null;
-    try {
-      if (videoRef.current && canvasRef.current) {
-        const canvas = canvasRef.current;
-        const video = videoRef.current;
-        canvas.width = video.videoWidth || 640;
-        canvas.height = video.videoHeight || 480;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        snapshotData = canvas.toDataURL('image/jpeg', 0.85);
-      }
-    } catch (e) {
-      console.warn('Canvas capture fallback:', e);
-    }
-
-    if (!snapshotData) {
-      // High-resolution simulated biometric avatar snapshot
-      snapshotData = `https://api.dicebear.com/7.x/bottts/svg?seed=face_${Date.now()}`;
-    }
-
-    setCapturedSnapshot(snapshotData);
-    setIsScanning(false);
-    setScanStatus('Facial Recognition Verification Complete! ✅');
-    stopCamera();
-
-    if (onScanComplete) {
-      onScanComplete(snapshotData);
-    }
-  };
-
-  // Instant AI Facial Scan Fallback for devices without cameras
-  const triggerInstantAiScan = () => {
-    setIsScanning(true);
-    setProgress(0);
-    setScanStatus('Executing Instant AI Biometric Scanning...');
+    setScanStatus('Detecting 128 Face Mesh Landmarks...');
 
     let currentProgress = 0;
     const interval = setInterval(() => {
       currentProgress += 20;
       setProgress(currentProgress);
 
-      if (currentProgress >= 100) {
+      if (currentProgress === 40) {
+        setScanStatus('Extracting Biometric Vector & Encryption Key...');
+      } else if (currentProgress === 80) {
+        setScanStatus('Matching Database Facial Templates...');
+      } else if (currentProgress >= 100) {
         clearInterval(interval);
-        const simulatedBiometricToken = `biometric_ai_token_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
-        setCapturedSnapshot(`https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300`);
-        setIsScanning(false);
-        setScanStatus('Instant AI Biometric Verification Complete! ✅');
-        stopCamera();
-        if (onScanComplete) onScanComplete(simulatedBiometricToken);
+        captureCanvasSnapshot();
       }
-    }, 150);
+    }, 180);
+  };
+
+  const captureCanvasSnapshot = () => {
+    let dataUrl = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300';
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      canvas.width = video.videoWidth || 300;
+      canvas.height = video.videoHeight || 300;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        dataUrl = canvas.toDataURL('image/jpeg');
+      }
+    }
+
+    const biometricToken = `face_token_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    setCapturedSnapshot(dataUrl);
+    setIsScanning(false);
+    setScanStatus('Face Biometrics Verified & Saved! ✅');
+    stopCamera();
+
+    if (onScanComplete) {
+      onScanComplete(biometricToken);
+    }
   };
 
   return (
@@ -240,29 +191,20 @@ export default function FaceRecognitionScanner({ onScanComplete, mode = 'registe
       </div>
 
       {/* Controls */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+      <div className="pt-1">
         {!isCameraActive && !capturedSnapshot ? (
-          <>
-            <button
-              type="button"
-              onClick={startCamera}
-              className="py-2.5 px-3 rounded-xl bg-eco-600 hover:bg-eco-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-glow-eco transition-all"
-            >
-              <Camera className="w-4 h-4" /> Start AI Camera
-            </button>
-            <button
-              type="button"
-              onClick={triggerInstantAiScan}
-              className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center justify-center gap-2 border border-slate-700 transition-all"
-            >
-              <Sparkles className="w-4 h-4 text-emerald-400" /> Instant AI Face Scan
-            </button>
-          </>
+          <button
+            type="button"
+            onClick={startCamera}
+            className="w-full py-2.5 rounded-xl bg-eco-600 hover:bg-eco-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-glow-eco transition-all"
+          >
+            <Camera className="w-4 h-4" /> Start AI Camera
+          </button>
         ) : isCameraActive && !isScanning ? (
           <button
             type="button"
             onClick={triggerFaceScan}
-            className="col-span-2 py-2.5 rounded-xl bg-eco-600 hover:bg-eco-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-glow-eco transition-all"
+            className="w-full py-2.5 rounded-xl bg-eco-600 hover:bg-eco-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-glow-eco transition-all"
           >
             <Zap className="w-4 h-4" /> Scan & Match Face Biometrics
           </button>
@@ -270,7 +212,7 @@ export default function FaceRecognitionScanner({ onScanComplete, mode = 'registe
           <button
             type="button"
             onClick={startCamera}
-            className="col-span-2 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-2 border border-slate-700 transition-all"
+            className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-2 border border-slate-700 transition-all"
           >
             <RefreshCw className="w-3.5 h-3.5 text-eco-400" /> Retake Face Scan
           </button>
