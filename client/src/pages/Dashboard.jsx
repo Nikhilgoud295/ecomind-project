@@ -7,6 +7,7 @@ import Footer from '../components/Footer';
 import DashboardCards from '../components/DashboardCards';
 import AnalyticsCharts from '../components/AnalyticsCharts';
 import ProgressTracker from '../components/ProgressTracker';
+import EcoGlobe3D from '../components/EcoGlobe3D';
 import { usageService } from '../services/usageService';
 import { authService } from '../services/authService';
 
@@ -91,6 +92,9 @@ export default function Dashboard() {
 
           {/* Metric Dashboard Cards */}
           <DashboardCards summary={analytics?.summary} />
+
+          {/* Interactive 3D WebGL Eco Globe Command Center */}
+          <EcoGlobe3D title="3D Global Sustainability & Resource Command Globe" />
 
           {/* Charts & Target Progress Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

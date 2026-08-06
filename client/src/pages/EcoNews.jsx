@@ -29,6 +29,8 @@ import {
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
+import Card3DTilt from '../components/Card3DTilt';
+import EcoGlobe3D from '../components/EcoGlobe3D';
 import { newsService } from '../services/newsService';
 import { authService } from '../services/authService';
 
@@ -213,6 +215,9 @@ export default function EcoNews() {
             </div>
           </div>
 
+          {/* 3D WebGL Interactive Eco Globe Component */}
+          <EcoGlobe3D title="3D Global Climate & Regulatory Intelligence Globe" />
+
           {/* Main Intelligence Hub Navigation Tabs */}
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 bg-slate-950/80 p-2 rounded-2xl border border-slate-800">
             <button
@@ -320,79 +325,80 @@ export default function EcoNews() {
                   {newsList.map((item) => {
                     const isBookmarked = bookmarkedIds.includes(item.id);
                     return (
-                      <div
-                        key={item.id}
-                        className="glass-panel rounded-3xl border border-slate-800 overflow-hidden hover:border-eco-500/50 transition-all group flex flex-col justify-between bg-slate-900/60 relative"
-                      >
-                        <div className="space-y-4">
-                          {/* Image Cover */}
-                          <div className="relative h-44 overflow-hidden bg-gradient-to-br from-slate-900 via-emerald-950/60 to-slate-950 flex items-center justify-center">
-                            <img 
-                              src={item.imageUrl} 
-                              alt={item.title} 
-                              onError={handleImageError}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
-                            <div className="absolute top-3 left-3 flex items-center gap-2">
-                              <span className={`px-2.5 py-1 rounded-lg backdrop-blur-md text-[10px] font-extrabold border ${getCategoryBadgeColor(item.category)}`}>
-                                {item.category}
-                              </span>
+                      <Card3DTilt key={item.id}>
+                        <div
+                          className="glass-panel rounded-3xl border border-slate-800 overflow-hidden hover:border-eco-500/50 transition-all group flex flex-col justify-between bg-slate-900/60 relative h-full"
+                        >
+                          <div className="space-y-4">
+                            {/* Image Cover */}
+                            <div className="relative h-44 overflow-hidden bg-gradient-to-br from-slate-900 via-emerald-950/60 to-slate-950 flex items-center justify-center">
+                              <img 
+                                src={item.imageUrl} 
+                                alt={item.title} 
+                                onError={handleImageError}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              />
+                              <div className="absolute top-3 left-3 flex items-center gap-2">
+                                <span className={`px-2.5 py-1 rounded-lg backdrop-blur-md text-[10px] font-extrabold border ${getCategoryBadgeColor(item.category)}`}>
+                                  {item.category}
+                                </span>
+                              </div>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); toggleBookmark(item.id); }}
+                                className={`absolute top-3 right-3 p-2 rounded-xl backdrop-blur-md border transition-colors ${
+                                  isBookmarked ? 'bg-amber-500 text-white border-amber-400' : 'bg-slate-900/80 text-slate-400 border-slate-700 hover:text-white'
+                                }`}
+                              >
+                                <Bookmark className="w-3.5 h-3.5" />
+                              </button>
                             </div>
+
+                            {/* Content */}
+                            <div className="px-5 space-y-3">
+                              <div className="flex items-center justify-between text-[11px] text-slate-400">
+                                <span className="font-semibold text-slate-300">{item.source}</span>
+                                <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {item.readTime}</span>
+                              </div>
+
+                              <h3 className="text-base font-bold font-display text-white group-hover:text-eco-400 transition-colors line-clamp-2 leading-snug">
+                                {item.title}
+                              </h3>
+
+                              <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                                {item.summary}
+                              </p>
+
+                              {/* 3 AI Key Takeaway Bullet Points */}
+                              <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1.5">
+                                <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
+                                  <Sparkles className="w-3 h-3" /> AI 3-Point Summary:
+                                </span>
+                                <ul className="space-y-1 text-[11px] text-slate-300">
+                                  {item.aiPoints?.slice(0, 3).map((pt, idx) => (
+                                    <li key={idx} className="flex items-start gap-1.5 leading-tight">
+                                      <span className="text-eco-400 font-bold">•</span>
+                                      <span>{pt}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Card Footer */}
+                          <div className="p-5 pt-4 border-t border-slate-800/60 mt-4 flex items-center justify-between">
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                              {item.impactLevel}
+                            </span>
                             <button
-                              onClick={(e) => { e.stopPropagation(); toggleBookmark(item.id); }}
-                              className={`absolute top-3 right-3 p-2 rounded-xl backdrop-blur-md border transition-colors ${
-                                isBookmarked ? 'bg-amber-500 text-white border-amber-400' : 'bg-slate-900/80 text-slate-400 border-slate-700 hover:text-white'
-                              }`}
+                              onClick={() => setSelectedArticle(item)}
+                              className="text-xs font-bold text-eco-400 hover:text-eco-300 flex items-center gap-1 group-hover:translate-x-0.5 transition-transform"
                             >
-                              <Bookmark className="w-3.5 h-3.5" />
+                              Read Full Details <ChevronRight className="w-3.5 h-3.5" />
                             </button>
                           </div>
-
-                          {/* Content */}
-                          <div className="px-5 space-y-3">
-                            <div className="flex items-center justify-between text-[11px] text-slate-400">
-                              <span className="font-semibold text-slate-300">{item.source}</span>
-                              <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {item.readTime}</span>
-                            </div>
-
-                            <h3 className="text-base font-bold font-display text-white group-hover:text-eco-400 transition-colors line-clamp-2 leading-snug">
-                              {item.title}
-                            </h3>
-
-                            <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
-                              {item.summary}
-                            </p>
-
-                            {/* 3 AI Key Takeaway Bullet Points */}
-                            <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1.5">
-                              <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
-                                <Sparkles className="w-3 h-3" /> AI 3-Point Summary:
-                              </span>
-                              <ul className="space-y-1 text-[11px] text-slate-300">
-                                {item.aiPoints?.slice(0, 3).map((pt, idx) => (
-                                  <li key={idx} className="flex items-start gap-1.5 leading-tight">
-                                    <span className="text-eco-400 font-bold">•</span>
-                                    <span>{pt}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          </div>
                         </div>
-
-                        {/* Card Footer */}
-                        <div className="p-5 pt-4 border-t border-slate-800/60 mt-4 flex items-center justify-between">
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
-                            {item.impactLevel}
-                          </span>
-                          <button
-                            onClick={() => setSelectedArticle(item)}
-                            className="text-xs font-bold text-eco-400 hover:text-eco-300 flex items-center gap-1 group-hover:translate-x-0.5 transition-transform"
-                          >
-                            Read Full Details <ChevronRight className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
+                      </Card3DTilt>
                     );
                   })}
                 </div>
