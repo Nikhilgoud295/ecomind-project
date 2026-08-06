@@ -1,16 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Leaf, Mail, Lock, LogIn, AlertCircle, Sparkles, Scan, ShieldCheck, Fingerprint } from 'lucide-react';
+import { Leaf, Mail, Lock, LogIn, AlertCircle, Sparkles, Scan, ShieldCheck } from 'lucide-react';
 import { authService } from '../services/authService';
 import FaceRecognitionScanner from '../components/FaceRecognitionScanner';
-import FingerprintScanner from '../components/FingerprintScanner';
 
 export default function Login() {
   const navigate = useNavigate();
-  const [loginMethod, setLoginMethod] = useState('password'); // 'password' | 'face' | 'fingerprint'
+  const [loginMethod, setLoginMethod] = useState('password'); // 'password' | 'face'
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [faceBiometricData, setFaceBiometricData] = useState(null);
-  const [fingerprintToken, setFingerprintToken] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -45,25 +43,6 @@ export default function Login() {
     }
   };
 
-  const handleFingerprintScanned = async (token) => {
-    setFingerprintToken(token);
-    setLoading(true);
-    setError('');
-
-    try {
-      await authService.fingerprintLogin({
-        email: formData.email,
-        fingerprint_data: token
-      });
-      navigate('/dashboard');
-    } catch (err) {
-      console.error('Fingerprint Login Error:', err);
-      setError(err.response?.data?.message || 'Fingerprint authentication failed. Please try again or use password.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -91,18 +70,12 @@ export default function Login() {
       } finally {
         setLoading(false);
       }
-    } else if (loginMethod === 'face') {
+    } else {
       if (!faceBiometricData) {
         setError('Please scan your face above to authenticate.');
         return;
       }
       handleFaceScanned(faceBiometricData);
-    } else if (loginMethod === 'fingerprint') {
-      if (!fingerprintToken) {
-        setError('Please touch the fingerprint sensor above to authenticate.');
-        return;
-      }
-      handleFingerprintScanned(fingerprintToken);
     }
   };
 
@@ -119,45 +92,34 @@ export default function Login() {
           </div>
         </Link>
         <h2 className="text-3xl font-extrabold font-display tracking-tight text-white">Sign In to EcoMind AI</h2>
-        <p className="text-xs text-slate-400">Password, Face ID, or Touch ID Fingerprint Authentication</p>
+        <p className="text-xs text-slate-400">Choose Email & Password or Face ID Biometric Sign In</p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md z-10 px-4">
         <div className="glass-panel py-8 px-6 shadow-2xl rounded-3xl border border-slate-800 space-y-6">
           {/* Method Selection Switcher Bar */}
-          <div className="grid grid-cols-3 gap-1.5 p-1.5 rounded-2xl bg-slate-950 border border-slate-800 text-[11px]">
+          <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-slate-950 border border-slate-800">
             <button
               type="button"
               onClick={() => setLoginMethod('password')}
-              className={`py-2 rounded-xl font-bold transition-all flex items-center justify-center gap-1.5 ${
+              className={`py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                 loginMethod === 'password'
                   ? 'bg-eco-600 text-white shadow-glow-eco'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              <Lock className="w-3.5 h-3.5" /> Password
+              <Lock className="w-4 h-4" /> Email & Password
             </button>
             <button
               type="button"
               onClick={() => setLoginMethod('face')}
-              className={`py-2 rounded-xl font-bold transition-all flex items-center justify-center gap-1.5 ${
+              className={`py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                 loginMethod === 'face'
                   ? 'bg-eco-600 text-white shadow-glow-eco'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              <Scan className="w-3.5 h-3.5 text-emerald-400" /> Face ID
-            </button>
-            <button
-              type="button"
-              onClick={() => setLoginMethod('fingerprint')}
-              className={`py-2 rounded-xl font-bold transition-all flex items-center justify-center gap-1.5 ${
-                loginMethod === 'fingerprint'
-                  ? 'bg-teal-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <Fingerprint className="w-3.5 h-3.5 text-teal-400" /> Touch ID
+              <Scan className="w-4 h-4 text-emerald-400" /> Face ID Biometric
             </button>
           </div>
 
@@ -185,7 +147,7 @@ export default function Login() {
             </div>
           )}
 
-          {loginMethod === 'password' && (
+          {loginMethod === 'password' ? (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
@@ -242,9 +204,7 @@ export default function Login() {
                 )}
               </button>
             </form>
-          )}
-
-          {loginMethod === 'face' && (
+          ) : (
             <div className="space-y-4">
               <FaceRecognitionScanner onScanComplete={handleFaceScanned} mode="login" />
 
@@ -262,30 +222,6 @@ export default function Login() {
                   <>
                     <ShieldCheck className="w-4 h-4" />
                     Sign In with Face ID Biometrics
-                  </>
-                )}
-              </button>
-            </div>
-          )}
-
-          {loginMethod === 'fingerprint' && (
-            <div className="space-y-4">
-              <FingerprintScanner onScanComplete={handleFingerprintScanned} mode="login" />
-
-              <button
-                type="button"
-                onClick={() => {
-                  if (fingerprintToken) handleFingerprintScanned(fingerprintToken);
-                }}
-                disabled={loading}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-teal-600 via-emerald-600 to-eco-600 hover:from-teal-500 hover:to-emerald-500 text-white font-semibold shadow-md transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50"
-              >
-                {loading ? (
-                  <span>Authenticating Touch ID...</span>
-                ) : (
-                  <>
-                    <Fingerprint className="w-4 h-4 text-teal-300" />
-                    Sign In with Touch ID Fingerprint
                   </>
                 )}
               </button>

@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Leaf, User, Mail, Lock, Building2, UserPlus, AlertCircle, Scan, Fingerprint } from 'lucide-react';
+import { Leaf, User, Mail, Lock, Building2, UserPlus, AlertCircle, Scan } from 'lucide-react';
 import { authService } from '../services/authService';
 import FaceRecognitionScanner from '../components/FaceRecognitionScanner';
-import FingerprintScanner from '../components/FingerprintScanner';
 
 export default function Register() {
   const navigate = useNavigate();
-  const [authMethod, setAuthMethod] = useState('password'); // 'password' | 'face' | 'fingerprint'
+  const [authMethod, setAuthMethod] = useState('password'); // 'password' | 'face'
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -16,7 +15,6 @@ export default function Register() {
   });
 
   const [faceBiometricData, setFaceBiometricData] = useState(null);
-  const [fingerprintToken, setFingerprintToken] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -27,11 +25,6 @@ export default function Register() {
 
   const handleFaceCaptured = (biometricSnapshot) => {
     setFaceBiometricData(biometricSnapshot);
-    setError('');
-  };
-
-  const handleFingerprintCaptured = (token) => {
-    setFingerprintToken(token);
     setError('');
   };
 
@@ -54,18 +47,13 @@ export default function Register() {
       return;
     }
 
-    if (authMethod === 'fingerprint' && !fingerprintToken) {
-      setError('Please scan your fingerprint before submitting.');
-      return;
-    }
-
     setLoading(true);
 
     try {
       await authService.register({
         ...formData,
-        password: formData.password || 'fingerprint_secured_123',
-        face_biometric_data: faceBiometricData || fingerprintToken
+        password: formData.password || 'face_id_secured_123',
+        face_biometric_data: faceBiometricData
       });
       navigate('/dashboard');
     } catch (err) {
@@ -95,45 +83,34 @@ export default function Register() {
           </div>
         </Link>
         <h2 className="text-3xl font-extrabold font-display tracking-tight text-white">Create EcoMind Account</h2>
-        <p className="text-xs text-slate-400">Password, Face ID, or Touch ID Fingerprint Enrollment</p>
+        <p className="text-xs text-slate-400">Register with Password or Face ID Biometric Recognition</p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md z-10 px-4">
         <div className="glass-panel py-8 px-6 shadow-2xl rounded-3xl border border-slate-800 space-y-6">
           {/* Method Selection Bar */}
-          <div className="grid grid-cols-3 gap-1.5 p-1.5 rounded-2xl bg-slate-950 border border-slate-800 text-[11px]">
+          <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-slate-950 border border-slate-800">
             <button
               type="button"
               onClick={() => setAuthMethod('password')}
-              className={`py-2 rounded-xl font-bold transition-all flex items-center justify-center gap-1.5 ${
+              className={`py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                 authMethod === 'password'
                   ? 'bg-eco-600 text-white shadow-glow-eco'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              <Lock className="w-3.5 h-3.5" /> Password
+              <Lock className="w-4 h-4" /> Password Registration
             </button>
             <button
               type="button"
               onClick={() => setAuthMethod('face')}
-              className={`py-2 rounded-xl font-bold transition-all flex items-center justify-center gap-1.5 ${
+              className={`py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                 authMethod === 'face'
                   ? 'bg-eco-600 text-white shadow-glow-eco'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              <Scan className="w-3.5 h-3.5 text-emerald-400" /> Face ID
-            </button>
-            <button
-              type="button"
-              onClick={() => setAuthMethod('fingerprint')}
-              className={`py-2 rounded-xl font-bold transition-all flex items-center justify-center gap-1.5 ${
-                authMethod === 'fingerprint'
-                  ? 'bg-teal-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <Fingerprint className="w-3.5 h-3.5 text-teal-400" /> Touch ID
+              <Scan className="w-4 h-4 text-emerald-400" /> Face ID Biometric
             </button>
           </div>
 
@@ -204,7 +181,7 @@ export default function Register() {
               </div>
             </div>
 
-            {authMethod === 'password' && (
+            {authMethod === 'password' ? (
               <div>
                 <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
                   Password *
@@ -224,14 +201,8 @@ export default function Register() {
                   />
                 </div>
               </div>
-            )}
-
-            {authMethod === 'face' && (
+            ) : (
               <FaceRecognitionScanner onScanComplete={handleFaceCaptured} mode="register" />
-            )}
-
-            {authMethod === 'fingerprint' && (
-              <FingerprintScanner onScanComplete={handleFingerprintCaptured} mode="register" />
             )}
 
             <button
@@ -244,11 +215,7 @@ export default function Register() {
               ) : (
                 <>
                   <UserPlus className="w-4 h-4" />
-                  {authMethod === 'face'
-                    ? 'Register with Face ID Biometrics'
-                    : authMethod === 'fingerprint'
-                    ? 'Register with Touch ID Fingerprint'
-                    : 'Create Free Account'}
+                  {authMethod === 'face' ? 'Register with Face ID Biometrics' : 'Create Free Account'}
                 </>
               )}
             </button>
@@ -256,7 +223,7 @@ export default function Register() {
 
           <div className="text-center pt-2 text-xs text-slate-400">
             Already have an account?{' '}
-            <Link to="/login" className="text-eco-400 font-semibold hover:underline">
+            <Link to="/register" className="text-eco-400 font-semibold hover:underline" onClick={() => navigate('/login')}>
               Sign In
             </Link>
           </div>
