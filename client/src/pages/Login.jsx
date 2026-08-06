@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Leaf, Mail, Lock, LogIn, AlertCircle, Sparkles, Scan, ShieldCheck } from 'lucide-react';
+import { Leaf, Mail, Lock, LogIn, AlertCircle, Sparkles, Scan, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { authService } from '../services/authService';
 import FaceRecognitionScanner from '../components/FaceRecognitionScanner';
 
@@ -9,6 +9,7 @@ export default function Login() {
   const [loginMethod, setLoginMethod] = useState('password'); // 'password' | 'face'
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [faceBiometricData, setFaceBiometricData] = useState(null);
+  const [isFaceVerified, setIsFaceVerified] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -25,20 +26,30 @@ export default function Login() {
     setError('');
   };
 
-  const handleFaceScanned = async (biometricSnapshot) => {
+  const handleFaceCaptured = (biometricSnapshot) => {
     setFaceBiometricData(biometricSnapshot);
+    setIsFaceVerified(true);
+    setError('');
+  };
+
+  const handleFaceLoginSubmit = async () => {
+    if (!isFaceVerified || !faceBiometricData) {
+      setError('Please start the AI Camera and scan your face first to verify biometrics.');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
     try {
       await authService.faceLogin({
         email: formData.email || 'nikhilgoudkeesari@gmail.com',
-        face_biometric_data: biometricSnapshot || 'face_id_snapshot_verified'
+        face_biometric_data: faceBiometricData
       });
       navigate('/dashboard');
     } catch (err) {
       console.error('Face Login Error:', err);
-      setError(err.response?.data?.message || 'Face Recognition authentication completed.');
+      setError(err.response?.data?.message || 'Facial verification failed. Please scan your face again.');
     } finally {
       setLoading(false);
     }
@@ -64,14 +75,13 @@ export default function Login() {
         if (serverMessage) {
           setError(serverMessage);
         } else {
-          setError('Login processing completed. Redirecting...');
-          setTimeout(() => navigate('/dashboard'), 500);
+          setError('Invalid login credentials. Please check your email and password.');
         }
       } finally {
         setLoading(false);
       }
     } else {
-      handleFaceScanned(faceBiometricData || 'face_id_simulated');
+      handleFaceLoginSubmit();
     }
   };
 
@@ -97,7 +107,7 @@ export default function Login() {
           <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-slate-950 border border-slate-800">
             <button
               type="button"
-              onClick={() => setLoginMethod('password')}
+              onClick={() => { setLoginMethod('password'); setError(''); }}
               className={`py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                 loginMethod === 'password'
                   ? 'bg-eco-600 text-white shadow-glow-eco'
@@ -108,7 +118,7 @@ export default function Login() {
             </button>
             <button
               type="button"
-              onClick={() => setLoginMethod('face')}
+              onClick={() => { setLoginMethod('face'); setError(''); }}
               className={`py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                 loginMethod === 'face'
                   ? 'bg-eco-600 text-white shadow-glow-eco'
@@ -202,20 +212,30 @@ export default function Login() {
             </form>
           ) : (
             <div className="space-y-4">
-              <FaceRecognitionScanner onScanComplete={handleFaceScanned} mode="login" />
+              {/* Mandatory Facial Recognition Scanner */}
+              <FaceRecognitionScanner onScanComplete={handleFaceCaptured} mode="login" />
 
               <button
                 type="button"
-                onClick={() => handleFaceScanned(faceBiometricData || 'instant_face_verification')}
-                disabled={loading}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-eco-600 via-emerald-500 to-teal-500 hover:from-eco-500 hover:to-teal-400 text-white font-semibold shadow-glow-eco transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+                onClick={handleFaceLoginSubmit}
+                disabled={loading || !isFaceVerified}
+                className={`w-full py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 text-sm ${
+                  isFaceVerified
+                    ? 'bg-gradient-to-r from-eco-600 via-emerald-500 to-teal-500 text-white shadow-glow-eco hover:scale-[1.02]'
+                    : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
+                }`}
               >
                 {loading ? (
                   <span>Verifying Face Biometrics...</span>
+                ) : isFaceVerified ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    Face Verified — Click to Sign In
+                  </>
                 ) : (
                   <>
                     <ShieldCheck className="w-4 h-4" />
-                    Sign In with Face ID Biometrics
+                    Scan Face Above First to Sign In
                   </>
                 )}
               </button>
