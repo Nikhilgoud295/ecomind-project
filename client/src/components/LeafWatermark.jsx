@@ -1,5 +1,4 @@
 import React, { useEffect, useRef } from 'react';
-import { Leaf } from 'lucide-react';
 
 export default function LeafWatermark() {
   const canvasRef = useRef(null);
@@ -23,18 +22,18 @@ export default function LeafWatermark() {
     const leafCount = 35;
     const leaves = [];
     const leafColors = [
-      'rgba(16, 185, 129, 0.18)', // Light Emerald
-      'rgba(52, 211, 153, 0.22)', // Fresh Mint Green
-      'rgba(110, 231, 183, 0.16)', // Light Lime Green
-      'rgba(20, 184, 166, 0.18)',  // Light Teal Green
-      'rgba(74, 222, 128, 0.15)'   // Soft Eco Green
+      'rgba(16, 185, 129, 0.22)', // Light Emerald
+      'rgba(52, 211, 153, 0.25)', // Fresh Mint Green
+      'rgba(110, 231, 183, 0.20)', // Light Lime Green
+      'rgba(20, 184, 166, 0.22)',  // Light Teal Green
+      'rgba(74, 222, 128, 0.18)'   // Soft Eco Green
     ];
 
     for (let i = 0; i < leafCount; i++) {
       leaves.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        size: Math.random() * 16 + 14, // 14px to 30px
+        size: Math.random() * 16 + 12, // 12px to 28px
         speedY: Math.random() * 0.8 + 0.3, // Falling speed
         speedX: Math.random() * 0.4 - 0.2, // Horizontal drift
         swaySpeed: Math.random() * 0.02 + 0.005,
@@ -62,7 +61,7 @@ export default function LeafWatermark() {
       ctx.beginPath();
       ctx.moveTo(0, -size * 0.8);
       ctx.lineTo(0, size * 0.8);
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
       ctx.lineWidth = 1;
       ctx.stroke();
     };
@@ -121,14 +120,6 @@ export default function LeafWatermark() {
 
       {/* Moving Light Green Leaves Canvas */}
       <canvas ref={canvasRef} className="w-full h-full block" />
-
-      {/* Static Large Ambient Leaf Watermark Accents */}
-      <div className="absolute -top-20 -right-20 text-emerald-400/08 transform -rotate-12 scale-125">
-        <Leaf className="w-[480px] h-[480px]" />
-      </div>
-      <div className="absolute -bottom-24 -left-24 text-teal-400/08 transform rotate-45 scale-110">
-        <Leaf className="w-[420px] h-[420px]" />
-      </div>
     </div>
   );
 }
