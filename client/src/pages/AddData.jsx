@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileUp, Edit3, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
+import { FileUp, Edit3, Sparkles, CheckCircle2, ArrowRight, Layers, FileText } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
@@ -12,7 +12,7 @@ import { aiService } from '../services/aiService';
 
 export default function AddData() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('document'); // 'document' | 'manual'
+  const [activeTab, setActiveTab] = useState('manual'); // 'manual' | 'document'
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [aiReportResult, setAiReportResult] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
@@ -58,45 +58,75 @@ export default function AddData() {
         <Sidebar />
 
         <main className="flex-1 space-y-6 overflow-hidden">
-          {/* Header */}
-          <div className="glass-panel p-6 rounded-3xl border border-slate-800 space-y-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          {/* Main Command Header */}
+          <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-5 bg-gradient-to-r from-slate-900 via-slate-900/95 to-emerald-950/30">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-800/80 pb-5">
               <div>
-                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-eco-500/20 text-eco-400 border border-eco-500/30">
-                  Resource Input & Document Upload Protocol
-                </span>
-                <h1 className="text-2xl font-bold font-display text-white flex items-center gap-2 mt-2">
-                  <FileUp className="w-6 h-6 text-eco-400" />
-                  Document Upload & Resource Input
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-eco-500/20 text-eco-400 border border-eco-500/30 text-xs font-semibold">
+                  <Layers className="w-3.5 h-3.5" />
+                  Select Data Input Method
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-extrabold font-display text-white tracking-tight mt-2 flex items-center gap-2.5">
+                  {activeTab === 'manual' ? (
+                    <>
+                      <Edit3 className="w-7 h-7 text-eco-400" />
+                      Manual Resource Usage Entry
+                    </>
+                  ) : (
+                    <>
+                      <FileUp className="w-7 h-7 text-eco-400" />
+                      Document & Utility Bill Upload
+                    </>
+                  )}
                 </h1>
-                <p className="text-xs text-slate-400 mt-1">
-                  Upload utility bills, electricity receipts, or carbon logs to automatically extract resource data using Gemini AI, or enter data manually.
+                <p className="text-xs sm:text-sm text-slate-300 mt-1">
+                  Choose between <span className="text-eco-400 font-semibold">Manual Input Form</span> or <span className="text-teal-400 font-semibold">AI Document Upload</span> to log your daily electricity, water, waste, and transport metrics.
                 </p>
               </div>
+            </div>
 
-              {/* Mode Selector Tabs */}
-              <div className="flex items-center gap-1.5 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800 self-stretch sm:self-auto">
+            {/* High-Contrast Clear Mode Selector Bar */}
+            <div className="space-y-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+                Choose Mode:
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-950/80 p-2 rounded-2xl border border-slate-800">
+                {/* Manual Entry Button */}
                 <button
-                  onClick={() => setActiveTab('document')}
-                  className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
-                    activeTab === 'document'
-                      ? 'bg-gradient-to-r from-eco-600 to-teal-600 text-white shadow-glow-eco'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-                  }`}
-                >
-                  <FileUp className="w-4 h-4" />
-                  Document Upload (AI)
-                </button>
-                <button
+                  type="button"
                   onClick={() => setActiveTab('manual')}
-                  className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
+                  className={`p-3.5 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-3 border ${
                     activeTab === 'manual'
-                      ? 'bg-gradient-to-r from-eco-600 to-teal-600 text-white shadow-glow-eco'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                      ? 'bg-gradient-to-r from-eco-600 to-emerald-600 text-white border-eco-400 shadow-glow-eco scale-[1.01]'
+                      : 'bg-slate-900/60 text-slate-300 hover:text-white border-slate-800 hover:bg-slate-800'
                   }`}
                 >
-                  <Edit3 className="w-4 h-4" />
-                  Manual Entry Form
+                  <Edit3 className={`w-4 h-4 ${activeTab === 'manual' ? 'text-white' : 'text-eco-400'}`} />
+                  <span>✍️ Manual Data Entry Form</span>
+                  {activeTab === 'manual' && (
+                    <span className="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full bg-white/20 text-white ml-auto">
+                      Active
+                    </span>
+                  )}
+                </button>
+
+                {/* Document Upload Button */}
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('document')}
+                  className={`p-3.5 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-3 border ${
+                    activeTab === 'document'
+                      ? 'bg-gradient-to-r from-teal-600 to-eco-600 text-white border-teal-400 shadow-glow-eco scale-[1.01]'
+                      : 'bg-slate-900/60 text-slate-300 hover:text-white border-slate-800 hover:bg-slate-800'
+                  }`}
+                >
+                  <FileUp className={`w-4 h-4 ${activeTab === 'document' ? 'text-white' : 'text-teal-400'}`} />
+                  <span>📄 AI Document & Bill Upload</span>
+                  {activeTab === 'document' && (
+                    <span className="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full bg-white/20 text-white ml-auto">
+                      Active
+                    </span>
+                  )}
                 </button>
               </div>
             </div>
@@ -118,11 +148,11 @@ export default function AddData() {
           )}
 
           {/* Active Tab Panel */}
-          <div className="glass-panel p-6 rounded-3xl border border-slate-800">
-            {activeTab === 'document' ? (
-              <DocumentUpload onExtractedDataSubmit={handleFormSubmit} isSubmitting={isSubmitting} />
-            ) : (
+          <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800">
+            {activeTab === 'manual' ? (
               <ResourceForm onSubmit={handleFormSubmit} isSubmitting={isSubmitting} />
+            ) : (
+              <DocumentUpload onExtractedDataSubmit={handleFormSubmit} isSubmitting={isSubmitting} />
             )}
           </div>
 
