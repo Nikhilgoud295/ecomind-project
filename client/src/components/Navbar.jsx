@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Leaf, LogOut, User, Bell, Settings, BarChart3, FileUp, Sparkles, Newspaper, FileText, Check, ShieldAlert, AlertTriangle, Zap, Menu, X, LogIn, UserPlus } from 'lucide-react';
+import { Leaf, LogOut, User, Bell, Settings, BarChart3, FileUp, Sparkles, Newspaper, FileText, Check, ShieldAlert, AlertTriangle, Zap, Menu, X, LogIn, UserPlus, Award } from 'lucide-react';
 import { authService } from '../services/authService';
 
 export default function Navbar() {
@@ -74,6 +74,7 @@ export default function Navbar() {
     { path: '/add-data', label: 'Upload & Add Data', icon: FileUp },
     { path: '/analytics', label: 'Analytics', icon: BarChart3 },
     { path: '/ai-advisor', label: 'AI Advisor', icon: Sparkles },
+    { path: '/rewards', label: 'Rewards & Badges', icon: Award },
     { path: '/eco-news', label: 'Intelligence Hub', icon: Newspaper },
     { path: '/reports', label: 'Reports', icon: FileText },
   ];
@@ -100,6 +101,16 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-3">
             {isAuthenticated && currentUser ? (
               <div className="flex items-center gap-3 relative">
+                {/* Rewards & Performance Appreciation Badge Button */}
+                <Link
+                  to="/rewards"
+                  className="group flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-950/60 to-teal-950/60 border border-emerald-500/40 hover:border-emerald-400 transition-all duration-300 hover:scale-105 shadow-md"
+                  title="Performance Rewards Core"
+                >
+                  <Award className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
+                  <span className="text-xs font-mono font-bold text-emerald-300">1,420 pts</span>
+                </Link>
+
                 {/* User Profile Link */}
                 <Link
                   to="/profile"
@@ -115,7 +126,7 @@ export default function Navbar() {
                   </span>
                 </Link>
 
-                {/* Notifications Bell (POSITIONED LEFT OF SETTINGS) */}
+                {/* Notifications Bell */}
                 <div className="relative">
                   <button
                     onClick={() => setNotificationsOpen(!notificationsOpen)}

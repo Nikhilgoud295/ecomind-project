@@ -14,6 +14,7 @@ import Analytics from './pages/Analytics';
 import AIAdvisor from './pages/AIAdvisor';
 import Reports from './pages/Reports';
 import EcoNews from './pages/EcoNews';
+import Rewards from './pages/Rewards';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="/ai-advisor" element={<AIAdvisor />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/eco-news" element={<EcoNews />} />
+          <Route path="/rewards" element={<Rewards />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
