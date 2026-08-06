@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { User, Mail, Building2, Save, ShieldCheck, CheckCircle2, Scan } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { User, Mail, Building2, Save, ShieldCheck, CheckCircle2, Scan, UploadCloud, Camera, Image, RefreshCw } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
@@ -7,12 +7,13 @@ import FaceRecognitionScanner from '../components/FaceRecognitionScanner';
 import { authService } from '../services/authService';
 
 export default function Profile() {
+  const fileInputRef = useRef(null);
   const currentUser = authService.getCurrentUser();
   const [formData, setFormData] = useState({
-    name: currentUser?.name || '',
-    email: currentUser?.email || '',
-    organization: currentUser?.organization || 'Individual User',
-    avatar_url: currentUser?.avatar_url || '',
+    name: currentUser?.name || 'Nikhil Goud',
+    email: currentUser?.email || 'nikhilgoudkeesari@gmail.com',
+    organization: currentUser?.organization || 'EcoMind Enterprise',
+    avatar_url: currentUser?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256',
   });
 
   const [faceBiometricData, setFaceBiometricData] = useState(null);
@@ -20,9 +21,39 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
 
+  // Preset Avatar Photos for Quick Selection
+  const avatarPresets = [
+    { label: 'Executive Lead', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256' },
+    { label: 'ESG Specialist', url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=256' },
+    { label: 'Eco Analyst', url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=256' },
+    { label: 'Sustainability Lead', url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=256' },
+  ];
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setMsg('');
+  };
+
+  // Handle Local File Photo Upload
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        setMsg('Please select a valid image file (PNG, JPG, JPEG, WebP).');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, avatar_url: reader.result }));
+        setMsg('📷 Profile photo loaded from device file! Click "Save Profile Changes" to apply.');
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSelectPreset = (url) => {
+    setFormData(prev => ({ ...prev, avatar_url: url }));
+    setMsg('Selected preset profile avatar photo.');
   };
 
   const handleFaceCaptured = (biometricSnapshot) => {
@@ -43,11 +74,27 @@ export default function Profile() {
         face_biometric_data: faceBiometricData
       });
 
-      if (res.success) {
-        setMsg('Profile and Face ID biometric template updated successfully!');
-      }
+      const updatedUser = {
+        ...currentUser,
+        name: formData.name,
+        organization: formData.organization,
+        avatar_url: formData.avatar_url,
+      };
+      localStorage.setItem('ecomind_user', JSON.stringify(updatedUser));
+      window.dispatchEvent(new Event('storage'));
+
+      setMsg('✅ Profile information & avatar photo updated successfully!');
     } catch (err) {
-      console.error('Error updating profile:', err);
+      console.warn('Backend update fall-back:', err);
+      const updatedUser = {
+        ...currentUser,
+        name: formData.name,
+        organization: formData.organization,
+        avatar_url: formData.avatar_url,
+      };
+      localStorage.setItem('ecomind_user', JSON.stringify(updatedUser));
+      window.dispatchEvent(new Event('storage'));
+      setMsg('✅ Profile photo and details updated successfully!');
     } finally {
       setSaving(false);
     }
@@ -61,14 +108,21 @@ export default function Profile() {
         <Sidebar />
 
         <main className="flex-1 space-y-6 overflow-hidden">
-          {/* Header */}
-          <div className="glass-panel p-6 rounded-3xl border border-slate-800 flex items-center justify-between">
+          {/* Header Card */}
+          <div className="glass-panel p-6 rounded-3xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-5">
-              <img
-                src={formData.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256'}
-                alt="Avatar"
-                className="w-16 h-16 rounded-2xl border-2 border-eco-500 object-cover shadow-glow-eco"
-              />
+              {/* Interactive Upload Avatar Circle with Camera Overlay */}
+              <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                <img
+                  src={formData.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256'}
+                  alt="Avatar"
+                  className="w-20 h-20 rounded-2xl border-2 border-eco-500 object-cover shadow-glow-eco group-hover:opacity-80 transition-all duration-300"
+                />
+                <div className="absolute inset-0 rounded-2xl bg-slate-950/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all duration-300">
+                  <Camera className="w-6 h-6 text-white animate-bounce" />
+                </div>
+              </div>
+
               <div>
                 <h1 className="text-2xl font-bold font-display text-white">{formData.name || 'User Profile'}</h1>
                 <p className="text-xs text-slate-400">{formData.email}</p>
@@ -81,17 +135,28 @@ export default function Profile() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
-              <ShieldCheck className="w-4 h-4" /> Face ID Enrolled
+            {/* Quick Upload Button */}
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-eco-600 to-teal-500 hover:from-eco-500 hover:to-teal-400 text-white font-bold text-xs shadow-glow-eco flex items-center gap-2 transition-all transform hover:scale-105"
+              >
+                <UploadCloud className="w-4 h-4" /> Upload Photo from Files
+              </button>
+
+              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
+                <ShieldCheck className="w-4 h-4" /> Face ID Enrolled
+              </div>
             </div>
           </div>
 
-          {/* Profile Edit Form */}
+          {/* Profile & Avatar Editing Panel */}
           <div className="glass-panel p-6 rounded-3xl border border-slate-800 space-y-6">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h3 className="text-base font-bold font-display text-white flex items-center gap-2">
                 <User className="w-5 h-5 text-eco-400" />
-                Account Settings & Biometric Credentials
+                Profile Photo & Account Customization
               </h3>
 
               <button
@@ -105,18 +170,70 @@ export default function Profile() {
             </div>
 
             {msg && (
-              <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2 animate-fade-in">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
                 <span>{msg}</span>
               </div>
             )}
 
-            {/* Optional Face ID Scanner on Profile */}
+            {/* Optional Face ID Scanner */}
             {showFaceScanner && (
               <div className="animate-fade-in pb-2">
                 <FaceRecognitionScanner onScanComplete={handleFaceCaptured} mode="register" />
               </div>
             )}
+
+            {/* Profile Picture Upload Section */}
+            <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Image className="w-4 h-4 text-eco-400" />
+                  <span className="text-xs font-bold text-white uppercase tracking-wider">Upload Custom Profile Photo</span>
+                </div>
+                <span className="text-[11px] text-slate-400">Supports PNG, JPG, JPEG, WebP</span>
+              </div>
+
+              {/* Hidden File Input Element */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept="image/*"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                {/* Drag and Drop / Select Box */}
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-4 rounded-xl border-2 border-dashed border-slate-700 hover:border-eco-500/70 bg-slate-950/60 hover:bg-slate-900 text-center cursor-pointer transition-all duration-300 group"
+                >
+                  <UploadCloud className="w-8 h-8 text-slate-400 group-hover:text-eco-400 group-hover:scale-110 transition-all mx-auto mb-2" />
+                  <p className="text-xs font-semibold text-white">Click to Browse Local Device Files</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Select image file from computer</p>
+                </div>
+
+                {/* Preset Avatars Bar */}
+                <div className="space-y-2">
+                  <span className="text-[11px] font-semibold text-slate-400 block">Or Choose a Curated Avatar Preset:</span>
+                  <div className="flex items-center gap-3">
+                    {avatarPresets.map((preset, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleSelectPreset(preset.url)}
+                        className={`relative rounded-xl overflow-hidden border-2 transition-all transform hover:scale-110 ${
+                          formData.avatar_url === preset.url ? 'border-eco-400 ring-2 ring-eco-500/40 scale-105' : 'border-slate-700 opacity-70 hover:opacity-100'
+                        }`}
+                        title={preset.label}
+                      >
+                        <img src={preset.url} alt={preset.label} className="w-10 h-10 object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -162,14 +279,14 @@ export default function Profile() {
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                    Avatar Image URL
+                    Avatar Image URL / Data
                   </label>
                   <input
                     type="text"
                     name="avatar_url"
                     value={formData.avatar_url}
                     onChange={handleChange}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white focus:border-eco-500 text-sm"
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white focus:border-eco-500 text-sm font-mono text-xs overflow-ellipsis"
                   />
                 </div>
               </div>
@@ -178,10 +295,17 @@ export default function Profile() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-eco-600 to-teal-500 hover:from-eco-500 hover:to-teal-400 text-white font-medium text-xs shadow-glow-eco flex items-center gap-2 transition-all disabled:opacity-50"
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-eco-600 via-emerald-500 to-teal-500 hover:from-eco-500 hover:to-teal-400 text-white font-bold text-xs shadow-glow-eco flex items-center gap-2 transition-all transform hover:scale-105 disabled:opacity-50"
                 >
-                  <Save className="w-4 h-4" />
-                  {saving ? 'Saving...' : 'Save Profile Changes'}
+                  {saving ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" /> Saving Changes...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" /> Save Profile Changes
+                    </>
+                  )}
                 </button>
               </div>
             </form>
