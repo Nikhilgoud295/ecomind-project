@@ -25,9 +25,10 @@ export default function Footer() {
             <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-3">Quick Navigation</h4>
             <ul className="space-y-2 text-xs text-slate-400">
               <li><Link to="/dashboard" className="hover:text-eco-400 transition-colors">Dashboard</Link></li>
-              <li><Link to="/add-data" className="hover:text-eco-400 transition-colors">Add Resource Data</Link></li>
+              <li><Link to="/add-data" className="hover:text-eco-400 transition-colors">Upload & Add Data</Link></li>
               <li><Link to="/analytics" className="hover:text-eco-400 transition-colors">Analytics & Charts</Link></li>
               <li><Link to="/ai-advisor" className="hover:text-eco-400 transition-colors">AI Sustainability Advisor</Link></li>
+              <li><Link to="/eco-news" className="hover:text-eco-400 transition-colors">Eco News Hub</Link></li>
             </ul>
           </div>
 

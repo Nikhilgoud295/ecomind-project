@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, PlusCircle, FileUp, LineChart, Sparkles, FileText, User, Settings, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, FileUp, LineChart, Sparkles, FileText, Newspaper, User, Settings, ShieldCheck } from 'lucide-react';
 
 export default function Sidebar() {
   const menuItems = [
@@ -8,6 +8,7 @@ export default function Sidebar() {
     { path: '/add-data', label: 'Upload & Record', icon: FileUp },
     { path: '/analytics', label: 'Analytics & Trends', icon: LineChart },
     { path: '/ai-advisor', label: 'AI Advisor', icon: Sparkles, badge: 'Gemini' },
+    { path: '/eco-news', label: 'Eco News Hub', icon: Newspaper, badge: 'Live' },
     { path: '/reports', label: 'Reports Export', icon: FileText },
   ];
 

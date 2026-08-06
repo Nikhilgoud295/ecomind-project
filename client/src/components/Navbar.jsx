@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Leaf, LogOut, User, Settings, Sparkles, Menu, X, BarChart3, PlusCircle, FileUp, FileText } from 'lucide-react';
+import { Leaf, LogOut, User, Settings, Sparkles, Menu, X, BarChart3, PlusCircle, FileUp, FileText, Newspaper } from 'lucide-react';
 import { authService } from '../services/authService';
 
 export default function Navbar() {
@@ -20,6 +20,7 @@ export default function Navbar() {
     { path: '/add-data', label: 'Upload & Add Data', icon: FileUp },
     { path: '/analytics', label: 'Analytics', icon: BarChart3 },
     { path: '/ai-advisor', label: 'AI Advisor', icon: Sparkles },
+    { path: '/eco-news', label: 'Eco News', icon: Newspaper },
     { path: '/reports', label: 'Reports', icon: FileText },
   ];
 
