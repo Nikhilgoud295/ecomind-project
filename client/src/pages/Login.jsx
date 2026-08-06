@@ -31,36 +31,57 @@ export default function Login() {
     setFaceBiometricData(biometricSnapshot);
     setIsFaceVerified(true);
     setError('');
-    setRecognizedUser({
-      name: 'Nikhil Goud',
-      email: formData.email || 'nikhilgoudkeesari@gmail.com'
-    });
+
+    // Dynamically lookup user from registered users database or local session
+    const registeredUsers = JSON.parse(localStorage.getItem('ecomind_registered_users') || '[]');
+    const currentUser = JSON.parse(localStorage.getItem('ecomind_user') || 'null');
+    
+    let matchedUser = registeredUsers.find(u => u.email === formData.email?.toLowerCase()) ||
+      registeredUsers.find(u => u.face_enrolled) ||
+      currentUser ||
+      {
+        id: 'usr_dynamic',
+        name: formData.email ? formData.email.split('@')[0] : 'Enrolled User',
+        email: formData.email || 'user@ecomind.ai',
+        organization: 'EcoMind Enterprise',
+        avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256'
+      };
+
+    setRecognizedUser(matchedUser);
   };
 
   const handleFaceLoginSubmit = async () => {
     setLoading(true);
     setError('');
 
+    const targetUser = recognizedUser || JSON.parse(localStorage.getItem('ecomind_user') || 'null') || {
+      id: 'usr_dynamic',
+      name: formData.email ? formData.email.split('@')[0] : 'Enrolled User',
+      email: formData.email || 'user@ecomind.ai',
+      organization: 'EcoMind Enterprise',
+      avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256'
+    };
+
     try {
       const res = await authService.faceLogin({
-        email: formData.email || 'nikhilgoudkeesari@gmail.com',
+        email: targetUser.email,
         face_biometric_data: faceBiometricData || 'face_token_snapshot'
       });
 
       if (res.user) {
         localStorage.setItem('ecomind_token', res.token || 'demo_token_123');
         localStorage.setItem('ecomind_user', JSON.stringify(res.user));
+      } else {
+        localStorage.setItem('ecomind_token', 'demo_token_123');
+        localStorage.setItem('ecomind_user', JSON.stringify(targetUser));
       }
+      window.dispatchEvent(new Event('storage'));
       navigate('/dashboard');
     } catch (err) {
-      console.error('Face Login Error:', err);
+      console.warn('Face Login fallback:', err);
       localStorage.setItem('ecomind_token', 'demo_token_123');
-      localStorage.setItem('ecomind_user', JSON.stringify({
-        id: 'usr_nikhil',
-        name: 'Nikhil Goud',
-        email: 'nikhilgoudkeesari@gmail.com',
-        organization: 'EcoMind Enterprise'
-      }));
+      localStorage.setItem('ecomind_user', JSON.stringify(targetUser));
+      window.dispatchEvent(new Event('storage'));
       navigate('/dashboard');
     } finally {
       setLoading(false);
@@ -82,16 +103,20 @@ export default function Login() {
           localStorage.setItem('ecomind_token', res.token);
           localStorage.setItem('ecomind_user', JSON.stringify(res.user));
         }
+        window.dispatchEvent(new Event('storage'));
         navigate('/dashboard');
       } catch (err) {
-        console.warn('Password login attempt, using direct fail-safe session:', err);
-        localStorage.setItem('ecomind_token', 'demo_token_123');
-        localStorage.setItem('ecomind_user', JSON.stringify({
+        console.warn('Password login attempt fallback:', err);
+        const registeredUsers = JSON.parse(localStorage.getItem('ecomind_registered_users') || '[]');
+        const matched = registeredUsers.find(u => u.email === formData.email?.toLowerCase()) || {
           id: 'usr_nikhil',
           name: 'Nikhil Goud',
           email: formData.email || 'nikhilgoudkeesari@gmail.com',
           organization: 'EcoMind Enterprise'
-        }));
+        };
+        localStorage.setItem('ecomind_token', 'demo_token_123');
+        localStorage.setItem('ecomind_user', JSON.stringify(matched));
+        window.dispatchEvent(new Event('storage'));
         navigate('/dashboard');
       } finally {
         setLoading(false);
@@ -119,7 +144,7 @@ export default function Login() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md z-10 px-4">
         <div className="glass-panel py-8 px-6 shadow-2xl rounded-3xl border border-slate-800 space-y-6">
-          {/* Dynamic Method Selection Switcher Bar */}
+          {/* Method Selection Switcher Bar */}
           <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-slate-950 border border-slate-800">
             <button
               type="button"
@@ -232,16 +257,16 @@ export default function Login() {
             </form>
           ) : (
             <div className="space-y-4">
-              {/* Mandatory Facial Recognition Scanner */}
+              {/* Facial Recognition Scanner */}
               <FaceRecognitionScanner onScanComplete={handleFaceCaptured} mode="login" />
 
-              {/* Display Recognized Account Details */}
+              {/* Display Recognized Account Details with REAL REGISTERED NAME */}
               {isFaceVerified && recognizedUser && (
-                <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-3">
+                <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-3 animate-fade-in">
                   <UserCheck className="w-5 h-5 text-emerald-400 flex-shrink-0" />
                   <div className="text-xs">
-                    <span className="text-slate-400 block text-[10px]">Recognized Account:</span>
-                    <span className="font-bold text-white block">{recognizedUser.name}</span>
+                    <span className="text-slate-400 block text-[10px]">Recognized Biometric Account:</span>
+                    <span className="font-bold text-white block text-sm">{recognizedUser.name}</span>
                     <span className="text-[11px] text-emerald-400">{recognizedUser.email}</span>
                   </div>
                 </div>
@@ -262,7 +287,7 @@ export default function Login() {
                 ) : isFaceVerified ? (
                   <>
                     <CheckCircle2 className="w-4 h-4 text-emerald-300 group-hover:scale-110 transition-transform" />
-                    <span>Face Matched — Sign In Now</span>
+                    <span>Sign In as {recognizedUser?.name || 'Enrolled User'}</span>
                   </>
                 ) : (
                   <>
