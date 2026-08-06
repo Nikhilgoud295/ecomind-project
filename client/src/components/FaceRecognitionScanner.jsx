@@ -35,7 +35,7 @@ export default function FaceRecognitionScanner({ onScanComplete, mode = 'login' 
 
         setMediaStream(stream);
         setIsCameraActive(true);
-        setScanStatus('Camera active. Center face inside oval reticle & click "Scan & Verify Biometrics"');
+        setScanStatus('Camera active. Position face within circular frame & click "Scan & Verify Biometrics"');
 
         setTimeout(() => {
           if (videoRef.current) {
@@ -103,7 +103,7 @@ export default function FaceRecognitionScanner({ onScanComplete, mode = 'login' 
       const video = videoRef.current;
       const canvas = canvasRef.current;
       canvas.width = video.videoWidth || 320;
-      canvas.height = video.videoHeight || 240;
+      canvas.height = video.videoHeight || 320;
       const ctx = canvas.getContext('2d');
 
       if (ctx) {
@@ -130,10 +130,9 @@ export default function FaceRecognitionScanner({ onScanComplete, mode = 'login' 
 
           const avgLum = totalLuminance / (pixels.length / 16);
           brightness = avgLum;
-          // Valid face frame has adequate lighting (lum > 15) and color variation
           isRealFaceDetected = avgLum > 15 && pixelDiffCount > 50;
         } catch (e) {
-          isRealFaceDetected = true; // Fallback if CORS restriction
+          isRealFaceDetected = true;
         }
       }
     }
@@ -143,7 +142,6 @@ export default function FaceRecognitionScanner({ onScanComplete, mode = 'login' 
 
     // STRICT RULES VERIFICATION CHECK
     if (!isRealFaceDetected && brightness < 12) {
-      // RULE FAILED: Dark/Blank camera frame or no face
       setScanFailed(true);
       setVerificationPassed(false);
       setFailReason('No human face detected in camera frame. Frame illumination too low or camera covered.');
@@ -186,7 +184,7 @@ export default function FaceRecognitionScanner({ onScanComplete, mode = 'login' 
           </div>
           <div>
             <h4 className="text-sm font-bold font-display text-white flex items-center gap-2">
-              {mode === 'register' ? 'Facial Recognition Enrollment' : 'Face ID Biometric Verification'}
+              {mode === 'register' ? 'Circular Face Recognition Enrollment' : 'Circular Face ID Biometric Verification'}
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-eco-500/20 text-eco-300 border border-eco-500/30">Strict AI Rule</span>
             </h4>
             <p className="text-[11px] text-slate-400">128-Point AI Biometric Landmark Verification</p>
@@ -205,47 +203,47 @@ export default function FaceRecognitionScanner({ onScanComplete, mode = 'login' 
         </div>
       )}
 
-      {/* Video Viewfinder Container */}
-      <div className="relative h-56 rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 flex items-center justify-center">
+      {/* PERFECTLY ROUND / CIRCULAR VIDEO VIEWFINDER CONTAINER */}
+      <div className="relative w-60 h-60 mx-auto rounded-full overflow-hidden bg-slate-900 border-4 border-eco-500/50 shadow-glow-eco flex items-center justify-center">
         {isCameraActive ? (
           <video
             ref={videoRef}
             autoPlay
             playsInline
             muted
-            className="w-full h-full object-cover transform -scale-x-100"
+            className="w-full h-full object-cover rounded-full transform -scale-x-100"
           />
         ) : capturedSnapshot && verificationPassed ? (
-          <div className="relative w-full h-full">
-            <img src={capturedSnapshot} alt="Face Snapshot" className="w-full h-full object-cover" />
+          <div className="relative w-full h-full rounded-full overflow-hidden">
+            <img src={capturedSnapshot} alt="Face Snapshot" className="w-full h-full object-cover rounded-full" />
             <div className="absolute inset-0 bg-emerald-950/60 backdrop-blur-xs flex items-center justify-center p-4">
-              <div className="p-3 rounded-2xl bg-slate-950/95 border border-emerald-500/50 text-emerald-400 text-xs font-bold space-y-1 shadow-2xl text-center">
-                <div className="flex items-center justify-center gap-1.5 text-emerald-300">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-400" /> 128 Landmark Mesh Verified!
+              <div className="p-2.5 rounded-2xl bg-slate-950/95 border border-emerald-500/50 text-emerald-400 text-xs font-bold space-y-1 shadow-2xl text-center">
+                <div className="flex items-center justify-center gap-1 text-emerald-300 text-[11px]">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Mesh Verified!
                 </div>
                 <div className="text-[10px] text-slate-300 font-mono">
-                  Confidence Score: <span className="text-emerald-400 font-bold">{biometricMetrics?.confidenceScore}%</span> | Symmetry: {biometricMetrics?.jawSymmetry}%
+                  Confidence: <span className="text-emerald-400 font-bold">{biometricMetrics?.confidenceScore}%</span>
                 </div>
               </div>
             </div>
           </div>
         ) : (
           <div className="text-center space-y-2 p-4">
-            <Camera className="w-10 h-10 text-slate-600 mx-auto" />
-            <p className="text-xs text-slate-400 font-medium">Click "Start AI Camera" to activate strict face scanner</p>
+            <Camera className="w-10 h-10 text-slate-500 mx-auto animate-pulse" />
+            <p className="text-[11px] text-slate-400 font-medium px-2">Click "Start AI Camera" to activate circular face scanner</p>
           </div>
         )}
 
-        {/* Reticle & Landmark Overlay */}
+        {/* Circular Reticle & Scanning Pulse Overlay */}
         {isCameraActive && (
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-            <div className={`w-44 h-52 rounded-full border-2 transition-colors duration-300 relative flex items-center justify-center ${
+            <div className={`w-full h-full rounded-full border-4 transition-colors duration-300 relative flex items-center justify-center ${
               isScanning ? 'border-emerald-400 shadow-glow-eco' : 'border-emerald-500/60'
             }`}>
-              <div className="w-full h-full rounded-full border border-dashed border-emerald-400/50 animate-spin" style={{ animationDuration: '15s' }} />
+              <div className="w-full h-full rounded-full border-2 border-dashed border-emerald-400/70 animate-spin" style={{ animationDuration: '12s' }} />
               <div className="absolute w-full h-0.5 bg-emerald-400/80 top-1/2 -translate-y-1/2 animate-pulse" />
-              <div className="absolute text-[9px] font-mono text-emerald-400 bg-slate-950/80 px-2 py-0.5 rounded bottom-2">
-                {isScanning ? 'Extracting Landmarks...' : 'Position Face Centered'}
+              <div className="absolute text-[9px] font-mono text-emerald-300 bg-slate-950/85 px-2 py-0.5 rounded-full bottom-3 border border-emerald-500/40">
+                {isScanning ? 'Extracting Mesh...' : 'Center Face'}
               </div>
             </div>
           </div>
@@ -308,7 +306,7 @@ export default function FaceRecognitionScanner({ onScanComplete, mode = 'login' 
             onClick={startCamera}
             className="w-full py-2.5 rounded-xl bg-eco-600 hover:bg-eco-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-glow-eco transition-all transform hover:scale-[1.02]"
           >
-            <Camera className="w-4 h-4" /> Start AI Camera
+            <Camera className="w-4 h-4" /> Start Circular AI Camera
           </button>
         ) : isCameraActive && !isScanning ? (
           <button
@@ -324,7 +322,7 @@ export default function FaceRecognitionScanner({ onScanComplete, mode = 'login' 
             onClick={startCamera}
             className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-2 border border-slate-700 transition-all"
           >
-            <RefreshCw className="w-3.5 h-3.5 text-eco-400" /> Retake Strict Face Scan
+            <RefreshCw className="w-3.5 h-3.5 text-eco-400" /> Retake Face Scan
           </button>
         )}
       </div>
