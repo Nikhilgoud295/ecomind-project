@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import FloatingChatbot from './components/FloatingChatbot';
+import LeafWatermark from './components/LeafWatermark';
 
 // Pages
 import Landing from './pages/Landing';
@@ -20,6 +21,9 @@ import NotFound from './pages/NotFound';
 export default function App() {
   return (
     <Router>
+      {/* Light Green Leaf Background Watermark */}
+      <LeafWatermark />
+
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Landing />} />
