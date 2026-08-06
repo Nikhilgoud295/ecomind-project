@@ -108,7 +108,7 @@ export default function Navbar() {
                   title="Performance Rewards Core"
                 >
                   <Award className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
-                  <span className="text-xs font-mono font-bold text-emerald-300">1,420 pts</span>
+                  <span className="text-xs font-mono font-bold text-emerald-300">120 pts</span>
                 </Link>
 
                 {/* User Profile Link */}
