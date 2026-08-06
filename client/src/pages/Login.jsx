@@ -12,7 +12,6 @@ export default function Login() {
   const [isFaceVerified, setIsFaceVerified] = useState(false);
   
   const [registeredUsers, setRegisteredUsers] = useState([]);
-  const [selectedUserEmail, setSelectedUserEmail] = useState('');
   const [recognizedUser, setRecognizedUser] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -40,7 +39,6 @@ export default function Login() {
 
     setRegisteredUsers(allUsers);
     const initialUser = activeUser || allUsers[0];
-    setSelectedUserEmail(initialUser?.email || '');
     setRecognizedUser(initialUser);
     setFormData({
       email: initialUser?.email || '',
@@ -61,15 +59,6 @@ export default function Login() {
     setError('');
   };
 
-  const handleUserSelect = (email) => {
-    setSelectedUserEmail(email);
-    const user = registeredUsers.find(u => u.email === email);
-    if (user) {
-      setRecognizedUser(user);
-      setFormData(prev => ({ ...prev, email: user.email }));
-    }
-  };
-
   // Callback from Strict Facial Biometric Scanner
   const handleFaceCaptured = (biometricSnapshot, passed, reason, confidenceScore) => {
     if (!passed) {
@@ -83,10 +72,9 @@ export default function Login() {
     setIsFaceVerified(true);
     setError('');
 
-    // Look up the selected user or active registered account
-    const user = registeredUsers.find(u => u.email === selectedUserEmail) ||
+    // Look up active or latest registered account
+    const user = JSON.parse(localStorage.getItem('ecomind_user') || 'null') ||
       registeredUsers[0] ||
-      JSON.parse(localStorage.getItem('ecomind_user') || 'null') ||
       {
         id: 'usr_verified',
         name: 'Enrolled Eco User',
@@ -311,26 +299,6 @@ export default function Login() {
             </form>
           ) : (
             <div className="space-y-4">
-              {/* Registered Account Selection Bar */}
-              {registeredUsers.length > 0 && (
-                <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-1.5">
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    Select Target Account to Authenticate:
-                  </label>
-                  <select
-                    value={selectedUserEmail}
-                    onChange={(e) => handleUserSelect(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs font-bold focus:outline-none focus:border-eco-500 cursor-pointer"
-                  >
-                    {registeredUsers.map((u, i) => (
-                      <option key={i} value={u.email}>
-                        👤 {u.name} ({u.email})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
               {/* Strict Facial Recognition Scanner */}
               <FaceRecognitionScanner onScanComplete={handleFaceCaptured} mode="login" />
 
