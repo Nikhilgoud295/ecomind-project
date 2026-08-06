@@ -108,7 +108,7 @@ const chatWithAI = async (req, res, next) => {
     const query = message.trim();
     const queryLower = query.toLowerCase();
 
-    // 1. Try Gemini API first if configured
+    // 1. Try Gemini API with User-Friendly Warm Persona
     if (ai) {
       try {
         const modelNames = ['gemini-1.5-flash', 'gemini-pro', 'gemini-1.0-pro'];
@@ -117,10 +117,13 @@ const chatWithAI = async (req, res, next) => {
         for (const modelName of modelNames) {
           try {
             const model = ai.getGenerativeModel({ model: modelName });
-            const prompt = `You are EcoMind AI Copilot, an expert environmental scientist and corporate ESG consultant.
-            Provide a direct, highly customized, actionable answer to the user's specific query.
-            User Query: "${query}"
-            Format using concise bullet points and bold key metrics when helpful.`;
+            const prompt = `You are EcoMind AI Copilot, a warm, friendly, and encouraging sustainability guide.
+            Answer the user's question in a super clear, friendly, and easy-to-understand conversational tone.
+            Question: "${query}"
+            Rules:
+            1. Start with a warm, encouraging 1-sentence opening.
+            2. Break down the advice into 3 simple, friendly bullet points with emojis.
+            3. End with a short helpful tip or encouragement. Keep the response concise and readable.`;
 
             const result = await model.generateContent(prompt);
             const responseText = result.response?.text();
@@ -137,36 +140,30 @@ const chatWithAI = async (req, res, next) => {
           return res.json({ success: true, reply });
         }
       } catch (gErr) {
-        console.warn('Gemini API call failed, falling back to AI Knowledge Engine:', gErr.message);
+        console.warn('Gemini API call failed, falling back to Friendly AI Engine:', gErr.message);
       }
     }
 
-    // 2. Comprehensive Dynamic Natural Language Intelligence Engine
+    // 2. Friendly, Easy-To-Understand Knowledge Engine
     let reply = '';
 
-    if (queryLower.includes('sebi') || queryLower.includes('brsr')) {
-      reply = `📜 **SEBI BRSR Core Compliance Guidance:**\n• **Scope 1 & 2 Verification:** Top 1,000 listed entities must obtain reasonable assurance on GHG emissions, water discharge, and circular economy intensity.\n• **Value Chain Disclosure:** Scope 3 disclosures apply to top 250 entities starting FY 2024-25.\n• **Key Metric:** Track energy intensity per crore of turnover and renewable energy percentage.`;
-    } else if (queryLower.includes('electricity') || queryLower.includes('power') || queryLower.includes('kwh') || queryLower.includes('energy')) {
-      reply = `⚡ **Electricity Carbon Reduction Plan for "${query}":**\n• **Lighting Upgrade:** Transition 100% of fixtures to smart LEDs (reduces lighting energy load by 45–65%).\n• **Solar Rooftop Installation:** Deploy rooftop PV systems (MNRE offers up to 40% capital subsidies for MSMEs).\n• **HVAC Efficiency:** Upgrade to Variable Refrigerant Flow (VRF) units to cut cooling kWh by 30%.\n• **Smart Meters:** Install IoT sub-metering to track and eliminate off-hours idle loads.`;
+    if (queryLower.includes('electricity') || queryLower.includes('power') || queryLower.includes('kwh') || queryLower.includes('energy')) {
+      reply = `💡 **Great question! Here are 3 simple ways to cut your electricity bill & carbon footprint:**\n\n• 💡 **Switch to LED Bulbs:** Replacing traditional bulbs with LEDs saves up to **60% energy** instantly.\n• ☀️ **Go Solar:** Installing rooftop solar panels can reduce your power bill and earn green incentives.\n• 🔌 **Stop Phantom Loads:** Turn off wall switches for appliances when not in use—standby power adds up!\n\n🌱 *Tip: You can log your daily electricity kWh under the "Upload & Add Data" tab to track your progress!*`;
     } else if (queryLower.includes('water') || queryLower.includes('liter') || queryLower.includes('rain')) {
-      reply = `💧 **Water Conservation & Circularity Strategy:**\n• **Rainwater Harvesting (RWH):** Install rooftop collection tanks with sand-gravel filters to recharge groundwater aquifers.\n• **Graywater Recycling:** Treat wash basin and cooling tower blowdown for landscaping and flushing (saves up to 40% freshwater intake).\n• **Flow Aerators:** Retrofit taps with aerators to restrict flow to 2.0 liters/minute without reducing pressure.`;
+      reply = `💧 **Here is how you can easily save water every day:**\n\n• 🚰 **Install Tap Aerators:** Aerators screw onto your faucets to reduce water flow by 40% without losing pressure.\n• 🌧️ **Rainwater Harvesting:** Collect rainwater from roofs to water plants and wash cars.\n• ♻️ **Reuse Graywater:** Water from washing vegetables can easily be used for garden plants.\n\n🌊 *Tip: Small daily habit changes save thousands of liters a year!*`;
     } else if (queryLower.includes('waste') || queryLower.includes('plastic') || queryLower.includes('recycle') || queryLower.includes('garbage')) {
-      reply = `♻️ **Zero Waste to Landfill Roadmap:**\n• **Source Segregation:** Implement 3-bin color coding (Organic, Recyclables, Hazardous/E-Waste).\n• **On-Site Composting:** Process organic pantry waste using aerobic bio-digesters to yield organic fertilizer.\n• **EPR Compliance:** Partner with authorized recyclers to obtain Plastic & E-Waste Extended Producer Responsibility credits.`;
-    } else if (queryLower.includes('scope 1') || queryLower.includes('scope 2') || queryLower.includes('scope 3') || queryLower.includes('emission')) {
-      reply = `📊 **Greenhouse Gas (GHG) Protocol Breakdown:**\n• **Scope 1 (Direct):** Fuel burned in company boilers, diesel generators, and fleet vehicles (Factor: ~2.68 kg CO2/L diesel).\n• **Scope 2 (Indirect Grid):** Purchased electricity (Grid Factor: ~0.82 kg CO2e/kWh in India).\n• **Scope 3 (Value Chain):** Business travel, employee commuting, and purchased goods/services.`;
-    } else if (queryLower.includes('credit') || queryLower.includes('carbon offset') || queryLower.includes('monetiz')) {
-      reply = `🌱 **Carbon Credit Monetization & Offsetting:**\n• **Registry Registration:** Register green projects under Verra VCS, Gold Standard, or the BEE Carbon Credit Trading Scheme (CCTS).\n• **Monetization Potential:** Verified carbon units (VCUs) trade between $10 to $35 per tCO2e offset.\n• **Eligible Projects:** Rooftop solar, reforestation, biomass boilers, and energy efficiency retrofits.`;
+      reply = `♻️ **Here is an easy guide to managing waste and going green:**\n\n• 🗑️ **Separate Waste at Home:** Use two bins—one for wet organic food waste and one for dry recyclables (paper, plastic).\n• 🍏 **Start Kitchen Composting:** Turn fruit peels and veg scraps into nutrient-rich soil for garden plants.\n• 🛍️ **Ditch Single-Use Plastics:** Carry cloth shopping bags and reusable water bottles.\n\n🌿 *Tip: Recycling just 1 kg of paper saves 17 trees and 26 liters of water!*`;
+    } else if (queryLower.includes('sebi') || queryLower.includes('brsr') || queryLower.includes('compliance')) {
+      reply = `📜 **SEBI BRSR Compliance Made Simple:**\n\n• 📊 **What is BRSR?** It is SEBI's reporting framework for top companies in India to share their environmental performance.\n• 🔍 **Core Requirements:** Report your energy usage, water consumption, waste recycled, and Scope 1 & 2 carbon emissions.\n• ✅ **How EcoMind Helps:** You can track all these metrics directly on your EcoMind Dashboard and export audit-ready reports!\n\n💡 *Tip: Visit our "Intelligence Hub" tab for the latest statutory deadline updates!*`;
+    } else if (queryLower.includes('scope 1') || queryLower.includes('scope 2') || queryLower.includes('scope 3') || queryLower.includes('emissions')) {
+      reply = `📊 **Understanding Carbon Emissions (Easy Explanation):**\n\n• 🔥 **Scope 1 (Direct):** Emissions from fuels burned directly on your property (like petrol/diesel in company vehicles).\n• ⚡ **Scope 2 (Electricity):** Indirect emissions created by power plants generating the electricity you buy.\n• 🚚 **Scope 3 (Supply Chain):** Emissions from suppliers, employee travel, and product shipping.\n\n🌱 *Tip: EcoMind automatically calculates your Scope 1 and Scope 2 totals when you add data!*`;
     } else if (queryLower.includes('subsidy') || queryLower.includes('grant') || queryLower.includes('scheme') || queryLower.includes('government')) {
-      reply = `🏛️ **Active Government Green Subsidies & Schemes:**\n• **MNRE PM-SURYA GHAR:** Up to 40% subsidy for rooftop solar power installations.\n• **National Green Hydrogen Mission:** Capital expenditure incentive up to 15% for green hydrogen electrolyzers.\n• **ZED Certification Scheme:** Financial assistance up to 80% on ISO 14001 and green manufacturing audits for MSMEs.`;
-    } else if (queryLower.includes('iso') || queryLower.includes('14001') || queryLower.includes('14064') || queryLower.includes('audit')) {
-      reply = `🛡️ **Environmental ISO Standards & Auditing:**\n• **ISO 14001 (EMS):** Establishes an Environmental Management System to systematically monitor waste and energy.\n• **ISO 14064 (GHG Verification):** Standardizes organizational carbon footprint quantification for third-party auditing.`;
+      reply = `🏛️ **Government Subsidies & Financial Incentives:**\n\n• ☀️ **PM Surya Ghar Solar Scheme:** Get up to **40% subsidy** for installing residential rooftop solar panels.\n• ⚡ **Green Hydrogen Subsidies:** Capital grants for industrial clean energy transitions.\n• 📜 **MSME ZED Certification:** Up to 80% discount on green quality certification for small businesses.\n\n💡 *Check out the "AI Strategic Opportunities" tab in the Intelligence Hub for step-by-step application links!*`;
     } else if (queryLower.includes('hello') || queryLower.includes('hi') || queryLower.includes('hey')) {
-      reply = `👋 **Hello! I am your EcoMind AI Copilot.** How can I assist with your carbon footprint, SEBI BRSR compliance, electricity reduction, or sustainability strategy today?`;
+      reply = `👋 **Hello there! I am your EcoMind AI Copilot.**\nHow can I help you today? You can ask me about saving electricity, cutting water waste, SEBI BRSR rules, or government solar subsidies! 😊`;
     } else {
-      // Dynamic Prompt Synthesizer based on user question keywords
-      const words = query.split(' ').filter(w => w.length > 3);
-      const subject = words.slice(0, 3).join(' ') || 'your query';
-      reply = `💡 **EcoMind AI Analysis for "${subject}":**\n• **Baseline Assessment:** Measure baseline resource metrics (kWh, liters, kg waste) using your EcoMind Add Data tab.\n• **Optimization Strategy:** Target top emission drivers to achieve a 20–30% footprint reduction within 6 months.\n• **Compliance & Savings:** Leverage green subsidies and ISO 14064 standards to monetize carbon reductions.`;
+      const topic = query.split(' ').slice(0, 3).join(' ') || 'your question';
+      reply = `💡 **Here is helpful advice regarding "${topic}":**\n\n• 🎯 **Measure First:** Start by recording your daily energy and water usage under the **"Upload & Add Data"** tab.\n• 🌿 **Take Action:** Simple changes like LED lights, tap aerators, and waste segregation reduce your carbon footprint by 25%.\n• 📈 **Track Improvement:** Watch your Eco Score rise on your EcoMind Dashboard as you log lower emissions!\n\n😊 *Feel free to ask me any specific question about energy, water, waste, or ESG compliance!*`;
     }
 
     return res.json({
@@ -177,7 +174,7 @@ const chatWithAI = async (req, res, next) => {
     console.error('Chat AI Error:', err.message);
     return res.json({
       success: true,
-      reply: '💡 **EcoMind AI Copilot:** To optimize your sustainability performance, track daily energy, water, and waste metrics in your Dashboard and explore the Intelligence Hub for compliance cutoffs.'
+      reply: '💡 **Hello!** I am here to help you reduce your carbon footprint and save energy. Ask me any question about electricity savings, water conservation, waste recycling, or ESG compliance!'
     });
   }
 };
