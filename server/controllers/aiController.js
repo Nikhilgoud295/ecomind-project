@@ -108,34 +108,33 @@ const chatWithAI = async (req, res, next) => {
     const query = message.trim();
     const queryLower = query.toLowerCase();
 
-    // 1. Full EcoMind Website Context Prompt for Gemini API
+    // 1. Unified Website Context & Friendly Gemini Prompt
     if (ai) {
       try {
         const modelNames = ['gemini-1.5-flash', 'gemini-pro', 'gemini-1.0-pro'];
         let reply = null;
 
         const websiteContext = `
-        You are EcoMind AI Copilot, the official AI assistant of the EcoMind AI Sustainability Platform (https://ecomind-project.vercel.app).
-        
-        WEBSITE ARCHITECTURE & FEATURES:
-        1. Dashboard (/dashboard): Shows real-time Gross CO2 emissions, Net Footprint, Eco Score, and an interactive 3D WebGL Command Globe (360° orbit with clickable hotspots).
-        2. Upload & Add Data (/add-data): Dual mode page for AI Document Upload (PDF bills, CSV energy logs) with Gemini OCR metric extraction, plus manual resource entry.
-        3. Intelligence Hub (/eco-news): Enterprise hub featuring SEBI BRSR Core, MCA Companies Act updates, Compliance Calendar cutoffs, AI Strategic Recommendations, Industry Benchmarks, and a dedicated 3D Global Climate Sphere tab.
-        4. Analytics (/analytics): Detailed Scope 1, Scope 2, and Scope 3 charts and monthly trend breakdowns.
-        5. Reports (/reports): Audit-ready PDF & CSV report exports compliant with GHG Protocol & ISO 14064 standards.
-        6. Face Recognition Login (/login & /register): 128-point biometric webcam facial scanning for passwordless login.
-        7. Floating Chatbot: 24/7 AI copilot widget available on every page.
-        
-        RESPONSE GUIDELINES:
-        - Give accurate, warm, friendly, and precise answers about the website and general sustainability queries.
-        - Use short bullet points with friendly emojis.
-        - Direct users to the exact page path when answering website navigation questions.
+        You are EcoMind AI Copilot, a warm, friendly, encouraging sustainability guide for the EcoMind platform (https://ecomind-project.vercel.app).
+
+        WEBSITE FEATURES & NAVIGATION:
+        - Dashboard (/dashboard): Real-time Gross CO2, Net Footprint, Eco Score, and interactive 3D WebGL Command Globe (360° orbit).
+        - Upload & Add Data (/add-data): AI Document Upload (PDF bills, CSV energy logs) with Gemini OCR metric extraction + manual entry.
+        - Intelligence Hub (/eco-news): SEBI BRSR Core, MCA updates, Compliance Calendar cutoffs, AI Recommendations, Industry Benchmarks, and 3D Global Climate Sphere tab.
+        - Analytics (/analytics): Scope 1, Scope 2, Scope 3 charts and monthly trend breakdowns.
+        - Reports (/reports): Audit-ready PDF & CSV report exports compliant with GHG Protocol & ISO 14064 standards.
+        - Face ID Login (/login & /register): 128-point webcam facial biometric scanning for passwordless login.
+
+        RESPONSE RULES:
+        1. Start with a warm, encouraging 1-sentence opening.
+        2. Provide an accurate, friendly answer broken into 3 short bullet points with emojis.
+        3. End with a short helpful tip or navigation hint. Keep the response clear, concise, and easy to read.
         `;
 
         for (const modelName of modelNames) {
           try {
             const model = ai.getGenerativeModel({ model: modelName });
-            const prompt = `${websiteContext}\n\nUser Question: "${query}"\nProvide an accurate, friendly, step-by-step response:`;
+            const prompt = `${websiteContext}\n\nUser Question: "${query}"\nAnswer:`;
 
             const result = await model.generateContent(prompt);
             const responseText = result.response?.text();
@@ -144,7 +143,7 @@ const chatWithAI = async (req, res, next) => {
               break;
             }
           } catch (mErr) {
-            console.warn(`Model ${modelName} attempt error:`, mErr.message);
+            console.warn(`Model ${modelName} attempt note:`, mErr.message);
           }
         }
 
