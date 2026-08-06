@@ -1,10 +1,42 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Leaf, Sparkles, BarChart3, ShieldCheck, ArrowRight, Zap, Globe, Cpu, CheckCircle2 } from 'lucide-react';
+import { Leaf, Sparkles, BarChart3, ShieldCheck, ArrowRight, Zap, Globe, Cpu, CheckCircle2, Quote } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
 export default function Landing() {
+  const quotes = [
+    {
+      text: "The Earth is what we all have in common. Small daily actions create massive global impact.",
+      author: "Wendell Berry",
+      role: "Environmental Thinker"
+    },
+    {
+      text: "What you do makes a difference, and you have to decide what kind of difference you want to make.",
+      author: "Dr. Jane Goodall",
+      role: "UN Messenger of Peace"
+    },
+    {
+      text: "The greatest threat to our planet is the belief that someone else will save it.",
+      author: "Robert Swan",
+      role: "Polar Explorer & Climate Advocate"
+    },
+    {
+      text: "We do not inherit the Earth from our ancestors; we borrow it from our children.",
+      author: "Native American Proverb",
+      role: "Indigenous Wisdom"
+    }
+  ];
+
+  const [activeQuoteIdx, setActiveQuoteIdx] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveQuoteIdx((prev) => (prev + 1) % quotes.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [quotes.length]);
+
   return (
     <div className="min-h-screen flex flex-col bg-dark-bg text-slate-100 selection:bg-eco-500 selection:text-white">
       <Navbar />
@@ -29,8 +61,42 @@ export default function Landing() {
               EcoMind AI transforms fragmented electricity, water, waste, and transport metrics into actionable carbon intelligence. Receive instant, personalized AI optimization strategies for a greener tomorrow.
             </p>
 
+            {/* Inspiring Sustainability Quote Card Component */}
+            <div className="pt-2">
+              <div className="glass-panel max-w-2xl mx-auto p-5 rounded-3xl border border-eco-500/30 bg-slate-900/80 shadow-glow-eco relative overflow-hidden transition-all duration-500">
+                <div className="absolute top-2 left-4 text-eco-500/20 pointer-events-none">
+                  <Quote className="w-12 h-12" />
+                </div>
+
+                <div className="relative z-10 space-y-2">
+                  <p className="text-sm sm:text-base font-display italic text-emerald-200 font-medium leading-relaxed">
+                    "{quotes[activeQuoteIdx].text}"
+                  </p>
+                  <div className="flex items-center justify-center gap-2 text-xs">
+                    <span className="font-bold text-white">— {quotes[activeQuoteIdx].author}</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-eco-500/20 text-eco-400 border border-eco-500/30">
+                      {quotes[activeQuoteIdx].role}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Carousel Indicator Dots */}
+                <div className="flex items-center justify-center gap-1.5 pt-3">
+                  {quotes.map((_, qIdx) => (
+                    <button
+                      key={qIdx}
+                      onClick={() => setActiveQuoteIdx(qIdx)}
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                        activeQuoteIdx === qIdx ? 'w-6 bg-eco-400' : 'w-1.5 bg-slate-700 hover:bg-slate-500'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+
             {/* Micro Badges */}
-            <div className="pt-6 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-400">
+            <div className="pt-4 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-400">
               <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-eco-400" /> GHG Protocol Aligned</span>
               <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-eco-400" /> Real-time Gemini 1.5 Analysis</span>
               <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-eco-400" /> Export PDF/CSV Reports</span>
