@@ -29,24 +29,8 @@ export default function Landing() {
               EcoMind AI transforms fragmented electricity, water, waste, and transport metrics into actionable carbon intelligence. Receive instant, personalized AI optimization strategies for a greener tomorrow.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-              <Link
-                to="/register"
-                className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-eco-600 via-emerald-500 to-teal-500 hover:from-eco-500 hover:to-teal-400 text-white font-semibold shadow-glow-eco transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2 text-base"
-              >
-                Start Free Audit
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-              <Link
-                to="/login"
-                className="w-full sm:w-auto px-8 py-3.5 rounded-2xl glass-panel border border-slate-700/80 text-slate-200 hover:text-white hover:border-slate-500 font-semibold transition-all flex items-center justify-center gap-2 text-base"
-              >
-                Explore Live Demo
-              </Link>
-            </div>
-
             {/* Micro Badges */}
-            <div className="pt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-400">
+            <div className="pt-6 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-400">
               <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-eco-400" /> GHG Protocol Aligned</span>
               <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-eco-400" /> Real-time Gemini 1.5 Analysis</span>
               <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-eco-400" /> Export PDF/CSV Reports</span>
@@ -54,7 +38,7 @@ export default function Landing() {
           </div>
 
           {/* Product Dashboard Preview Showcase Card */}
-          <div className="mt-16 relative mx-auto max-w-5xl">
+          <div className="mt-14 relative mx-auto max-w-5xl">
             <div className="glass-panel p-2 sm:p-4 rounded-3xl border border-slate-700/60 shadow-2xl bg-slate-900/90">
               <div className="rounded-2xl overflow-hidden border border-slate-800 bg-dark-bg p-6 space-y-6">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-4">
@@ -98,41 +82,42 @@ export default function Landing() {
       </section>
 
       {/* Feature Grid Section */}
-      <section className="py-20 border-t border-slate-800/80 bg-slate-950/40">
+      <section className="py-20 bg-slate-950/60 border-t border-b border-slate-800/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
-            <h2 className="text-3xl font-bold font-display text-white">All-in-One Sustainability Operating System</h2>
-            <p className="text-sm text-slate-400">Built specifically for organizations and households aiming for net-zero carbon goals.</p>
+            <span className="text-xs font-bold text-eco-400 uppercase tracking-widest">Enterprise Features</span>
+            <h2 className="text-3xl font-bold font-display text-white">Comprehensive Sustainability Toolkit</h2>
+            <p className="text-sm text-slate-400">Everything you need to quantify impact and achieve carbon neutrality.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4 hover:border-eco-500/40 transition-colors">
-              <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <div className="glass-panel p-8 rounded-3xl border border-slate-800 space-y-4 hover:border-eco-500/40 transition-all group">
+              <div className="w-12 h-12 rounded-2xl bg-eco-500/20 text-eco-400 flex items-center justify-center border border-eco-500/30 group-hover:scale-110 transition-transform">
                 <BarChart3 className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-bold font-display text-white">Multi-Resource Tracking</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Effortlessly log electricity (kWh), water (liters), solid waste (kg), fuel usage, public transit km, renewable energy, and recycling rates.
+              <h3 className="text-xl font-bold text-white font-display">Real-Time Footprint Analytics</h3>
+              <p className="text-sm text-slate-400 leading-relaxed">
+                Log resource consumption seamlessly across Scope 1, 2, and 3 emissions categories with instant carbon equivalent calculations.
               </p>
             </div>
 
-            <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4 hover:border-eco-500/40 transition-colors">
-              <div className="w-12 h-12 rounded-xl bg-teal-500/20 border border-teal-500/30 flex items-center justify-center text-teal-400">
-                <Sparkles className="w-6 h-6" />
+            <div className="glass-panel p-8 rounded-3xl border border-slate-800 space-y-4 hover:border-teal-500/40 transition-all group">
+              <div className="w-12 h-12 rounded-2xl bg-teal-500/20 text-teal-400 flex items-center justify-center border border-teal-500/30 group-hover:scale-110 transition-transform">
+                <Cpu className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-bold font-display text-white">Google Gemini AI Advisor</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Leverage @google/genai SDK to analyze submitted consumption metrics and receive structured JSON advisory plans, priority items, and reduction strategies.
+              <h3 className="text-xl font-bold text-white font-display">Gemini AI Strategy Advisor</h3>
+              <p className="text-sm text-slate-400 leading-relaxed">
+                Receive contextual AI recommendations prioritized by return on investment, carbon reduction potential, and ease of implementation.
               </p>
             </div>
 
-            <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4 hover:border-eco-500/40 transition-colors">
-              <div className="w-12 h-12 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
-                <Globe className="w-6 h-6" />
+            <div className="glass-panel p-8 rounded-3xl border border-slate-800 space-y-4 hover:border-emerald-500/40 transition-all group">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30 group-hover:scale-110 transition-transform">
+                <ShieldCheck className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-bold font-display text-white">Exportable PDF & CSV Reports</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Generate daily, weekly, and monthly audit reports with one click. Download client-side formatted PDF documents and CSV spreadsheets for compliance.
+              <h3 className="text-xl font-bold text-white font-display">Audit-Ready Reporting</h3>
+              <p className="text-sm text-slate-400 leading-relaxed">
+                Generate formatted PDF and CSV compliance reports aligned with international GHG Protocol standards for ESG disclosure.
               </p>
             </div>
           </div>
