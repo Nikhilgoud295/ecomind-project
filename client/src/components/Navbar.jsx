@@ -1,14 +1,66 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Leaf, LogOut, User, Settings, Sparkles, Menu, X, BarChart3, PlusCircle, FileUp, FileText, Newspaper } from 'lucide-react';
+import { 
+  Leaf, 
+  LogOut, 
+  User, 
+  Settings, 
+  Sparkles, 
+  Menu, 
+  X, 
+  BarChart3, 
+  PlusCircle, 
+  FileUp, 
+  FileText, 
+  Newspaper,
+  Bell,
+  Check,
+  AlertTriangle,
+  Zap,
+  ShieldAlert
+} from 'lucide-react';
 import { authService } from '../services/authService';
 
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const currentUser = authService.getCurrentUser();
   const isAuthenticated = authService.isAuthenticated();
+
+  const [notifications, setNotifications] = useState([
+    {
+      id: 'notif_01',
+      title: 'CPCB E-Waste Return Filing Cutoff',
+      message: 'Quarterly EPR fulfillment returns due in 25 days.',
+      time: '10m ago',
+      type: 'warning',
+      read: false
+    },
+    {
+      id: 'notif_02',
+      title: 'Electricity Spike Alert',
+      message: 'Yesterday’s grid consumption exceeded eco-target by 14%.',
+      time: '2h ago',
+      type: 'alert',
+      read: false
+    },
+    {
+      id: 'notif_03',
+      title: 'MNRE Green Subsidy Notification',
+      message: 'New 15% capital grant applications open on portal.',
+      time: '1d ago',
+      type: 'info',
+      read: true
+    }
+  ]);
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const markAllAsRead = () => {
+    setNotifications(notifications.map(n => ({ ...n, read: true })));
+  };
 
   const handleLogout = () => {
     authService.logout();
@@ -69,7 +121,8 @@ export default function Navbar() {
           {/* User Profile & Actions */}
           <div className="hidden md:flex items-center gap-3">
             {isAuthenticated ? (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 relative">
+                {/* User Profile Link */}
                 <Link
                   to="/profile"
                   className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/60 border border-slate-700/60 hover:border-eco-500/40 transition-colors"
@@ -81,6 +134,66 @@ export default function Navbar() {
                   />
                   <span className="text-sm font-medium text-slate-200">{currentUser?.name?.split(' ')[0] || 'User'}</span>
                 </Link>
+
+                {/* Notifications Bell (POSITIONED LEFT OF SETTINGS) */}
+                <div className="relative">
+                  <button
+                    onClick={() => setNotificationsOpen(!notificationsOpen)}
+                    className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800/60 transition-colors relative"
+                    title="Notifications"
+                  >
+                    <Bell className="w-5 h-5" />
+                    {unreadCount > 0 && (
+                      <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-slate-900 animate-pulse"></span>
+                    )}
+                  </button>
+
+                  {/* Notifications Dropdown Panel */}
+                  {notificationsOpen && (
+                    <div className="absolute right-0 mt-2 w-80 glass-panel bg-slate-900/95 border border-slate-800 rounded-2xl shadow-2xl z-50 p-4 space-y-3 animate-fade-in backdrop-blur-xl">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                        <div className="flex items-center gap-2">
+                          <Bell className="w-4 h-4 text-eco-400" />
+                          <h4 className="text-xs font-bold text-white">Environmental Notifications</h4>
+                        </div>
+                        {unreadCount > 0 && (
+                          <button
+                            onClick={markAllAsRead}
+                            className="text-[10px] text-eco-400 hover:text-eco-300 font-semibold flex items-center gap-1"
+                          >
+                            <Check className="w-3 h-3" /> Mark all read
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="space-y-2 max-h-72 overflow-y-auto scrollbar-thin">
+                        {notifications.map((n) => (
+                          <div
+                            key={n.id}
+                            className={`p-3 rounded-xl border text-xs space-y-1 transition-colors ${
+                              n.read
+                                ? 'bg-slate-950/60 border-slate-800/80 text-slate-400'
+                                : 'bg-slate-900 border-slate-700 text-slate-200'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between font-bold text-white text-[11px]">
+                              <span className="flex items-center gap-1.5">
+                                {n.type === 'warning' && <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />}
+                                {n.type === 'alert' && <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />}
+                                {n.type === 'info' && <Zap className="w-3.5 h-3.5 text-eco-400" />}
+                                {n.title}
+                              </span>
+                              <span className="text-[10px] text-slate-500 font-mono">{n.time}</span>
+                            </div>
+                            <p className="text-[11px] leading-relaxed">{n.message}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Settings Link */}
                 <Link
                   to="/settings"
                   className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800/60 transition-colors"
@@ -88,6 +201,8 @@ export default function Navbar() {
                 >
                   <Settings className="w-5 h-5" />
                 </Link>
+
+                {/* Logout Button */}
                 <button
                   onClick={handleLogout}
                   className="p-2 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-slate-800/60 transition-colors"
