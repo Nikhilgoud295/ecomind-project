@@ -18,30 +18,9 @@ export default function LeafWatermark() {
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    // Track mouse movement for interactive Neural Network Synapses
-    const mouse = {
-      x: null,
-      y: null,
-      radius: 190
-    };
-
-    const handleMouseMove = (e) => {
-      mouse.x = e.clientX;
-      mouse.y = e.clientY;
-    };
-
-    const handleMouseLeave = () => {
-      mouse.x = null;
-      mouse.y = null;
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseleave', handleMouseLeave);
-
     // =========================================================
-    // 1. AI NEURAL NETWORK CONSTELLATION SETUP (+20% INCREASE)
+    // 1. AI NEURAL NETWORK CONSTELLATION SETUP (36 NODES)
     // =========================================================
-    // Increased node count by 20% (36 nodes) for optimal balance
     const nodeCount = Math.min(Math.floor(window.innerWidth / 36), 36);
     const nodes = [];
     const maxDistance = 145;
@@ -122,7 +101,7 @@ export default function LeafWatermark() {
       frameCounter++;
 
       // ---------------------------------------------------------
-      // LAYER A: AI NEURAL NETWORK MATRIX (+20% DENSITY)
+      // LAYER A: AMBIENT AI NEURAL NETWORK MATRIX (NON-INTERACTIVE)
       // ---------------------------------------------------------
       for (let i = 0; i < nodes.length; i++) {
         const nodeA = nodes[i];
@@ -166,23 +145,6 @@ export default function LeafWatermark() {
               ctx.fill();
               ctx.shadowBlur = 0;
             }
-          }
-        }
-
-        // Draw Synaptic Connections to Cursor Position
-        if (mouse.x !== null && mouse.y !== null) {
-          const mdx = nodeA.x - mouse.x;
-          const mdy = nodeA.y - mouse.y;
-          const mdist = Math.sqrt(mdx * mdx + mdy * mdy);
-
-          if (mdist < mouse.radius) {
-            const malpha = (1 - mdist / mouse.radius) * 0.40;
-            ctx.beginPath();
-            ctx.moveTo(nodeA.x, nodeA.y);
-            ctx.lineTo(mouse.x, mouse.y);
-            ctx.strokeStyle = `rgba(52, 211, 153, ${malpha})`;
-            ctx.lineWidth = 1.05;
-            ctx.stroke();
           }
         }
 
@@ -237,7 +199,6 @@ export default function LeafWatermark() {
 
         drawLeafShape(ctx, leaf.size);
 
-        ctx.rotate(0);
         ctx.restore();
       });
 
@@ -248,8 +209,6 @@ export default function LeafWatermark() {
 
     return () => {
       window.removeEventListener('resize', resizeCanvas);
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseleave', handleMouseLeave);
       cancelAnimationFrame(animationFrameId);
     };
   }, []);
@@ -261,7 +220,7 @@ export default function LeafWatermark() {
       <div className="absolute bottom-0 left-1/4 w-[600px] h-[600px] bg-teal-500/12 rounded-full blur-[140px]" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-eco-500/08 rounded-full blur-[180px]" />
 
-      {/* Balanced +20% Neural Network Constellation + Light Green Leaves Canvas */}
+      {/* Ambient Non-Interactive Neural Network Constellation + Light Green Leaves Canvas */}
       <canvas ref={canvasRef} className="w-full h-full block" />
     </div>
   );
