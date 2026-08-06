@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Leaf, LogOut, User, Bell, Settings, BarChart3, FileUp, Sparkles, Newspaper, FileText, Check, ShieldAlert, AlertTriangle, Zap, Menu, X, LogIn, UserPlus } from 'lucide-react';
 import { authService } from '../services/authService';
-import AcronymTooltip from './AcronymTooltip';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -27,7 +26,8 @@ export default function Navbar() {
     {
       id: 'notif_2',
       type: 'info',
-      isAcronymNotif: true,
+      title: 'SEBI BRSR Filing Reminder',
+      message: 'Q3 BRSR Core statutory compliance cutoff is in 14 days.',
       time: '1 hour ago',
       read: false
     },
@@ -194,25 +194,11 @@ export default function Navbar() {
                                 {n.type === 'warning' && <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />}
                                 {n.type === 'alert' && <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />}
                                 {n.type === 'info' && <Zap className="w-3.5 h-3.5 text-eco-400" />}
-                                {n.isAcronymNotif ? (
-                                  <>
-                                    <AcronymTooltip term="SEBI" /> <AcronymTooltip term="BRSR" /> Filing Reminder
-                                  </>
-                                ) : (
-                                  n.title
-                                )}
+                                {n.title}
                               </span>
                               <span className="text-[9px] text-slate-500 font-mono">{n.time}</span>
                             </div>
-                            <p className="text-[11px] text-slate-300 leading-snug">
-                              {n.isAcronymNotif ? (
-                                <>
-                                  Q3 <AcronymTooltip term="BRSR" /> Core statutory compliance cutoff is in 14 days for <AcronymTooltip term="SEBI" /> entities.
-                                </>
-                              ) : (
-                                n.message
-                              )}
-                            </p>
+                            <p className="text-[11px] text-slate-300 leading-snug">{n.message}</p>
                           </div>
                         ))}
                       </div>

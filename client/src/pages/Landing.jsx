@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { Leaf, Sparkles, BarChart3, ShieldCheck, ArrowRight, Zap, Globe, Cpu, CheckCircle2 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import AcronymTooltip from '../components/AcronymTooltip';
 
 export default function Landing() {
   const quotes = [
@@ -133,10 +132,10 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* Micro Badges with SEBI and BRSR Pop-Up Tooltips */}
+            {/* Micro Badges */}
             <div className="pt-4 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-400">
               <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-eco-400" /> GHG Protocol Aligned</span>
-              <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-eco-400" /> <AcronymTooltip term="SEBI" /> & <AcronymTooltip term="BRSR" /> Compliant</span>
+              <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-eco-400" /> SEBI & BRSR Compliant</span>
               <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-eco-400" /> Export PDF/CSV Reports</span>
             </div>
           </div>
@@ -219,9 +218,9 @@ export default function Landing() {
               <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30 group-hover:scale-110 transition-transform">
                 <ShieldCheck className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold text-white font-display">Audit-Ready <AcronymTooltip term="BRSR" /> Reporting</h3>
+              <h3 className="text-xl font-bold text-white font-display">Audit-Ready BRSR Reporting</h3>
               <p className="text-sm text-slate-400 leading-relaxed">
-                Generate formatted PDF and CSV compliance reports aligned with international GHG Protocol and <AcronymTooltip term="SEBI" /> statutory standards.
+                Generate formatted PDF and CSV compliance reports aligned with international GHG Protocol and SEBI statutory standards.
               </p>
             </div>
           </div>
