@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Sparkles, MessageSquare, X, Send, Bot, User, RefreshCw, ChevronDown, Minimize2 } from 'lucide-react';
-import { aiService } from '../services/aiService';
-import { authService } from '../services/authService';
+import { aiService } from '../services/authService';
+import { aiService as aiApiService } from '../services/aiService';
 
 export default function FloatingChatbot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -17,13 +17,11 @@ export default function FloatingChatbot() {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  const currentUser = authService.getCurrentUser();
-
   const quickPrompts = [
     '⚡ How can I reduce electricity carbon footprint?',
     '📜 Explain SEBI BRSR Core compliance',
-    '🏛️ What government subsidies exist for rooftop solar?',
-    '📊 How do I compute Scope 1 & Scope 2 emissions?'
+    '💧 What rainwater harvesting methods work best?',
+    '🏛️ What government subsidies exist for rooftop solar?'
   ];
 
   const scrollToBottom = () => {
@@ -52,11 +50,11 @@ export default function FloatingChatbot() {
     setIsLoading(true);
 
     try {
-      const data = await aiService.chatWithAI(query);
+      const data = await aiApiService.chatWithAI(query);
       const aiReply = {
         id: `msg_ai_${Date.now()}`,
         sender: 'ai',
-        text: data.reply || 'I am analyzing your sustainability metrics. Check your EcoMind Intelligence Hub for latest guidelines.',
+        text: data.reply || 'I have analyzed your request. Check your EcoMind Dashboard and Intelligence Hub for further recommendations.',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setMessages((prev) => [...prev, aiReply]);
@@ -67,13 +65,32 @@ export default function FloatingChatbot() {
         {
           id: `msg_err_${Date.now()}`,
           sender: 'ai',
-          text: 'To optimize energy consumption: switch to high-efficiency LEDs, upgrade inverter HVACs, and install solar PV arrays.',
+          text: `⚡ **Energy Reduction Advice for "${query}":**\n• Upgrade lighting to high-efficiency LEDs (40-60% energy savings).\n• Install rooftop solar PV arrays with net metering.\n• Optimize HVAC with inverter chillers and programmable thermostats.`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Helper function to render formatted text with bold and line breaks
+  const renderFormattedText = (text) => {
+    if (!text) return null;
+    const lines = text.split('\n');
+    return lines.map((line, lIdx) => {
+      const parts = line.split(/(\*\*.*?\*\*)/g);
+      return (
+        <div key={lIdx} className={lIdx > 0 ? 'mt-1' : ''}>
+          {parts.map((part, pIdx) => {
+            if (part.startsWith('**') && part.endsWith('**')) {
+              return <strong key={pIdx} className="font-bold text-white">{part.slice(2, -2)}</strong>;
+            }
+            return <span key={pIdx}>{part}</span>;
+          })}
+        </div>
+      );
+    });
   };
 
   return (
@@ -97,7 +114,7 @@ export default function FloatingChatbot() {
 
       {/* Floating Chat Drawer Window */}
       {isOpen && (
-        <div className="w-[360px] sm:w-[420px] h-[520px] max-h-[85vh] glass-panel rounded-3xl border border-slate-700 bg-slate-900/95 shadow-2xl flex flex-col overflow-hidden animate-fade-in backdrop-blur-xl">
+        <div className="w-[360px] sm:w-[440px] h-[540px] max-h-[85vh] glass-panel rounded-3xl border border-slate-700 bg-slate-900/95 shadow-2xl flex flex-col overflow-hidden animate-fade-in backdrop-blur-xl">
           {/* Header */}
           <div className="p-4 bg-gradient-to-r from-slate-900 via-slate-900 to-emerald-950/60 border-b border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -124,7 +141,7 @@ export default function FloatingChatbot() {
           </div>
 
           {/* Messages Body */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-3 scrollbar-thin">
+          <div className="flex-1 p-4 overflow-y-auto space-y-3.5 scrollbar-thin">
             {messages.map((msg) => (
               <div
                 key={msg.id}
@@ -136,7 +153,7 @@ export default function FloatingChatbot() {
                   </div>
                 )}
 
-                <div className={`max-w-[82%] space-y-1 ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
+                <div className={`max-w-[85%] space-y-1 ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
                   <div
                     className={`p-3.5 rounded-2xl text-xs leading-relaxed ${
                       msg.sender === 'user'
@@ -144,7 +161,7 @@ export default function FloatingChatbot() {
                         : 'bg-slate-950 border border-slate-800 text-slate-200 rounded-tl-none'
                     }`}
                   >
-                    {msg.text}
+                    {renderFormattedText(msg.text)}
                   </div>
                   <span className="text-[10px] text-slate-500 block px-1">{msg.timestamp}</span>
                 </div>
@@ -154,7 +171,7 @@ export default function FloatingChatbot() {
             {isLoading && (
               <div className="flex items-center gap-2 text-xs text-emerald-400 font-semibold p-2">
                 <RefreshCw className="w-4 h-4 animate-spin" />
-                <span>Gemini AI is generating advice...</span>
+                <span>Gemini AI is generating dynamic advice...</span>
               </div>
             )}
 
@@ -162,7 +179,7 @@ export default function FloatingChatbot() {
           </div>
 
           {/* Quick Prompts Chips */}
-          {messages.length < 3 && (
+          {messages.length < 4 && (
             <div className="px-4 py-2 border-t border-slate-800/80 bg-slate-950/60 overflow-x-auto scrollbar-none flex items-center gap-1.5">
               {quickPrompts.map((prompt, idx) => (
                 <button
