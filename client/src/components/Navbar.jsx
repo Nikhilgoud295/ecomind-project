@@ -77,26 +77,26 @@ export default function Navbar() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 glass-panel border-b border-slate-800/80 backdrop-blur-md bg-dark-bg/80">
+    <header className="sticky top-0 z-50 glass-panel border-b border-slate-800/80 backdrop-blur-md bg-dark-bg/80 transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Brand Logo */}
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-eco-600 via-emerald-500 to-teal-400 p-0.5 shadow-glow-eco flex items-center justify-center transition-transform group-hover:scale-105">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-eco-600 via-emerald-500 to-teal-400 p-0.5 shadow-glow-eco flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-6">
               <div className="w-full h-full bg-dark-bg rounded-[10px] flex items-center justify-center">
-                <Leaf className="w-5 h-5 text-eco-400" />
+                <Leaf className="w-5 h-5 text-eco-400 group-hover:animate-bounce" />
               </div>
             </div>
             <div className="flex flex-col">
               <span className="text-xl font-bold font-display tracking-tight text-white flex items-center gap-1.5">
-                EcoMind <span className="text-xs px-2 py-0.5 rounded-full bg-eco-500/20 text-eco-400 border border-eco-500/30">AI</span>
+                EcoMind <span className="text-xs px-2 py-0.5 rounded-full bg-eco-500/20 text-eco-400 border border-eco-500/30 group-hover:bg-eco-500/40 transition-colors">AI</span>
               </span>
             </div>
           </Link>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Interactive Navigation Bar */}
           {isAuthenticated && (
-            <nav className="hidden md:flex items-center gap-1 bg-slate-900/60 p-1.5 rounded-xl border border-slate-800/80">
+            <nav className="hidden md:flex items-center gap-1 bg-slate-900/60 p-1.5 rounded-xl border border-slate-800/80 shadow-inner">
               {navLinks.map((link) => {
                 const Icon = link.icon;
                 const active = location.pathname === link.path;
@@ -104,45 +104,48 @@ export default function Navbar() {
                   <Link
                     key={link.path}
                     to={link.path}
-                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                    className={`group relative flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all duration-300 ${
                       active
-                        ? 'bg-eco-600 text-white shadow-md shadow-eco-900/40'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                        ? 'bg-eco-600 text-white shadow-md shadow-eco-900/40 font-bold scale-[1.02]'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-800/80 hover:scale-105'
                     }`}
                   >
-                    <Icon className="w-4 h-4" />
-                    {link.label}
+                    <Icon className={`w-4 h-4 transition-transform duration-300 ${active ? 'text-white' : 'text-eco-400 group-hover:scale-125 group-hover:rotate-6'}`} />
+                    <span>{link.label}</span>
+                    
+                    {/* Hover Glow Bar Accent */}
+                    <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-eco-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
                   </Link>
                 );
               })}
             </nav>
           )}
 
-          {/* User Profile & Actions */}
+          {/* User Profile & Interactive Action Icons */}
           <div className="hidden md:flex items-center gap-3">
             {isAuthenticated ? (
               <div className="flex items-center gap-3 relative">
                 {/* User Profile Link */}
                 <Link
                   to="/profile"
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/60 border border-slate-700/60 hover:border-eco-500/40 transition-colors"
+                  className="group flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/60 border border-slate-700/60 hover:border-eco-500/60 hover:bg-slate-800 transition-all duration-300 hover:scale-105"
                 >
                   <img
                     src={currentUser?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256'}
                     alt={currentUser?.name || 'User'}
-                    className="w-7 h-7 rounded-full object-cover border border-eco-500/40"
+                    className="w-7 h-7 rounded-full object-cover border border-eco-500/40 group-hover:ring-2 group-hover:ring-eco-400 group-hover:scale-110 transition-all duration-300"
                   />
-                  <span className="text-sm font-medium text-slate-200">{currentUser?.name?.split(' ')[0] || 'User'}</span>
+                  <span className="text-sm font-medium text-slate-200 group-hover:text-white">{currentUser?.name?.split(' ')[0] || 'User'}</span>
                 </Link>
 
                 {/* Notifications Bell (POSITIONED LEFT OF SETTINGS) */}
                 <div className="relative">
                   <button
                     onClick={() => setNotificationsOpen(!notificationsOpen)}
-                    className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800/60 transition-colors relative"
+                    className="group p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800/80 transition-all duration-300 hover:scale-110 active:scale-95 relative"
                     title="Notifications"
                   >
-                    <Bell className="w-5 h-5" />
+                    <Bell className="w-5 h-5 group-hover:text-eco-400 group-hover:animate-bounce transition-colors" />
                     {unreadCount > 0 && (
                       <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-slate-900 animate-pulse"></span>
                     )}
@@ -159,7 +162,7 @@ export default function Navbar() {
                         {unreadCount > 0 && (
                           <button
                             onClick={markAllAsRead}
-                            className="text-[10px] text-eco-400 hover:text-eco-300 font-semibold flex items-center gap-1"
+                            className="text-[10px] text-eco-400 hover:text-eco-300 font-semibold flex items-center gap-1 transition-colors"
                           >
                             <Check className="w-3 h-3" /> Mark all read
                           </button>
@@ -193,22 +196,22 @@ export default function Navbar() {
                   )}
                 </div>
 
-                {/* Settings Link */}
+                {/* Settings Link (Gear rotates on hover) */}
                 <Link
                   to="/settings"
-                  className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800/60 transition-colors"
+                  className="group p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800/80 transition-all duration-300 hover:scale-110 active:scale-95"
                   title="Settings"
                 >
-                  <Settings className="w-5 h-5" />
+                  <Settings className="w-5 h-5 group-hover:rotate-90 group-hover:text-eco-400 transition-all duration-500" />
                 </Link>
 
-                {/* Logout Button */}
+                {/* Logout Button (Icon shifts right on hover) */}
                 <button
                   onClick={handleLogout}
-                  className="p-2 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-slate-800/60 transition-colors"
+                  className="group p-2 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-slate-800/80 transition-all duration-300 hover:scale-110 active:scale-95"
                   title="Log Out"
                 >
-                  <LogOut className="w-5 h-5" />
+                  <LogOut className="w-5 h-5 group-hover:translate-x-1 group-hover:text-rose-400 transition-all duration-300" />
                 </button>
               </div>
             ) : (
