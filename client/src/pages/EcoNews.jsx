@@ -276,6 +276,18 @@ export default function EcoNews() {
               <BookOpen className="w-4 h-4" />
               Learning Center
             </button>
+
+            <button
+              onClick={() => setActiveMainTab('climate')}
+              className={`px-5 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap border ${
+                activeMainTab === 'climate'
+                  ? 'bg-gradient-to-r from-eco-600 to-emerald-600 text-white border-eco-400 shadow-glow-eco'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-900 border-transparent'
+              }`}
+            >
+              <Globe className="w-4 h-4 text-emerald-400 animate-pulse" />
+              Global Climate 🌐
+            </button>
           </div>
 
           {/* TAB 1: INTELLIGENCE FEED (Spacious 2-Column Layout) */}
@@ -631,6 +643,70 @@ export default function EcoNews() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 6: GLOBAL CLIMATE 3D REVOLVING SPHERE */}
+          {activeMainTab === 'climate' && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 bg-gradient-to-r from-slate-900 via-slate-900/90 to-emerald-950/40">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                  <div>
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-eco-500/20 text-eco-400 border border-eco-500/30 text-xs font-bold">
+                      <Globe className="w-4 h-4 text-emerald-400 animate-spin" style={{ animationDuration: '10s' }} />
+                      Real-Time 3D Revolving Earth Command Sphere
+                    </div>
+                    <h2 className="text-xl sm:text-2xl font-bold font-display text-white mt-2">
+                      Global Climate & Environmental Planetary Sphere
+                    </h2>
+                    <p className="text-xs sm:text-sm text-slate-300 mt-1">
+                      Interactive 360° revolving WebGL planet Earth displaying live carbon offsets, solar grids, rainforest sanctuaries, and marine protection hotspots.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Dedicated 3D Revolving Globe Component */}
+              <EcoGlobe3D title="Real-Time Revolving Global Eco Command Sphere 🌐" showHotspots={true} />
+
+              {/* Real-time Global Climate Metrics Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-1.5 bg-slate-900/80">
+                  <span className="text-xs font-semibold text-slate-400">Atmospheric CO2 Level</span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold font-mono text-emerald-400">422.4</span>
+                    <span className="text-xs text-slate-400">ppm</span>
+                  </div>
+                  <p className="text-[10px] text-slate-500">Global background station average</p>
+                </div>
+
+                <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-1.5 bg-slate-900/80">
+                  <span className="text-xs font-semibold text-slate-400">Global Renewable Share</span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold font-mono text-teal-400">30.2%</span>
+                    <span className="text-xs text-emerald-400 font-bold">+3.4% YoY</span>
+                  </div>
+                  <p className="text-[10px] text-slate-500">Electricity grid generation share</p>
+                </div>
+
+                <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-1.5 bg-slate-900/80">
+                  <span className="text-xs font-semibold text-slate-400">Surface Temp Anomaly</span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold font-mono text-amber-400">+1.15°C</span>
+                    <span className="text-xs text-slate-400">vs pre-industrial</span>
+                  </div>
+                  <p className="text-[10px] text-slate-500">IPCC target threshold: 1.5°C</p>
+                </div>
+
+                <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-1.5 bg-slate-900/80">
+                  <span className="text-xs font-semibold text-slate-400">Protected Oceans Share</span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold font-mono text-blue-400">18.4%</span>
+                    <span className="text-xs text-blue-400 font-bold">UN Target 30%</span>
+                  </div>
+                  <p className="text-[10px] text-slate-500">High seas marine sanctuaries</p>
+                </div>
               </div>
             </div>
           )}
