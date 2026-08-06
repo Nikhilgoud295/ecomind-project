@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusCircle, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
+import { FileUp, Edit3, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
 import ResourceForm from '../components/ResourceForm';
+import DocumentUpload from '../components/DocumentUpload';
 import AIRecommendationCards from '../components/AIRecommendationCards';
 import { usageService } from '../services/usageService';
 import { aiService } from '../services/aiService';
 
 export default function AddData() {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('document'); // 'document' | 'manual'
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [aiReportResult, setAiReportResult] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
@@ -57,39 +59,71 @@ export default function AddData() {
 
         <main className="flex-1 space-y-6 overflow-hidden">
           {/* Header */}
-          <div className="glass-panel p-6 rounded-3xl border border-slate-800 space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-eco-500/20 text-eco-400 border border-eco-500/30">
-                Resource Input Protocol
-              </span>
+          <div className="glass-panel p-6 rounded-3xl border border-slate-800 space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-eco-500/20 text-eco-400 border border-eco-500/30">
+                  Resource Input & Document Upload Protocol
+                </span>
+                <h1 className="text-2xl font-bold font-display text-white flex items-center gap-2 mt-2">
+                  <FileUp className="w-6 h-6 text-eco-400" />
+                  Document Upload & Resource Input
+                </h1>
+                <p className="text-xs text-slate-400 mt-1">
+                  Upload utility bills, electricity receipts, or carbon logs to automatically extract resource data using Gemini AI, or enter data manually.
+                </p>
+              </div>
+
+              {/* Mode Selector Tabs */}
+              <div className="flex items-center gap-1.5 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800 self-stretch sm:self-auto">
+                <button
+                  onClick={() => setActiveTab('document')}
+                  className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
+                    activeTab === 'document'
+                      ? 'bg-gradient-to-r from-eco-600 to-teal-600 text-white shadow-glow-eco'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                  }`}
+                >
+                  <FileUp className="w-4 h-4" />
+                  Document Upload (AI)
+                </button>
+                <button
+                  onClick={() => setActiveTab('manual')}
+                  className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
+                    activeTab === 'manual'
+                      ? 'bg-gradient-to-r from-eco-600 to-teal-600 text-white shadow-glow-eco'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                  }`}
+                >
+                  <Edit3 className="w-4 h-4" />
+                  Manual Entry Form
+                </button>
+              </div>
             </div>
-            <h1 className="text-2xl font-bold font-display text-white flex items-center gap-2">
-              <PlusCircle className="w-6 h-6 text-eco-400" />
-              Record Sustainability Data
-            </h1>
-            <p className="text-xs text-slate-400">
-              Input your daily electricity, water, waste, and transportation metrics to compute precise carbon emissions and generate Gemini AI advice.
-            </p>
           </div>
 
           {successMessage && (
-            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-center justify-between">
+            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-center justify-between animate-fade-in">
               <div className="flex items-center gap-3">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
                 <span className="text-sm font-medium">{successMessage}</span>
               </div>
               <button
                 onClick={() => navigate('/dashboard')}
-                className="text-xs font-bold px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1 transition-colors"
+                className="text-xs font-bold px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1 transition-colors shadow-md"
               >
                 Go to Dashboard <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
           )}
 
-          {/* Input Form */}
+          {/* Active Tab Panel */}
           <div className="glass-panel p-6 rounded-3xl border border-slate-800">
-            <ResourceForm onSubmit={handleFormSubmit} isSubmitting={isSubmitting} />
+            {activeTab === 'document' ? (
+              <DocumentUpload onExtractedDataSubmit={handleFormSubmit} isSubmitting={isSubmitting} />
+            ) : (
+              <ResourceForm onSubmit={handleFormSubmit} isSubmitting={isSubmitting} />
+            )}
           </div>
 
           {/* AI Analysis Feedback after submission */}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Leaf, LogOut, User, Settings, Sparkles, Menu, X, BarChart3, PlusCircle, FileText } from 'lucide-react';
+import { Leaf, LogOut, User, Settings, Sparkles, Menu, X, BarChart3, PlusCircle, FileUp, FileText } from 'lucide-react';
 import { authService } from '../services/authService';
 
 export default function Navbar() {
@@ -17,7 +17,7 @@ export default function Navbar() {
 
   const navLinks = [
     { path: '/dashboard', label: 'Dashboard', icon: BarChart3 },
-    { path: '/add-data', label: 'Add Data', icon: PlusCircle },
+    { path: '/add-data', label: 'Upload & Add Data', icon: FileUp },
     { path: '/analytics', label: 'Analytics', icon: BarChart3 },
     { path: '/ai-advisor', label: 'AI Advisor', icon: Sparkles },
     { path: '/reports', label: 'Reports', icon: FileText },

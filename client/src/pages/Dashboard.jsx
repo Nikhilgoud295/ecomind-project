@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { PlusCircle, Sparkles, FileText, ArrowRight, Clock, Trash2, Calendar, Zap, Droplets, Leaf } from 'lucide-react';
+import { PlusCircle, FileUp, Sparkles, FileText, ArrowRight, Clock, Trash2, Calendar, Zap, Droplets, Leaf } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
@@ -76,8 +76,8 @@ export default function Dashboard() {
                 to="/add-data"
                 className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-eco-600 to-teal-500 hover:from-eco-500 hover:to-teal-400 text-white font-medium text-xs shadow-glow-eco flex items-center gap-2 transition-all transform hover:-translate-y-0.5"
               >
-                <PlusCircle className="w-4 h-4" />
-                Record Resource Data
+                <FileUp className="w-4 h-4" />
+                Upload & Add Data
               </Link>
               <Link
                 to="/ai-advisor"

@@ -1,11 +1,11 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, PlusCircle, LineChart, Sparkles, FileText, User, Settings, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, FileUp, LineChart, Sparkles, FileText, User, Settings, ShieldCheck } from 'lucide-react';
 
 export default function Sidebar() {
   const menuItems = [
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/add-data', label: 'Record Usage', icon: PlusCircle },
+    { path: '/add-data', label: 'Upload & Record', icon: FileUp },
     { path: '/analytics', label: 'Analytics & Trends', icon: LineChart },
     { path: '/ai-advisor', label: 'AI Advisor', icon: Sparkles, badge: 'Gemini' },
     { path: '/reports', label: 'Reports Export', icon: FileText },
