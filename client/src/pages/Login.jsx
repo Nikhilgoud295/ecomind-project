@@ -1,18 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Leaf, Mail, Lock, LogIn, AlertCircle, Sparkles, Scan, ShieldCheck, CheckCircle2, UserCheck, RefreshCw } from 'lucide-react';
+import { Leaf, Mail, Lock, LogIn, AlertCircle, Sparkles, Scan, ShieldCheck, CheckCircle2, UserCheck, RefreshCw, User } from 'lucide-react';
 import { authService } from '../services/authService';
 import FaceRecognitionScanner from '../components/FaceRecognitionScanner';
 
 export default function Login() {
   const navigate = useNavigate();
   const [loginMethod, setLoginMethod] = useState('password'); // 'password' | 'face'
-  const [formData, setFormData] = useState({ email: 'nikhilgoudkeesari@gmail.com', password: 'Password123!' });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [faceBiometricData, setFaceBiometricData] = useState('face_token_verified');
   const [isFaceVerified, setIsFaceVerified] = useState(false);
+  
+  const [registeredUsers, setRegisteredUsers] = useState([]);
+  const [selectedUserEmail, setSelectedUserEmail] = useState('');
   const [recognizedUser, setRecognizedUser] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Load registered accounts from storage
+    const storedUsers = JSON.parse(localStorage.getItem('ecomind_registered_users') || '[]');
+    const activeUser = JSON.parse(localStorage.getItem('ecomind_user') || 'null');
+
+    let allUsers = [...storedUsers];
+    if (activeUser && !allUsers.some(u => u.email === activeUser.email)) {
+      allUsers.unshift(activeUser);
+    }
+
+    if (allUsers.length === 0) {
+      const defaultUser = {
+        id: 'usr_default',
+        name: 'Nikhil Goud',
+        email: 'nikhilgoudkeesari@gmail.com',
+        organization: 'EcoMind Enterprise',
+        avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256'
+      };
+      allUsers.push(defaultUser);
+    }
+
+    setRegisteredUsers(allUsers);
+    const initialUser = activeUser || allUsers[0];
+    setSelectedUserEmail(initialUser?.email || '');
+    setRecognizedUser(initialUser);
+    setFormData({
+      email: initialUser?.email || '',
+      password: 'Password123!'
+    });
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -27,39 +61,43 @@ export default function Login() {
     setError('');
   };
 
+  const handleUserSelect = (email) => {
+    setSelectedUserEmail(email);
+    const user = registeredUsers.find(u => u.email === email);
+    if (user) {
+      setRecognizedUser(user);
+      setFormData(prev => ({ ...prev, email: user.email }));
+    }
+  };
+
   const handleFaceCaptured = (biometricSnapshot) => {
     setFaceBiometricData(biometricSnapshot);
     setIsFaceVerified(true);
     setError('');
 
-    // Dynamically lookup user from registered users database or local session
-    const registeredUsers = JSON.parse(localStorage.getItem('ecomind_registered_users') || '[]');
-    const currentUser = JSON.parse(localStorage.getItem('ecomind_user') || 'null');
-    
-    let matchedUser = registeredUsers.find(u => u.email === formData.email?.toLowerCase()) ||
-      registeredUsers.find(u => u.face_enrolled) ||
-      currentUser ||
+    // Look up the selected user or latest registered account
+    const user = registeredUsers.find(u => u.email === selectedUserEmail) ||
+      registeredUsers[0] ||
+      JSON.parse(localStorage.getItem('ecomind_user') || 'null') ||
       {
-        id: 'usr_dynamic',
-        name: formData.email ? formData.email.split('@')[0] : 'Enrolled User',
+        id: 'usr_verified',
+        name: 'Enrolled Eco User',
         email: formData.email || 'user@ecomind.ai',
-        organization: 'EcoMind Enterprise',
-        avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256'
+        organization: 'EcoMind Enterprise'
       };
 
-    setRecognizedUser(matchedUser);
+    setRecognizedUser(user);
   };
 
   const handleFaceLoginSubmit = async () => {
     setLoading(true);
     setError('');
 
-    const targetUser = recognizedUser || JSON.parse(localStorage.getItem('ecomind_user') || 'null') || {
-      id: 'usr_dynamic',
-      name: formData.email ? formData.email.split('@')[0] : 'Enrolled User',
-      email: formData.email || 'user@ecomind.ai',
-      organization: 'EcoMind Enterprise',
-      avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256'
+    const targetUser = recognizedUser || registeredUsers[0] || {
+      id: 'usr_verified',
+      name: 'Enrolled Eco User',
+      email: 'user@ecomind.ai',
+      organization: 'EcoMind Enterprise'
     };
 
     try {
@@ -76,12 +114,14 @@ export default function Login() {
         localStorage.setItem('ecomind_user', JSON.stringify(targetUser));
       }
       window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new Event('ecomind_user_updated'));
       navigate('/dashboard');
     } catch (err) {
       console.warn('Face Login fallback:', err);
       localStorage.setItem('ecomind_token', 'demo_token_123');
       localStorage.setItem('ecomind_user', JSON.stringify(targetUser));
       window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new Event('ecomind_user_updated'));
       navigate('/dashboard');
     } finally {
       setLoading(false);
@@ -104,19 +144,20 @@ export default function Login() {
           localStorage.setItem('ecomind_user', JSON.stringify(res.user));
         }
         window.dispatchEvent(new Event('storage'));
+        window.dispatchEvent(new Event('ecomind_user_updated'));
         navigate('/dashboard');
       } catch (err) {
         console.warn('Password login attempt fallback:', err);
-        const registeredUsers = JSON.parse(localStorage.getItem('ecomind_registered_users') || '[]');
         const matched = registeredUsers.find(u => u.email === formData.email?.toLowerCase()) || {
           id: 'usr_nikhil',
-          name: 'Nikhil Goud',
+          name: formData.email ? formData.email.split('@')[0] : 'Nikhil Goud',
           email: formData.email || 'nikhilgoudkeesari@gmail.com',
           organization: 'EcoMind Enterprise'
         };
         localStorage.setItem('ecomind_token', 'demo_token_123');
         localStorage.setItem('ecomind_user', JSON.stringify(matched));
         window.dispatchEvent(new Event('storage'));
+        window.dispatchEvent(new Event('ecomind_user_updated'));
         navigate('/dashboard');
       } finally {
         setLoading(false);
@@ -257,10 +298,30 @@ export default function Login() {
             </form>
           ) : (
             <div className="space-y-4">
+              {/* Registered Account Selection Bar */}
+              {registeredUsers.length > 0 && (
+                <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-1.5">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    Select Enrolled Face ID Account:
+                  </label>
+                  <select
+                    value={selectedUserEmail}
+                    onChange={(e) => handleUserSelect(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs font-bold focus:outline-none focus:border-eco-500 cursor-pointer"
+                  >
+                    {registeredUsers.map((u, i) => (
+                      <option key={i} value={u.email}>
+                        👤 {u.name} ({u.email})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               {/* Facial Recognition Scanner */}
               <FaceRecognitionScanner onScanComplete={handleFaceCaptured} mode="login" />
 
-              {/* Display Recognized Account Details with REAL REGISTERED NAME */}
+              {/* Display Recognized Account Details with REAL DYNAMIC USER NAME */}
               {isFaceVerified && recognizedUser && (
                 <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-3 animate-fade-in">
                   <UserCheck className="w-5 h-5 text-emerald-400 flex-shrink-0" />
