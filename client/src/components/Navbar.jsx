@@ -20,7 +20,7 @@ export default function Navbar() {
     { path: '/add-data', label: 'Upload & Add Data', icon: FileUp },
     { path: '/analytics', label: 'Analytics', icon: BarChart3 },
     { path: '/ai-advisor', label: 'AI Advisor', icon: Sparkles },
-    { path: '/eco-news', label: 'Eco News', icon: Newspaper },
+    { path: '/eco-news', label: 'Intelligence Hub', icon: Newspaper },
     { path: '/reports', label: 'Reports', icon: FileText },
   ];
 

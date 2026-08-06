@@ -8,7 +8,7 @@ export default function Sidebar() {
     { path: '/add-data', label: 'Upload & Record', icon: FileUp },
     { path: '/analytics', label: 'Analytics & Trends', icon: LineChart },
     { path: '/ai-advisor', label: 'AI Advisor', icon: Sparkles, badge: 'Gemini' },
-    { path: '/eco-news', label: 'Eco News Hub', icon: Newspaper, badge: 'Live' },
+    { path: '/eco-news', label: 'Intelligence Hub', icon: ShieldCheck, badge: 'Enterprise' },
     { path: '/reports', label: 'Reports Export', icon: FileText },
   ];
 
