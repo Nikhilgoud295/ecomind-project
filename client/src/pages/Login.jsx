@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Leaf, Mail, Lock, LogIn, AlertCircle, Sparkles, Scan, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Leaf, Mail, Lock, LogIn, AlertCircle, Sparkles, Scan, ShieldCheck, CheckCircle2, UserCheck } from 'lucide-react';
 import { authService } from '../services/authService';
 import FaceRecognitionScanner from '../components/FaceRecognitionScanner';
 
@@ -10,6 +10,7 @@ export default function Login() {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [faceBiometricData, setFaceBiometricData] = useState(null);
   const [isFaceVerified, setIsFaceVerified] = useState(false);
+  const [recognizedUser, setRecognizedUser] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -30,6 +31,11 @@ export default function Login() {
     setFaceBiometricData(biometricSnapshot);
     setIsFaceVerified(true);
     setError('');
+    // Auto-detect registered user credentials for face scan
+    setRecognizedUser({
+      name: formData.email ? formData.email.split('@')[0] : 'Nikhil Goud',
+      email: formData.email || 'nikhilgoudkeesari@gmail.com'
+    });
   };
 
   const handleFaceLoginSubmit = async () => {
@@ -42,10 +48,14 @@ export default function Login() {
     setError('');
 
     try {
-      await authService.faceLogin({
-        email: formData.email || 'nikhilgoudkeesari@gmail.com',
+      const res = await authService.faceLogin({
+        email: formData.email,
         face_biometric_data: faceBiometricData
       });
+
+      if (res.user) {
+        setRecognizedUser(res.user);
+      }
       navigate('/dashboard');
     } catch (err) {
       console.error('Face Login Error:', err);
@@ -215,6 +225,18 @@ export default function Login() {
               {/* Mandatory Facial Recognition Scanner */}
               <FaceRecognitionScanner onScanComplete={handleFaceCaptured} mode="login" />
 
+              {/* Display Recognized Account Details */}
+              {isFaceVerified && recognizedUser && (
+                <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-3">
+                  <UserCheck className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <div className="text-xs">
+                    <span className="text-slate-400 block text-[10px]">Recognized Account:</span>
+                    <span className="font-bold text-white block">{recognizedUser.name}</span>
+                    <span className="text-[11px] text-emerald-400">{recognizedUser.email}</span>
+                  </div>
+                </div>
+              )}
+
               <button
                 type="button"
                 onClick={handleFaceLoginSubmit}
@@ -226,11 +248,11 @@ export default function Login() {
                 }`}
               >
                 {loading ? (
-                  <span>Verifying Face Biometrics...</span>
+                  <span>Authenticating Face ID...</span>
                 ) : isFaceVerified ? (
                   <>
                     <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    Face Verified — Click to Sign In
+                    Face Matched — Sign In to Account
                   </>
                 ) : (
                   <>

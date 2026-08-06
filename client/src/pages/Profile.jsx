@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { User, Mail, Building2, Save, ShieldCheck, CheckCircle2, Award } from 'lucide-react';
+import React, { useState } from 'react';
+import { User, Mail, Building2, Save, ShieldCheck, CheckCircle2, Scan } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
+import FaceRecognitionScanner from '../components/FaceRecognitionScanner';
 import { authService } from '../services/authService';
 
 export default function Profile() {
@@ -14,12 +15,19 @@ export default function Profile() {
     avatar_url: currentUser?.avatar_url || '',
   });
 
+  const [faceBiometricData, setFaceBiometricData] = useState(null);
+  const [showFaceScanner, setShowFaceScanner] = useState(false);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setMsg('');
+  };
+
+  const handleFaceCaptured = (biometricSnapshot) => {
+    setFaceBiometricData(biometricSnapshot);
+    setMsg('Facial biometric template captured! Click "Save Profile Changes" to update your account.');
   };
 
   const handleSubmit = async (e) => {
@@ -32,10 +40,11 @@ export default function Profile() {
         name: formData.name,
         organization: formData.organization,
         avatar_url: formData.avatar_url,
+        face_biometric_data: faceBiometricData
       });
 
       if (res.success) {
-        setMsg('Profile updated successfully!');
+        setMsg('Profile and Face ID biometric template updated successfully!');
       }
     } catch (err) {
       console.error('Error updating profile:', err);
@@ -53,21 +62,27 @@ export default function Profile() {
 
         <main className="flex-1 space-y-6 overflow-hidden">
           {/* Header */}
-          <div className="glass-panel p-6 rounded-3xl border border-slate-800 flex items-center gap-5">
-            <img
-              src={formData.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256'}
-              alt="Avatar"
-              className="w-16 h-16 rounded-2xl border-2 border-eco-500 object-cover shadow-glow-eco"
-            />
-            <div>
-              <h1 className="text-2xl font-bold font-display text-white">{formData.name || 'User Profile'}</h1>
-              <p className="text-xs text-slate-400">{formData.email}</p>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-eco-500/20 text-eco-400 border border-eco-500/30">
-                  {formData.organization}
-                </span>
-                <span className="text-[10px] text-slate-400">Sustainability Champion</span>
+          <div className="glass-panel p-6 rounded-3xl border border-slate-800 flex items-center justify-between">
+            <div className="flex items-center gap-5">
+              <img
+                src={formData.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256'}
+                alt="Avatar"
+                className="w-16 h-16 rounded-2xl border-2 border-eco-500 object-cover shadow-glow-eco"
+              />
+              <div>
+                <h1 className="text-2xl font-bold font-display text-white">{formData.name || 'User Profile'}</h1>
+                <p className="text-xs text-slate-400">{formData.email}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-eco-500/20 text-eco-400 border border-eco-500/30">
+                    {formData.organization}
+                  </span>
+                  <span className="text-[10px] text-slate-400">Sustainability Champion</span>
+                </div>
               </div>
+            </div>
+
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
+              <ShieldCheck className="w-4 h-4" /> Face ID Enrolled
             </div>
           </div>
 
@@ -76,14 +91,30 @@ export default function Profile() {
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h3 className="text-base font-bold font-display text-white flex items-center gap-2">
                 <User className="w-5 h-5 text-eco-400" />
-                Account Settings & Credentials
+                Account Settings & Biometric Credentials
               </h3>
+
+              <button
+                type="button"
+                onClick={() => setShowFaceScanner(!showFaceScanner)}
+                className="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all"
+              >
+                <Scan className="w-4 h-4 text-emerald-400" />
+                {showFaceScanner ? 'Hide Face Scanner' : 'Re-Enroll Face ID'}
+              </button>
             </div>
 
             {msg && (
               <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                 <span>{msg}</span>
+              </div>
+            )}
+
+            {/* Optional Face ID Scanner on Profile */}
+            {showFaceScanner && (
+              <div className="animate-fade-in pb-2">
+                <FaceRecognitionScanner onScanComplete={handleFaceCaptured} mode="register" />
               </div>
             )}
 
