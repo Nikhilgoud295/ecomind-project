@@ -9,7 +9,6 @@ import {
   Menu, 
   X, 
   BarChart3, 
-  PlusCircle, 
   FileUp, 
   FileText, 
   Newspaper,
@@ -94,33 +93,6 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* Desktop Interactive Navigation Bar */}
-          {isAuthenticated && (
-            <nav className="hidden md:flex items-center gap-1 bg-slate-900/60 p-1.5 rounded-xl border border-slate-800/80 shadow-inner">
-              {navLinks.map((link) => {
-                const Icon = link.icon;
-                const active = location.pathname === link.path;
-                return (
-                  <Link
-                    key={link.path}
-                    to={link.path}
-                    className={`group relative flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all duration-300 ${
-                      active
-                        ? 'bg-eco-600 text-white shadow-md shadow-eco-900/40 font-bold scale-[1.02]'
-                        : 'text-slate-400 hover:text-white hover:bg-slate-800/80 hover:scale-105'
-                    }`}
-                  >
-                    <Icon className={`w-4 h-4 transition-transform duration-300 ${active ? 'text-white' : 'text-eco-400 group-hover:scale-125 group-hover:rotate-6'}`} />
-                    <span>{link.label}</span>
-                    
-                    {/* Hover Glow Bar Accent */}
-                    <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-eco-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-                  </Link>
-                );
-              })}
-            </nav>
-          )}
-
           {/* User Profile & Interactive Action Icons */}
           <div className="hidden md:flex items-center gap-3">
             {isAuthenticated ? (
@@ -196,7 +168,7 @@ export default function Navbar() {
                   )}
                 </div>
 
-                {/* Settings Link (Gear rotates on hover) */}
+                {/* Settings Link */}
                 <Link
                   to="/settings"
                   className="group p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800/80 transition-all duration-300 hover:scale-110 active:scale-95"
@@ -205,7 +177,7 @@ export default function Navbar() {
                   <Settings className="w-5 h-5 group-hover:rotate-90 group-hover:text-eco-400 transition-all duration-500" />
                 </Link>
 
-                {/* Logout Button (Icon shifts right on hover) */}
+                {/* Logout Button */}
                 <button
                   onClick={handleLogout}
                   className="group p-2 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-slate-800/80 transition-all duration-300 hover:scale-110 active:scale-95"
