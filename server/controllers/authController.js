@@ -32,8 +32,53 @@ const register = async (req, res, next) => {
     const { name, email, password, organization, face_biometric_data } = req.body;
     const cleanEmail = (email || '').toLowerCase().trim();
 
+    // 1. Check existing user by email or face biometric template in fallback users
+    let existingUser = fallbackUsers.find(u => 
+      (cleanEmail && u.email === cleanEmail) || 
+      (face_biometric_data && u.face_biometric_data === face_biometric_data)
+    );
+
+    // 2. Check existing user in Supabase database
+    if (!existingUser && supabase && cleanEmail) {
+      const { data } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', cleanEmail)
+        .maybeSingle();
+      if (data) existingUser = data;
+    }
+
+    if (existingUser) {
+      // User already registered! Prevent duplicate creation and log into existing account
+      if (face_biometric_data && !existingUser.face_biometric_data) {
+        existingUser.face_biometric_data = face_biometric_data;
+        if (supabase) {
+          try {
+            await supabase.from('users').update({ face_biometric_data }).eq('id', existingUser.id);
+          } catch (e) {
+            console.warn('Face ID template update note:', e.message);
+          }
+        }
+      }
+
+      const token = jwt.sign(
+        { id: existingUser.id, email: existingUser.email, name: existingUser.name, organization: existingUser.organization },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+      const { password_hash: _, ...u } = existingUser;
+
+      return res.status(200).json({
+        success: true,
+        message: `Existing Account Recognized! Welcome back, ${existingUser.name} (${existingUser.email})`,
+        token,
+        user: u
+      });
+    }
+
+    // 3. Register NEW User
     if (!cleanEmail || !name) {
-      return res.status(400).json({ success: false, message: 'Name and email are required' });
+      return res.status(400).json({ success: false, message: 'Name and email are required to create a new account' });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -42,41 +87,6 @@ const register = async (req, res, next) => {
     let newUser = null;
 
     if (supabase) {
-      // Check existing user
-      const { data: existingUser } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', cleanEmail)
-        .maybeSingle();
-
-      if (existingUser) {
-        // Update existing user with new face ID biometric template if provided
-        if (face_biometric_data) {
-          try {
-            await supabase
-              .from('users')
-              .update({ face_biometric_data })
-              .eq('id', existingUser.id);
-          } catch (e) {
-            console.warn('Face ID template update note:', e.message);
-          }
-        }
-
-        const token = jwt.sign(
-          { id: existingUser.id, email: cleanEmail, name: existingUser.name, organization: existingUser.organization },
-          JWT_SECRET,
-          { expiresIn: '7d' }
-        );
-        const { password_hash: _, ...u } = existingUser;
-        return res.status(200).json({
-          success: true,
-          message: 'Account updated with Face ID biometrics',
-          token,
-          user: u
-        });
-      }
-
-      // Insert new user into database
       const { data, error } = await supabase
         .from('users')
         .insert([
@@ -92,7 +102,7 @@ const register = async (req, res, next) => {
         .single();
 
       if (error) {
-        console.warn('⚠️ Supabase insert note, using fallback database:', error.message);
+        console.warn('⚠️ Supabase insert note, saving to fallback database:', error.message);
         newUser = {
           id: `usr_${Date.now()}`,
           name,
@@ -130,7 +140,7 @@ const register = async (req, res, next) => {
 
     return res.status(201).json({
       success: true,
-      message: `User ${name} registered with Face ID biometrics`,
+      message: `Account created for ${name} with Face ID biometrics`,
       token,
       user: userWithoutPassword,
     });
@@ -229,7 +239,11 @@ const faceLogin = async (req, res, next) => {
       matchedUser = data;
     }
 
-    // 3. Fallback to latest registered user profile in database
+    if (!matchedUser && face_biometric_data) {
+      matchedUser = fallbackUsers.find(u => u.face_biometric_data === face_biometric_data);
+    }
+
+    // 3. Fallback to registered user profile in database
     if (!matchedUser && supabase) {
       const { data } = await supabase
         .from('users')
