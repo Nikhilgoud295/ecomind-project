@@ -69,11 +69,15 @@ export default function Landing() {
               {headingWords.map((wordObj, wIdx) => (
                 <React.Fragment key={`w_block_${wIdx}`}>
                   {/* Single Letter Container */}
-                  <span className={`inline-flex ${wordObj.isGradient ? 'gradient-text' : ''}`}>
+                  <span className="inline-flex">
                     {wordObj.text.split('').map((char, cIdx) => (
                       <span
                         key={`c_${wIdx}_${cIdx}`}
-                        className="inline-block transition-all duration-200 transform hover:scale-150 hover:-translate-y-2.5 hover:text-emerald-300 hover:drop-shadow-[0_0_20px_rgba(16,185,129,0.95)] cursor-pointer py-1 px-[1px]"
+                        className={`inline-block transition-all duration-200 transform hover:scale-150 hover:-translate-y-2.5 hover:drop-shadow-[0_0_25px_rgba(16,185,129,1)] cursor-pointer py-1 px-[0.5px] ${
+                          wordObj.isGradient
+                            ? 'bg-gradient-to-r from-eco-400 via-emerald-400 to-teal-300 bg-clip-text text-transparent hover:text-emerald-200'
+                            : 'text-white hover:text-emerald-300'
+                        }`}
                       >
                         {char}
                       </span>
@@ -83,7 +87,7 @@ export default function Landing() {
                   {/* Special Sparkle Separator Letter Between Words */}
                   {wIdx < headingWords.length - 1 && (
                     <span
-                      className="inline-block text-eco-400 text-xs sm:text-sm transition-all duration-300 transform hover:scale-175 hover:rotate-180 hover:text-emerald-300 cursor-pointer drop-shadow-[0_0_12px_rgba(16,185,129,0.9)] px-1"
+                      className="inline-block text-eco-400 text-xs sm:text-sm transition-all duration-300 transform hover:scale-175 hover:rotate-180 hover:text-emerald-300 cursor-pointer drop-shadow-[0_0_12px_rgba(16,185,129,0.9)] px-1.5"
                       title="EcoMind Sparkle"
                     >
                       ✦
