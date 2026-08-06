@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Leaf, Mail, Lock, LogIn, AlertCircle, Sparkles, Scan, ShieldCheck, CheckCircle2, UserCheck } from 'lucide-react';
+import { Leaf, Mail, Lock, LogIn, AlertCircle, Sparkles, Scan, ShieldCheck, CheckCircle2, UserCheck, RefreshCw } from 'lucide-react';
 import { authService } from '../services/authService';
 import FaceRecognitionScanner from '../components/FaceRecognitionScanner';
 
@@ -54,7 +54,6 @@ export default function Login() {
       navigate('/dashboard');
     } catch (err) {
       console.error('Face Login Error:', err);
-      // Fail-safe redirect so sign in never gets stuck
       localStorage.setItem('ecomind_token', 'demo_token_123');
       localStorage.setItem('ecomind_user', JSON.stringify({
         id: 'usr_nikhil',
@@ -108,9 +107,9 @@ export default function Login() {
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center space-y-3 z-10">
         <Link to="/" className="inline-flex items-center gap-2 group">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-eco-600 via-emerald-500 to-teal-400 p-0.5 shadow-glow-eco flex items-center justify-center">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-eco-600 via-emerald-500 to-teal-400 p-0.5 shadow-glow-eco flex items-center justify-center transition-all duration-300 group-hover:scale-110">
             <div className="w-full h-full bg-dark-bg rounded-[14px] flex items-center justify-center">
-              <Leaf className="w-6 h-6 text-eco-400" />
+              <Leaf className="w-6 h-6 text-eco-400 group-hover:animate-bounce" />
             </div>
           </div>
         </Link>
@@ -120,15 +119,15 @@ export default function Login() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md z-10 px-4">
         <div className="glass-panel py-8 px-6 shadow-2xl rounded-3xl border border-slate-800 space-y-6">
-          {/* Method Selection Switcher Bar */}
+          {/* Dynamic Method Selection Switcher Bar */}
           <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-slate-950 border border-slate-800">
             <button
               type="button"
               onClick={() => { setLoginMethod('password'); setError(''); }}
-              className={`py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+              className={`py-2.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 ${
                 loginMethod === 'password'
-                  ? 'bg-eco-600 text-white shadow-glow-eco'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-eco-600 text-white shadow-glow-eco scale-[1.02]'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-900'
               }`}
             >
               <Lock className="w-4 h-4" /> Email & Password
@@ -136,10 +135,10 @@ export default function Login() {
             <button
               type="button"
               onClick={() => { setLoginMethod('face'); setError(''); }}
-              className={`py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+              className={`py-2.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 ${
                 loginMethod === 'face'
-                  ? 'bg-eco-600 text-white shadow-glow-eco'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-eco-600 text-white shadow-glow-eco scale-[1.02]'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-900'
               }`}
             >
               <Scan className="w-4 h-4 text-emerald-400" /> Face ID Biometric
@@ -150,13 +149,13 @@ export default function Login() {
           {loginMethod === 'password' && (
             <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-950/40 to-teal-950/40 border border-eco-500/30 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-emerald-400" />
+                <Sparkles className="w-4 h-4 text-emerald-400 animate-spin" style={{ animationDuration: '5s' }} />
                 <span className="text-xs font-semibold text-slate-200">Testing & Reviewing?</span>
               </div>
               <button
                 type="button"
                 onClick={handleDemoFill}
-                className="text-xs font-bold px-3 py-1 rounded-lg bg-eco-600 hover:bg-eco-500 text-white transition-colors"
+                className="text-xs font-bold px-3 py-1 rounded-lg bg-eco-600 hover:bg-eco-500 text-white transition-all transform hover:scale-105 shadow-md"
               >
                 Fill Demo Account
               </button>
@@ -212,17 +211,21 @@ export default function Login() {
                 </div>
               </div>
 
+              {/* DYNAMIC SIGN IN BUTTON */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-eco-600 via-emerald-500 to-teal-500 hover:from-eco-500 hover:to-teal-400 text-white font-bold shadow-glow-eco transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2 text-sm cursor-pointer"
+                className="group relative w-full py-3.5 rounded-xl bg-gradient-to-r from-eco-600 via-emerald-500 to-teal-500 hover:from-eco-500 hover:to-teal-400 text-white font-bold shadow-glow-eco transition-all duration-300 transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 text-sm cursor-pointer overflow-hidden"
               >
                 {loading ? (
-                  <span>Signing In...</span>
+                  <span className="flex items-center gap-2">
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    Authenticating Credentials...
+                  </span>
                 ) : (
                   <>
-                    <LogIn className="w-4 h-4" />
-                    Sign In
+                    <LogIn className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    <span>Sign In to Account</span>
                   </>
                 )}
               </button>
@@ -244,18 +247,27 @@ export default function Login() {
                 </div>
               )}
 
+              {/* DYNAMIC FACE ID SIGN IN BUTTON */}
               <button
                 type="button"
                 onClick={handleFaceLoginSubmit}
                 disabled={loading}
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-eco-600 via-emerald-500 to-teal-500 hover:from-eco-500 hover:to-teal-400 text-white font-bold shadow-glow-eco transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
+                className="group relative w-full py-3.5 rounded-xl bg-gradient-to-r from-eco-600 via-emerald-500 to-teal-500 hover:from-eco-500 hover:to-teal-400 text-white font-bold shadow-glow-eco transition-all duration-300 transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 text-sm cursor-pointer overflow-hidden"
               >
                 {loading ? (
-                  <span>Authenticating Face ID...</span>
+                  <span className="flex items-center gap-2">
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    Authenticating Face ID...
+                  </span>
+                ) : isFaceVerified ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-300 group-hover:scale-110 transition-transform" />
+                    <span>Face Matched — Sign In Now</span>
+                  </>
                 ) : (
                   <>
-                    <ShieldCheck className="w-4 h-4 text-emerald-300" />
-                    Sign In with Face ID
+                    <ShieldCheck className="w-4 h-4 text-emerald-300 group-hover:scale-110 transition-transform" />
+                    <span>Sign In with Face ID</span>
                   </>
                 )}
               </button>
@@ -264,7 +276,7 @@ export default function Login() {
 
           <div className="text-center pt-2 text-xs text-slate-400">
             Don't have an account?{' '}
-            <Link to="/register" className="text-eco-400 font-semibold hover:underline">
+            <Link to="/register" className="text-eco-400 font-bold hover:underline">
               Create free account
             </Link>
           </div>

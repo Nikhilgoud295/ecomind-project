@@ -1,56 +1,39 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { 
-  Leaf, 
-  LogOut, 
-  User, 
-  Settings, 
-  Sparkles, 
-  Menu, 
-  X, 
-  BarChart3, 
-  FileUp, 
-  FileText, 
-  Newspaper,
-  Bell,
-  Check,
-  AlertTriangle,
-  Zap,
-  ShieldAlert
-} from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Leaf, LogOut, User, Bell, Settings, BarChart3, FileUp, Sparkles, Newspaper, FileText, Check, ShieldAlert, AlertTriangle, Zap, Menu, X, LogIn, UserPlus } from 'lucide-react';
 import { authService } from '../services/authService';
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const currentUser = authService.getCurrentUser();
   const isAuthenticated = authService.isAuthenticated();
+  const currentUser = authService.getCurrentUser();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Real-time environmental alerts notification panel state
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState([
     {
-      id: 'notif_01',
-      title: 'CPCB E-Waste Return Filing Cutoff',
-      message: 'Quarterly EPR fulfillment returns due in 25 days.',
-      time: '10m ago',
+      id: 'notif_1',
       type: 'warning',
+      title: 'High Peak Electricity Consumption',
+      message: 'Grid usage peaked at 81.7 kWh today (+12% above daily baseline).',
+      time: '10 mins ago',
       read: false
     },
     {
-      id: 'notif_02',
-      title: 'Electricity Spike Alert',
-      message: 'Yesterday’s grid consumption exceeded eco-target by 14%.',
-      time: '2h ago',
-      type: 'alert',
-      read: false
-    },
-    {
-      id: 'notif_03',
-      title: 'MNRE Green Subsidy Notification',
-      message: 'New 15% capital grant applications open on portal.',
-      time: '1d ago',
+      id: 'notif_2',
       type: 'info',
+      title: 'SEBI BRSR Filing Reminder',
+      message: 'Q3 BRSR Core statutory compliance cutoff is in 14 days.',
+      time: '1 hour ago',
+      read: false
+    },
+    {
+      id: 'notif_3',
+      type: 'alert',
+      title: 'Water Aerator Savings Detected',
+      message: 'Tap aerator retrofits saved approximately 140L clean water this week.',
+      time: '3 hours ago',
       read: true
     }
   ]);
@@ -58,12 +41,12 @@ export default function Navbar() {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   const markAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })));
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
   const handleLogout = () => {
     authService.logout();
-    navigate('/login');
+    navigate('/');
   };
 
   const navLinks = [
@@ -93,7 +76,7 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* User Profile & Interactive Action Icons */}
+          {/* Dynamic User Profile & Interactive Action Buttons */}
           <div className="hidden md:flex items-center gap-3">
             {isAuthenticated ? (
               <div className="flex items-center gap-3 relative">
@@ -158,9 +141,9 @@ export default function Navbar() {
                                 {n.type === 'info' && <Zap className="w-3.5 h-3.5 text-eco-400" />}
                                 {n.title}
                               </span>
-                              <span className="text-[10px] text-slate-500 font-mono">{n.time}</span>
+                              <span className="text-[9px] text-slate-500 font-mono">{n.time}</span>
                             </div>
-                            <p className="text-[11px] leading-relaxed">{n.message}</p>
+                            <p className="text-[11px] text-slate-300 leading-snug">{n.message}</p>
                           </div>
                         ))}
                       </div>
@@ -168,13 +151,13 @@ export default function Navbar() {
                   )}
                 </div>
 
-                {/* Settings Link */}
+                {/* Settings Gear Button */}
                 <Link
-                  to="/settings"
+                  to="/profile"
                   className="group p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800/80 transition-all duration-300 hover:scale-110 active:scale-95"
-                  title="Settings"
+                  title="Settings & Profile"
                 >
-                  <Settings className="w-5 h-5 group-hover:rotate-90 group-hover:text-eco-400 transition-all duration-500" />
+                  <Settings className="w-5 h-5 group-hover:text-eco-400 group-hover:rotate-90 transition-transform duration-500" />
                 </Link>
 
                 {/* Logout Button */}
@@ -187,18 +170,21 @@ export default function Navbar() {
                 </button>
               </div>
             ) : (
+              /* DYNAMIC LOGGED-OUT SIGN IN & REGISTER BUTTONS */
               <div className="flex items-center gap-3">
                 <Link
                   to="/login"
-                  className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors"
+                  className="group px-4 py-2 rounded-xl text-xs font-bold text-slate-200 hover:text-white bg-slate-800/70 hover:bg-slate-800 border border-slate-700 hover:border-eco-500/50 transition-all duration-300 transform hover:scale-105 flex items-center gap-2 shadow-md"
                 >
-                  Sign In
+                  <LogIn className="w-4 h-4 text-eco-400 group-hover:scale-110 group-hover:translate-x-0.5 transition-transform" />
+                  <span>Sign In</span>
                 </Link>
                 <Link
                   to="/register"
-                  className="px-4 py-2 rounded-xl text-sm font-medium bg-gradient-to-r from-eco-600 to-teal-500 hover:from-eco-500 hover:to-teal-400 text-white shadow-glow-eco transition-all transform hover:-translate-y-0.5"
+                  className="group px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-eco-600 via-emerald-500 to-teal-500 hover:from-eco-500 hover:to-teal-400 text-white shadow-glow-eco transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
                 >
-                  Get Started Free
+                  <UserPlus className="w-4 h-4 text-white group-hover:rotate-12 transition-transform" />
+                  <span>Create Account</span>
                 </Link>
               </div>
             )}
@@ -238,18 +224,18 @@ export default function Navbar() {
               <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <img
-                    src={currentUser?.avatar_url}
+                    src={currentUser?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256'}
                     alt={currentUser?.name}
-                    className="w-8 h-8 rounded-full border border-eco-500"
+                    className="w-9 h-9 rounded-full object-cover border border-eco-500"
                   />
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-white">{currentUser?.name}</span>
-                    <span className="text-xs text-slate-400">{currentUser?.email}</span>
+                  <div>
+                    <span className="text-sm font-semibold text-white block">{currentUser?.name}</span>
+                    <span className="text-xs text-slate-400 block">{currentUser?.email}</span>
                   </div>
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="p-2 text-rose-400 hover:bg-slate-800 rounded-lg"
+                  className="p-2 text-rose-400 hover:bg-rose-500/10 rounded-lg"
                 >
                   <LogOut className="w-5 h-5" />
                 </button>
@@ -260,16 +246,16 @@ export default function Navbar() {
               <Link
                 to="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center py-2.5 rounded-lg border border-slate-700 text-slate-200"
+                className="w-full py-2.5 rounded-xl bg-slate-800 text-white font-bold text-center text-sm border border-slate-700 flex items-center justify-center gap-2"
               >
-                Sign In
+                <LogIn className="w-4 h-4 text-eco-400" /> Sign In
               </Link>
               <Link
                 to="/register"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center py-2.5 rounded-lg bg-eco-600 text-white font-medium shadow-glow-eco"
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-eco-600 to-teal-500 text-white font-bold text-center text-sm shadow-glow-eco flex items-center justify-center gap-2"
               >
-                Get Started Free
+                <UserPlus className="w-4 h-4" /> Create Account
               </Link>
             </div>
           )}
