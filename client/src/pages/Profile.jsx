@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { User, Mail, Building2, Save, ShieldCheck, CheckCircle2, Scan, UploadCloud, Camera, Image, RefreshCw } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
@@ -20,6 +20,18 @@ export default function Profile() {
   const [showFaceScanner, setShowFaceScanner] = useState(false);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
+
+  useEffect(() => {
+    const user = authService.getCurrentUser();
+    if (user) {
+      setFormData({
+        name: user.name || 'User',
+        email: user.email || '',
+        organization: user.organization || 'EcoMind Enterprise',
+        avatar_url: user.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256',
+      });
+    }
+  }, []);
 
   // Preset Avatar Photos for Quick Selection
   const avatarPresets = [
@@ -58,7 +70,7 @@ export default function Profile() {
 
   const handleFaceCaptured = (biometricSnapshot) => {
     setFaceBiometricData(biometricSnapshot);
-    setMsg('Facial biometric template captured! Click "Save Profile Changes" to update your account.');
+    setMsg(`Facial biometric template captured for ${formData.name}! Click "Save Profile Changes" to save.`);
   };
 
   const handleSubmit = async (e) => {
@@ -66,35 +78,46 @@ export default function Profile() {
     setSaving(true);
     setMsg('');
 
+    const updatedUser = {
+      ...currentUser,
+      name: formData.name.trim(),
+      organization: formData.organization.trim(),
+      avatar_url: formData.avatar_url,
+      face_enrolled: Boolean(faceBiometricData || currentUser?.face_enrolled)
+    };
+
     try {
-      const res = await authService.updateProfile({
-        name: formData.name,
-        organization: formData.organization,
+      await authService.updateProfile({
+        name: formData.name.trim(),
+        organization: formData.organization.trim(),
         avatar_url: formData.avatar_url,
         face_biometric_data: faceBiometricData
       });
 
-      const updatedUser = {
-        ...currentUser,
-        name: formData.name,
-        organization: formData.organization,
-        avatar_url: formData.avatar_url,
-      };
       localStorage.setItem('ecomind_user', JSON.stringify(updatedUser));
-      window.dispatchEvent(new Event('storage'));
+      
+      // Update registered users registry
+      const registeredUsers = JSON.parse(localStorage.getItem('ecomind_registered_users') || '[]');
+      const filtered = registeredUsers.filter(u => u.email !== updatedUser.email);
+      filtered.push(updatedUser);
+      localStorage.setItem('ecomind_registered_users', JSON.stringify(filtered));
 
-      setMsg('✅ Profile information & avatar photo updated successfully!');
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new Event('ecomind_user_updated'));
+
+      setMsg(`✅ Profile information updated for ${formData.name}!`);
     } catch (err) {
       console.warn('Backend update fall-back:', err);
-      const updatedUser = {
-        ...currentUser,
-        name: formData.name,
-        organization: formData.organization,
-        avatar_url: formData.avatar_url,
-      };
       localStorage.setItem('ecomind_user', JSON.stringify(updatedUser));
+
+      const registeredUsers = JSON.parse(localStorage.getItem('ecomind_registered_users') || '[]');
+      const filtered = registeredUsers.filter(u => u.email !== updatedUser.email);
+      filtered.push(updatedUser);
+      localStorage.setItem('ecomind_registered_users', JSON.stringify(filtered));
+
       window.dispatchEvent(new Event('storage'));
-      setMsg('✅ Profile photo and details updated successfully!');
+      window.dispatchEvent(new Event('ecomind_user_updated'));
+      setMsg(`✅ Profile photo and details updated for ${formData.name}!`);
     } finally {
       setSaving(false);
     }
@@ -247,7 +270,8 @@ export default function Profile() {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white focus:border-eco-500 text-sm"
+                    placeholder="Enter your full name"
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white focus:border-eco-500 text-sm font-semibold"
                   />
                 </div>
 

@@ -1,12 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Leaf, LogOut, User, Bell, Settings, BarChart3, FileUp, Sparkles, Newspaper, FileText, Check, ShieldAlert, AlertTriangle, Zap, Menu, X, LogIn, UserPlus } from 'lucide-react';
 import { authService } from '../services/authService';
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const isAuthenticated = authService.isAuthenticated();
-  const currentUser = authService.getCurrentUser();
+  
+  // Real-time reactive user state
+  const [currentUser, setCurrentUser] = useState(() => authService.getCurrentUser());
+  const [isAuthenticated, setIsAuthenticated] = useState(() => authService.isAuthenticated());
+
+  useEffect(() => {
+    const syncUserState = () => {
+      setCurrentUser(authService.getCurrentUser());
+      setIsAuthenticated(authService.isAuthenticated());
+    };
+
+    window.addEventListener('storage', syncUserState);
+    window.addEventListener('ecomind_user_updated', syncUserState);
+    return () => {
+      window.removeEventListener('storage', syncUserState);
+      window.removeEventListener('ecomind_user_updated', syncUserState);
+    };
+  }, []);
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   // EcoMind Brand Logo Energy Blast Explosion State (Active strictly while cursor is placed on word)
@@ -49,6 +66,9 @@ export default function Navbar() {
 
   const handleLogout = () => {
     authService.logout();
+    setCurrentUser(null);
+    setIsAuthenticated(false);
+    window.dispatchEvent(new Event('ecomind_user_updated'));
     navigate('/');
   };
 
@@ -133,7 +153,7 @@ export default function Navbar() {
 
           {/* Dynamic User Profile & Interactive Action Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            {isAuthenticated ? (
+            {isAuthenticated && currentUser ? (
               <div className="flex items-center gap-3 relative">
                 {/* User Profile Link */}
                 <Link
@@ -145,7 +165,9 @@ export default function Navbar() {
                     alt={currentUser?.name || 'User'}
                     className="w-7 h-7 rounded-full object-cover border border-eco-500/40 group-hover:ring-2 group-hover:ring-eco-400 group-hover:scale-110 transition-all duration-300"
                   />
-                  <span className="text-sm font-medium text-slate-200 group-hover:text-white">{currentUser?.name?.split(' ')[0] || 'User'}</span>
+                  <span className="text-sm font-medium text-slate-200 group-hover:text-white font-display">
+                    {currentUser?.name?.split(' ')[0] || 'User'}
+                  </span>
                 </Link>
 
                 {/* Notifications Bell (POSITIONED LEFT OF SETTINGS) */}
@@ -260,7 +282,7 @@ export default function Navbar() {
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="md:hidden border-b border-slate-800 bg-dark-bg/95 backdrop-blur-xl px-4 pt-2 pb-6 space-y-3">
-          {isAuthenticated ? (
+          {isAuthenticated && currentUser ? (
             <>
               {navLinks.map((link) => {
                 const Icon = link.icon;
