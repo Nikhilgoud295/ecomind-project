@@ -64,24 +64,10 @@ export default function Landing() {
             {/* Inspiring Sustainability Quote Card Component */}
             <div className="pt-2">
               <div className="glass-panel max-w-2xl mx-auto p-5 rounded-3xl border border-eco-500/40 bg-slate-900/80 shadow-glow-eco relative overflow-hidden transition-all duration-500">
-                <div className="relative z-10 space-y-2">
+                <div className="relative z-10 space-y-3">
                   <p className="text-sm sm:text-base font-display italic text-emerald-200 font-medium leading-relaxed">
                     "{quotes[activeQuoteIdx].text}"
                   </p>
-
-                  {/* Glowing Green Zig-Zag Line Accent */}
-                  <div className="w-full flex justify-center my-2 pointer-events-none opacity-90">
-                    <svg width="240" height="14" viewBox="0 0 240 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path
-                        d="M2 7 L12 2 L22 12 L32 2 L42 12 L52 2 L62 12 L72 2 L82 12 L92 2 L102 12 L112 2 L122 12 L132 2 L142 12 L152 2 L162 12 L172 2 L182 12 L192 2 L202 12 L212 2 L222 12 L232 2 L238 7"
-                        stroke="#10b981"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="drop-shadow-[0_0_8px_rgba(16,185,129,0.9)] animate-pulse"
-                      />
-                    </svg>
-                  </div>
 
                   <div className="flex items-center justify-center gap-2 text-xs">
                     <span className="font-bold text-white">— {quotes[activeQuoteIdx].author}</span>
