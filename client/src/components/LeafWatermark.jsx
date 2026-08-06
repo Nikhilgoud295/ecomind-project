@@ -22,7 +22,7 @@ export default function LeafWatermark() {
     const mouse = {
       x: null,
       y: null,
-      radius: 240
+      radius: 180
     };
 
     const handleMouseMove = (e) => {
@@ -39,26 +39,26 @@ export default function LeafWatermark() {
     window.addEventListener('mouseleave', handleMouseLeave);
 
     // =========================================================
-    // 1. DENSE MULTI-LAYER AI NEURAL NETWORK CONSTELLATION SETUP
+    // 1. MINIMAL SUBTLE AI NEURAL NETWORK CONSTELLATION SETUP
     // =========================================================
-    // Increased node count to 110+ nodes for rich neural density
-    const nodeCount = Math.min(Math.floor(window.innerWidth / 14), 115);
+    // Reduced node count (~30 nodes) for a clean, minimal, non-cluttered theme
+    const nodeCount = Math.min(Math.floor(window.innerWidth / 45), 30);
     const nodes = [];
-    const maxDistance = 175;
+    const maxDistance = 135;
 
     for (let i = 0; i < nodeCount; i++) {
-      const isHub = i % 7 === 0; // Every 7th node is a Neural Hub Core
+      const isHub = i % 6 === 0; // Every 6th node is a subtle Neural Hub
       nodes.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.7,
-        vy: (Math.random() - 0.5) * 0.7,
-        radius: isHub ? Math.random() * 2.5 + 3.5 : Math.random() * 2 + 1.2,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5,
+        radius: isHub ? Math.random() * 1.5 + 2.5 : Math.random() * 1.5 + 1.0,
         isHub,
         pulse: Math.random() * Math.PI * 2,
-        pulseSpeed: Math.random() * 0.04 + 0.015,
-        color: i % 3 === 0 ? 'rgba(52, 211, 153, 0.85)' : i % 3 === 1 ? 'rgba(16, 185, 129, 0.85)' : 'rgba(20, 184, 166, 0.85)',
-        glowColor: i % 3 === 0 ? 'rgba(52, 211, 153, 0.6)' : i % 3 === 1 ? 'rgba(16, 185, 129, 0.6)' : 'rgba(20, 184, 166, 0.6)'
+        pulseSpeed: Math.random() * 0.025 + 0.01,
+        color: i % 3 === 0 ? 'rgba(52, 211, 153, 0.65)' : i % 3 === 1 ? 'rgba(16, 185, 129, 0.65)' : 'rgba(20, 184, 166, 0.65)',
+        glowColor: i % 3 === 0 ? 'rgba(52, 211, 153, 0.4)' : i % 3 === 1 ? 'rgba(16, 185, 129, 0.4)' : 'rgba(20, 184, 166, 0.4)'
       });
     }
 
@@ -122,7 +122,7 @@ export default function LeafWatermark() {
       frameCounter++;
 
       // ---------------------------------------------------------
-      // LAYER A: DENSE AI NEURAL NETWORK MATRIX & SYNAPTIC HUBS
+      // LAYER A: MINIMAL AI NEURAL NETWORK MATRIX
       // ---------------------------------------------------------
       for (let i = 0; i < nodes.length; i++) {
         const nodeA = nodes[i];
@@ -142,27 +142,27 @@ export default function LeafWatermark() {
           const dist = Math.sqrt(dx * dx + dy * dy);
 
           if (dist < maxDistance) {
-            const alpha = (1 - dist / maxDistance) * (nodeA.isHub || nodeB.isHub ? 0.32 : 0.22);
+            const alpha = (1 - dist / maxDistance) * (nodeA.isHub || nodeB.isHub ? 0.20 : 0.14);
             ctx.beginPath();
             ctx.moveTo(nodeA.x, nodeA.y);
             ctx.lineTo(nodeB.x, nodeB.y);
             ctx.strokeStyle = nodeA.isHub
               ? `rgba(52, 211, 153, ${alpha})`
               : `rgba(16, 185, 129, ${alpha})`;
-            ctx.lineWidth = nodeA.isHub || nodeB.isHub ? 1.2 : 0.7;
+            ctx.lineWidth = nodeA.isHub || nodeB.isHub ? 0.9 : 0.5;
             ctx.stroke();
 
-            // Active Synaptic Impulse Pulses traveling along connection threads
-            if ((i * 3 + j * 7 + frameCounter) % 120 === 0) {
-              const impulsePos = ((frameCounter * 1.5) % 80) / 80;
+            // Synaptic Impulse Pulses traveling along connection threads
+            if ((i * 3 + j * 7 + frameCounter) % 160 === 0) {
+              const impulsePos = ((frameCounter * 1.0) % 80) / 80;
               const ix = nodeA.x + (nodeB.x - nodeA.x) * impulsePos;
               const iy = nodeA.y + (nodeB.y - nodeA.y) * impulsePos;
 
               ctx.beginPath();
-              ctx.arc(ix, iy, 2.2, 0, Math.PI * 2);
-              ctx.fillStyle = 'rgba(52, 211, 153, 0.9)';
-              ctx.shadowBlur = 6;
-              ctx.shadowColor = 'rgba(52, 211, 153, 1)';
+              ctx.arc(ix, iy, 1.8, 0, Math.PI * 2);
+              ctx.fillStyle = 'rgba(52, 211, 153, 0.75)';
+              ctx.shadowBlur = 3;
+              ctx.shadowColor = 'rgba(52, 211, 153, 0.8)';
               ctx.fill();
               ctx.shadowBlur = 0;
             }
@@ -176,32 +176,32 @@ export default function LeafWatermark() {
           const mdist = Math.sqrt(mdx * mdx + mdy * mdy);
 
           if (mdist < mouse.radius) {
-            const malpha = (1 - mdist / mouse.radius) * 0.55;
+            const malpha = (1 - mdist / mouse.radius) * 0.38;
             ctx.beginPath();
             ctx.moveTo(nodeA.x, nodeA.y);
             ctx.lineTo(mouse.x, mouse.y);
             ctx.strokeStyle = `rgba(52, 211, 153, ${malpha})`;
-            ctx.lineWidth = 1.4;
+            ctx.lineWidth = 1.0;
             ctx.stroke();
           }
         }
 
         // Draw Neural Node & Hub Core with Halo
-        const pulseRadius = nodeA.radius + Math.sin(nodeA.pulse) * (nodeA.isHub ? 1.4 : 0.8);
+        const pulseRadius = nodeA.radius + Math.sin(nodeA.pulse) * (nodeA.isHub ? 1.0 : 0.5);
         
         if (nodeA.isHub) {
           // Draw outer halo ring around Neural Hub
           ctx.beginPath();
-          ctx.arc(nodeA.x, nodeA.y, pulseRadius * 2.2, 0, Math.PI * 2);
+          ctx.arc(nodeA.x, nodeA.y, pulseRadius * 1.8, 0, Math.PI * 2);
           ctx.strokeStyle = nodeA.glowColor;
-          ctx.lineWidth = 0.8;
+          ctx.lineWidth = 0.6;
           ctx.stroke();
         }
 
         ctx.beginPath();
         ctx.arc(nodeA.x, nodeA.y, Math.max(pulseRadius, 0.5), 0, Math.PI * 2);
         ctx.fillStyle = nodeA.color;
-        ctx.shadowBlur = nodeA.isHub ? 12 : 6;
+        ctx.shadowBlur = nodeA.isHub ? 8 : 4;
         ctx.shadowColor = nodeA.glowColor;
         ctx.fill();
         ctx.shadowBlur = 0;
@@ -260,7 +260,7 @@ export default function LeafWatermark() {
       <div className="absolute bottom-0 left-1/4 w-[600px] h-[600px] bg-teal-500/12 rounded-full blur-[140px]" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-eco-500/08 rounded-full blur-[180px]" />
 
-      {/* Dense AI Neural Network Constellation + Light Green Leaves Canvas */}
+      {/* Minimal AI Neural Network Constellation + Light Green Leaves Canvas */}
       <canvas ref={canvasRef} className="w-full h-full block" />
     </div>
   );
