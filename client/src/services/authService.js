@@ -10,6 +10,15 @@ export const authService = {
     return res.data;
   },
 
+  async faceLogin(data) {
+    const res = await api.post('/auth/face-login', data);
+    if (res.data.token) {
+      localStorage.setItem('ecomind_token', res.data.token);
+      localStorage.setItem('ecomind_user', JSON.stringify(res.data.user));
+    }
+    return res.data;
+  },
+
   async register(userData) {
     const res = await api.post('/auth/register', userData);
     if (res.data.token) {
