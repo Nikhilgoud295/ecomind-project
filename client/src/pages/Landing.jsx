@@ -37,6 +37,17 @@ export default function Landing() {
     return () => clearInterval(timer);
   }, [quotes.length]);
 
+  // Sentence split into word blocks
+  const headingWords = [
+    { text: 'Monitor,', isGradient: false },
+    { text: 'Analyze', isGradient: false },
+    { text: '&', isGradient: false },
+    { text: 'Reduce', isGradient: false },
+    { text: 'Your', isGradient: false },
+    { text: 'Environmental', isGradient: true },
+    { text: 'Footprint', isGradient: true }
+  ];
+
   return (
     <div className="min-h-screen flex flex-col bg-dark-bg text-slate-100 selection:bg-eco-500 selection:text-white">
       <Navbar />
@@ -53,9 +64,33 @@ export default function Landing() {
               <span>Next-Gen Sustainability Intelligence Powered by Google Gemini</span>
             </div>
 
-            {/* WHOLE HEADING DYNAMIC CURSOR ZOOM ANIMATION */}
-            <h1 className="text-4xl sm:text-6xl font-extrabold font-display tracking-tight text-white leading-tight cursor-pointer select-none transition-all duration-500 transform hover:scale-110 hover:-translate-y-2 hover:drop-shadow-[0_0_30px_rgba(16,185,129,0.85)] py-2 inline-block">
-              Monitor, Analyze & Reduce Your <span className="gradient-text">Environmental Footprint</span>
+            {/* SINGLE LETTER & SPECIAL SEPARATOR CHARACTER ANIMATED HEADING */}
+            <h1 className="text-4xl sm:text-6xl font-extrabold font-display tracking-tight text-white leading-tight flex flex-wrap justify-center items-center gap-x-2 gap-y-2 py-3 select-none">
+              {headingWords.map((wordObj, wIdx) => (
+                <React.Fragment key={`w_block_${wIdx}`}>
+                  {/* Single Letter Container */}
+                  <span className={`inline-flex ${wordObj.isGradient ? 'gradient-text' : ''}`}>
+                    {wordObj.text.split('').map((char, cIdx) => (
+                      <span
+                        key={`c_${wIdx}_${cIdx}`}
+                        className="inline-block transition-all duration-200 transform hover:scale-150 hover:-translate-y-2.5 hover:text-emerald-300 hover:drop-shadow-[0_0_20px_rgba(16,185,129,0.95)] cursor-pointer py-1 px-[1px]"
+                      >
+                        {char}
+                      </span>
+                    ))}
+                  </span>
+
+                  {/* Special Sparkle Separator Letter Between Words */}
+                  {wIdx < headingWords.length - 1 && (
+                    <span
+                      className="inline-block text-eco-400 text-xs sm:text-sm transition-all duration-300 transform hover:scale-175 hover:rotate-180 hover:text-emerald-300 cursor-pointer drop-shadow-[0_0_12px_rgba(16,185,129,0.9)] px-1"
+                      title="EcoMind Sparkle"
+                    >
+                      ✦
+                    </span>
+                  )}
+                </React.Fragment>
+              ))}
             </h1>
 
             <p className="text-base sm:text-lg text-slate-300 leading-relaxed font-normal">
