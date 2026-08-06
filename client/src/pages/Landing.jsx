@@ -37,6 +37,10 @@ export default function Landing() {
     return () => clearInterval(timer);
   }, [quotes.length]);
 
+  // Specific hero words targeted for cursor zoom animation
+  const whiteWords = ['Monitor,', 'Analyze', '&', 'Reduce', 'Your'];
+  const gradientWords = ['Environmental', 'Footprint'];
+
   return (
     <div className="min-h-screen flex flex-col bg-dark-bg text-slate-100 selection:bg-eco-500 selection:text-white">
       <Navbar />
@@ -53,8 +57,25 @@ export default function Landing() {
               <span>Next-Gen Sustainability Intelligence Powered by Google Gemini</span>
             </div>
 
-            <h1 className="text-4xl sm:text-6xl font-extrabold font-display tracking-tight text-white leading-tight">
-              Monitor, Analyze & Reduce Your <span className="gradient-text">Environmental Footprint</span>
+            {/* EXCLUSIVE WORD-BY-WORD CURSOR ZOOM ANIMATED HEADING */}
+            <h1 className="text-4xl sm:text-6xl font-extrabold font-display tracking-tight text-white leading-tight flex flex-wrap justify-center gap-x-3 gap-y-1 py-2">
+              {whiteWords.map((word, idx) => (
+                <span
+                  key={`w_${idx}`}
+                  className="inline-block transition-all duration-300 transform hover:scale-125 hover:-translate-y-2 hover:text-emerald-300 hover:drop-shadow-[0_0_18px_rgba(16,185,129,0.9)] cursor-pointer select-none"
+                >
+                  {word}
+                </span>
+              ))}
+
+              {gradientWords.map((gWord, gIdx) => (
+                <span
+                  key={`g_${gIdx}`}
+                  className="inline-block transition-all duration-300 transform hover:scale-125 hover:-translate-y-2 hover:drop-shadow-[0_0_22px_rgba(16,185,129,0.95)] cursor-pointer select-none gradient-text"
+                >
+                  {gWord}
+                </span>
+              ))}
             </h1>
 
             <p className="text-base sm:text-lg text-slate-300 leading-relaxed font-normal">
