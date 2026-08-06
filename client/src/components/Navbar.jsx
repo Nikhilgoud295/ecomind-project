@@ -8,6 +8,17 @@ export default function Navbar() {
   const isAuthenticated = authService.isAuthenticated();
   const currentUser = authService.getCurrentUser();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // EcoMind Brand Logo 3-Second Horizontal Split State
+  const [isLogoSplit, setIsLogoSplit] = useState(false);
+
+  const triggerLogoSplit = () => {
+    if (isLogoSplit) return;
+    setIsLogoSplit(true);
+    setTimeout(() => {
+      setIsLogoSplit(false);
+    }, 3000);
+  };
 
   // Real-time environmental alerts notification panel state
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -62,16 +73,43 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 glass-panel border-b border-slate-800/80 backdrop-blur-md bg-dark-bg/80 transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Brand Logo */}
-          <Link to="/" className="flex items-center gap-3 group">
+          {/* Brand Logo with 3-Second Horizontal Split Animation */}
+          <Link
+            to="/"
+            onMouseEnter={triggerLogoSplit}
+            className="flex items-center gap-3 group relative cursor-pointer select-none"
+          >
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-eco-600 via-emerald-500 to-teal-400 p-0.5 shadow-glow-eco flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-6">
               <div className="w-full h-full bg-dark-bg rounded-[10px] flex items-center justify-center">
                 <Leaf className="w-5 h-5 text-eco-400 group-hover:animate-bounce" />
               </div>
             </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-bold font-display tracking-tight text-white flex items-center gap-1.5">
-                EcoMind <span className="text-xs px-2 py-0.5 rounded-full bg-eco-500/20 text-eco-400 border border-eco-500/30 group-hover:bg-eco-500/40 transition-colors">AI</span>
+
+            {/* Horizontal Split Text Effect Container */}
+            <div className="relative font-bold font-display tracking-tight text-xl h-8 flex items-center min-w-[140px] overflow-visible">
+              {/* Normal Joined Text */}
+              <span className={`text-white flex items-center gap-1.5 transition-opacity duration-300 ${isLogoSplit ? 'opacity-0' : 'opacity-100'}`}>
+                EcoMind <span className="text-xs px-2 py-0.5 rounded-full bg-eco-500/20 text-eco-400 border border-eco-500/30">AI</span>
+              </span>
+
+              {/* Top Horizontal Half */}
+              <span
+                className={`absolute left-0 top-0 text-emerald-300 flex items-center gap-1.5 transition-all duration-500 transform ${
+                  isLogoSplit ? '-translate-y-2.5 opacity-100 drop-shadow-[0_0_15px_rgba(16,185,129,0.95)]' : 'translate-y-0 opacity-0'
+                }`}
+                style={{ clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 50%)' }}
+              >
+                EcoMind <span className="text-xs px-2 py-0.5 rounded-full bg-eco-500/30 text-emerald-300 border border-emerald-400">AI</span>
+              </span>
+
+              {/* Bottom Horizontal Half */}
+              <span
+                className={`absolute left-0 top-0 text-teal-300 flex items-center gap-1.5 transition-all duration-500 transform ${
+                  isLogoSplit ? 'translate-y-2.5 opacity-100 drop-shadow-[0_0_15px_rgba(20,184,166,0.95)]' : 'translate-y-0 opacity-0'
+                }`}
+                style={{ clipPath: 'polygon(0 50%, 100% 50%, 100% 100%, 0 100%)' }}
+              >
+                EcoMind <span className="text-xs px-2 py-0.5 rounded-full bg-eco-500/30 text-teal-300 border border-teal-400">AI</span>
               </span>
             </div>
           </Link>
