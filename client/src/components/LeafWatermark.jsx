@@ -22,7 +22,7 @@ export default function LeafWatermark() {
     const mouse = {
       x: null,
       y: null,
-      radius: 180
+      radius: 240
     };
 
     const handleMouseMove = (e) => {
@@ -38,29 +38,33 @@ export default function LeafWatermark() {
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseleave', handleMouseLeave);
 
-    // ==========================================
-    // 1. AI NEURAL NETWORK CONSTELLATION SETUP
-    // ==========================================
-    const nodeCount = Math.min(Math.floor(window.innerWidth / 30), 55);
+    // =========================================================
+    // 1. DENSE MULTI-LAYER AI NEURAL NETWORK CONSTELLATION SETUP
+    // =========================================================
+    // Increased node count to 110+ nodes for rich neural density
+    const nodeCount = Math.min(Math.floor(window.innerWidth / 14), 115);
     const nodes = [];
-    const maxDistance = 145;
+    const maxDistance = 175;
 
     for (let i = 0; i < nodeCount; i++) {
+      const isHub = i % 7 === 0; // Every 7th node is a Neural Hub Core
       nodes.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.6,
-        vy: (Math.random() - 0.5) * 0.6,
-        radius: Math.random() * 2 + 1.2,
+        vx: (Math.random() - 0.5) * 0.7,
+        vy: (Math.random() - 0.5) * 0.7,
+        radius: isHub ? Math.random() * 2.5 + 3.5 : Math.random() * 2 + 1.2,
+        isHub,
         pulse: Math.random() * Math.PI * 2,
-        pulseSpeed: Math.random() * 0.03 + 0.01,
-        color: i % 3 === 0 ? 'rgba(52, 211, 153, 0.7)' : i % 3 === 1 ? 'rgba(16, 185, 129, 0.7)' : 'rgba(20, 184, 166, 0.7)'
+        pulseSpeed: Math.random() * 0.04 + 0.015,
+        color: i % 3 === 0 ? 'rgba(52, 211, 153, 0.85)' : i % 3 === 1 ? 'rgba(16, 185, 129, 0.85)' : 'rgba(20, 184, 166, 0.85)',
+        glowColor: i % 3 === 0 ? 'rgba(52, 211, 153, 0.6)' : i % 3 === 1 ? 'rgba(16, 185, 129, 0.6)' : 'rgba(20, 184, 166, 0.6)'
       });
     }
 
-    // ==========================================
-    // 2. UNCHANGED FLOATING LEAVES SETUP
-    // ==========================================
+    // =========================================================
+    // 2. UNCHANGED FLOATING LIGHT GREEN LEAVES SETUP
+    // =========================================================
     const leafCount = 35;
     const leaves = [];
     const leafColors = [
@@ -117,10 +121,9 @@ export default function LeafWatermark() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       frameCounter++;
 
-      // ------------------------------------------
-      // LAYER A: AI NEURAL NETWORK CONSTELLATION
-      // ------------------------------------------
-      // Update Node Positions & Draw Connections
+      // ---------------------------------------------------------
+      // LAYER A: DENSE AI NEURAL NETWORK MATRIX & SYNAPTIC HUBS
+      // ---------------------------------------------------------
       for (let i = 0; i < nodes.length; i++) {
         const nodeA = nodes[i];
         nodeA.x += nodeA.vx;
@@ -139,24 +142,29 @@ export default function LeafWatermark() {
           const dist = Math.sqrt(dx * dx + dy * dy);
 
           if (dist < maxDistance) {
-            const alpha = (1 - dist / maxDistance) * 0.22;
+            const alpha = (1 - dist / maxDistance) * (nodeA.isHub || nodeB.isHub ? 0.32 : 0.22);
             ctx.beginPath();
             ctx.moveTo(nodeA.x, nodeA.y);
             ctx.lineTo(nodeB.x, nodeB.y);
-            ctx.strokeStyle = `rgba(16, 185, 129, ${alpha})`;
-            ctx.lineWidth = 0.8;
+            ctx.strokeStyle = nodeA.isHub
+              ? `rgba(52, 211, 153, ${alpha})`
+              : `rgba(16, 185, 129, ${alpha})`;
+            ctx.lineWidth = nodeA.isHub || nodeB.isHub ? 1.2 : 0.7;
             ctx.stroke();
 
-            // Draw Synaptic Impulses traveling along connections
-            if ((i + j + frameCounter) % 180 === 0) {
-              const impulsePos = (frameCounter % 60) / 60;
+            // Active Synaptic Impulse Pulses traveling along connection threads
+            if ((i * 3 + j * 7 + frameCounter) % 120 === 0) {
+              const impulsePos = ((frameCounter * 1.5) % 80) / 80;
               const ix = nodeA.x + (nodeB.x - nodeA.x) * impulsePos;
               const iy = nodeA.y + (nodeB.y - nodeA.y) * impulsePos;
 
               ctx.beginPath();
-              ctx.arc(ix, iy, 1.8, 0, Math.PI * 2);
-              ctx.fillStyle = 'rgba(52, 211, 153, 0.8)';
+              ctx.arc(ix, iy, 2.2, 0, Math.PI * 2);
+              ctx.fillStyle = 'rgba(52, 211, 153, 0.9)';
+              ctx.shadowBlur = 6;
+              ctx.shadowColor = 'rgba(52, 211, 153, 1)';
               ctx.fill();
+              ctx.shadowBlur = 0;
             }
           }
         }
@@ -168,30 +176,40 @@ export default function LeafWatermark() {
           const mdist = Math.sqrt(mdx * mdx + mdy * mdy);
 
           if (mdist < mouse.radius) {
-            const malpha = (1 - mdist / mouse.radius) * 0.45;
+            const malpha = (1 - mdist / mouse.radius) * 0.55;
             ctx.beginPath();
             ctx.moveTo(nodeA.x, nodeA.y);
             ctx.lineTo(mouse.x, mouse.y);
             ctx.strokeStyle = `rgba(52, 211, 153, ${malpha})`;
-            ctx.lineWidth = 1.2;
+            ctx.lineWidth = 1.4;
             ctx.stroke();
           }
         }
 
-        // Draw Neural Node Dot with Soft Pulsing Glow
-        const pulseRadius = nodeA.radius + Math.sin(nodeA.pulse) * 0.8;
+        // Draw Neural Node & Hub Core with Halo
+        const pulseRadius = nodeA.radius + Math.sin(nodeA.pulse) * (nodeA.isHub ? 1.4 : 0.8);
+        
+        if (nodeA.isHub) {
+          // Draw outer halo ring around Neural Hub
+          ctx.beginPath();
+          ctx.arc(nodeA.x, nodeA.y, pulseRadius * 2.2, 0, Math.PI * 2);
+          ctx.strokeStyle = nodeA.glowColor;
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
+        }
+
         ctx.beginPath();
         ctx.arc(nodeA.x, nodeA.y, Math.max(pulseRadius, 0.5), 0, Math.PI * 2);
         ctx.fillStyle = nodeA.color;
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = 'rgba(16, 185, 129, 0.5)';
+        ctx.shadowBlur = nodeA.isHub ? 12 : 6;
+        ctx.shadowColor = nodeA.glowColor;
         ctx.fill();
-        ctx.shadowBlur = 0; // Reset shadow blur
+        ctx.shadowBlur = 0;
       }
 
-      // ------------------------------------------
+      // ---------------------------------------------------------
       // LAYER B: UNCHANGED FLOATING LIGHT GREEN LEAVES
-      // ------------------------------------------
+      // ---------------------------------------------------------
       leaves.forEach((leaf) => {
         leaf.time += leaf.swaySpeed;
         leaf.y += leaf.speedY;
@@ -237,12 +255,12 @@ export default function LeafWatermark() {
 
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none">
-      {/* Dynamic Lush Green Radial Glow Accents */}
-      <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-[140px]" />
-      <div className="absolute bottom-0 left-1/4 w-[600px] h-[600px] bg-teal-500/10 rounded-full blur-[140px]" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-eco-500/05 rounded-full blur-[180px]" />
+      {/* Dynamic Lush Green & Emerald Radial Glow Accents */}
+      <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-emerald-500/12 rounded-full blur-[140px]" />
+      <div className="absolute bottom-0 left-1/4 w-[600px] h-[600px] bg-teal-500/12 rounded-full blur-[140px]" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-eco-500/08 rounded-full blur-[180px]" />
 
-      {/* Combined AI Neural Network Constellation + Light Green Falling Leaves Canvas */}
+      {/* Dense AI Neural Network Constellation + Light Green Leaves Canvas */}
       <canvas ref={canvasRef} className="w-full h-full block" />
     </div>
   );
