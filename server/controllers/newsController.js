@@ -1,5 +1,17 @@
 const { ai } = require('../config/gemini');
 
+// High-definition environmental, solar, business, and nature photography URLs
+const FALLBACK_IMAGES = {
+  sebi: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1000&q=80',
+  mca: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1000&q=80',
+  hydrogen: 'https://images.unsplash.com/photo-1509391365360-2e959784a276?auto=format&fit=crop&w=1000&q=80',
+  carbon: 'https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?auto=format&fit=crop&w=1000&q=80',
+  cpcb: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=1000&q=80',
+  msme: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1000&q=80',
+  forest: 'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?auto=format&fit=crop&w=1000&q=80',
+  ocean: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=1000&q=80'
+};
+
 // 1. Enterprise Sustainability, ESG, MCA & SEBI News Feed
 const enterpriseIntelligenceFeed = [
   {
@@ -10,7 +22,7 @@ const enterpriseIntelligenceFeed = [
     source: 'SEBI Circular / Capital Markets Watch',
     date: new Date(Date.now() - 3600000 * 3).toISOString(),
     readTime: '5 min read',
-    imageUrl: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80&w=800',
+    imageUrl: FALLBACK_IMAGES.sebi,
     summary: 'SEBI requires top listed entities to obtain reasonable assurance on Business Responsibility & Sustainability Reporting (BRSR) Core Key Performance Indicators starting FY 2024-25.',
     aiPoints: [
       'Top 1,000 listed entities must disclose BRSR Core metrics including GHG emissions, water usage, and waste management.',
@@ -30,7 +42,7 @@ const enterpriseIntelligenceFeed = [
     source: 'Ministry of Corporate Affairs',
     date: new Date(Date.now() - 3600000 * 8).toISOString(),
     readTime: '4 min read',
-    imageUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=800',
+    imageUrl: FALLBACK_IMAGES.mca,
     summary: 'The Ministry of Corporate Affairs issues notification enhancing Section 134(3)(m) requirements for corporate energy conservation and green technology adoption disclosures.',
     aiPoints: [
       'Mandates annual Director’s Report sections covering capital expenditure allocated to renewable energy.',
@@ -50,7 +62,7 @@ const enterpriseIntelligenceFeed = [
     source: 'Ministry of New & Renewable Energy (MNRE)',
     date: new Date(Date.now() - 3600000 * 18).toISOString(),
     readTime: '6 min read',
-    imageUrl: 'https://images.unsplash.com/photo-1509391365360-2e959784a276?auto=format&fit=crop&q=80&w=800',
+    imageUrl: FALLBACK_IMAGES.hydrogen,
     summary: 'MNRE launches SIGHT scheme component providing direct financial subsidies and tax credits for manufacturing plants converting boilers to green hydrogen.',
     aiPoints: [
       '15% capital subsidy up to ₹50 Crore for electrolyzer installation and industrial boiler retrofit.',
@@ -70,7 +82,7 @@ const enterpriseIntelligenceFeed = [
     source: 'Bureau of Energy Efficiency (BEE)',
     date: new Date(Date.now() - 3600000 * 30).toISOString(),
     readTime: '5 min read',
-    imageUrl: 'https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?auto=format&fit=crop&q=80&w=800',
+    imageUrl: FALLBACK_IMAGES.carbon,
     summary: 'BEE opens registry for designated entities to earn and trade Carbon Credit Certificates (CCCs) based on verified GHG reduction achievements.',
     aiPoints: [
       'Designated industrial consumers can earn 1 Carbon Credit Certificate per metric ton CO2e reduced below benchmark.',
@@ -90,7 +102,7 @@ const enterpriseIntelligenceFeed = [
     source: 'CPCB & MoEFCC',
     date: new Date(Date.now() - 3600000 * 42).toISOString(),
     readTime: '4 min read',
-    imageUrl: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&q=80&w=800',
+    imageUrl: FALLBACK_IMAGES.cpcb,
     summary: 'CPCB issues revised Extended Producer Responsibility (EPR) targets requiring 70% collection and recycling of electronic equipment waste.',
     aiPoints: [
       'Producers, importers, and brand owners (PIBOs) must register on the CPCB EPR portal before quarter end.',
@@ -110,7 +122,7 @@ const enterpriseIntelligenceFeed = [
     source: 'Ministry of MSME',
     date: new Date(Date.now() - 3600000 * 54).toISOString(),
     readTime: '4 min read',
-    imageUrl: 'https://images.unsplash.com/photo-1508873696983-2df5057d0256?auto=format&fit=crop&q=80&w=800',
+    imageUrl: FALLBACK_IMAGES.msme,
     summary: 'MSME Sustainable Scheme offers up to 40% subsidy on rooftop solar installations and ZED (Zero Defect Zero Effect) certification costs.',
     aiPoints: [
       '40% upfront subsidy on solar PV installations up to 500 kW capacity.',
@@ -176,7 +188,7 @@ const learningCenterArticles = [
     topic: 'SEBI & BRSR Reporting',
     readTime: '8 min read',
     level: 'Intermediate',
-    imageUrl: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80&w=800',
+    imageUrl: FALLBACK_IMAGES.sebi,
     summary: 'Comprehensive explainer on SEBI BRSR 9 Principles, Essential Indicators, and reasonable assurance protocols.',
     takeaways: [
       'Principle 6 focuses directly on environmental stewardship, water intensity, and carbon footprint.',
@@ -190,7 +202,7 @@ const learningCenterArticles = [
     topic: 'Standards & Certifications',
     readTime: '6 min read',
     level: 'Beginner',
-    imageUrl: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&q=80&w=800',
+    imageUrl: FALLBACK_IMAGES.mca,
     summary: 'Learn how to set up an Environmental Management System (EMS) compliant with international ISO 14001 criteria.',
     takeaways: [
       'Establishing environmental policy and risk assessment frameworks.',
@@ -204,7 +216,7 @@ const learningCenterArticles = [
     topic: 'Carbon Markets',
     readTime: '7 min read',
     level: 'Advanced',
-    imageUrl: 'https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?auto=format&fit=crop&q=80&w=800',
+    imageUrl: FALLBACK_IMAGES.carbon,
     summary: 'How commercial enterprises can register GHG reduction projects and monetize surplus credits on exchange markets.',
     takeaways: [
       'Understanding compliance vs. voluntary carbon credit markets.',

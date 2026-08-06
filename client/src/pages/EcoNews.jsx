@@ -114,6 +114,11 @@ export default function EcoNews() {
     fetchIntelligenceData();
   };
 
+  const handleImageError = (e) => {
+    e.target.onerror = null;
+    e.target.src = 'https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?auto=format&fit=crop&w=1000&q=80';
+  };
+
   const toggleBookmark = (id) => {
     setBookmarkedIds(prev => 
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
@@ -321,10 +326,11 @@ export default function EcoNews() {
                       >
                         <div className="space-y-4">
                           {/* Image Cover */}
-                          <div className="relative h-44 overflow-hidden">
+                          <div className="relative h-44 overflow-hidden bg-gradient-to-br from-slate-900 via-emerald-950/60 to-slate-950 flex items-center justify-center">
                             <img 
                               src={item.imageUrl} 
                               alt={item.title} 
+                              onError={handleImageError}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             />
                             <div className="absolute top-3 left-3 flex items-center gap-2">
@@ -593,8 +599,8 @@ export default function EcoNews() {
                 {learningArticles.map((art) => (
                   <div key={art.id} className="glass-panel rounded-3xl border border-slate-800 overflow-hidden space-y-4 bg-slate-900/60 p-5 flex flex-col justify-between">
                     <div className="space-y-3">
-                      <div className="h-40 rounded-2xl overflow-hidden">
-                        <img src={art.imageUrl} alt={art.title} className="w-full h-full object-cover" />
+                      <div className="h-40 rounded-2xl overflow-hidden bg-gradient-to-br from-slate-900 via-emerald-950/60 to-slate-950 flex items-center justify-center">
+                        <img src={art.imageUrl} alt={art.title} onError={handleImageError} className="w-full h-full object-cover" />
                       </div>
 
                       <div className="flex items-center justify-between text-[10px]">
@@ -636,8 +642,8 @@ export default function EcoNews() {
                   <X className="w-5 h-5" />
                 </button>
 
-                <div className="relative h-64 rounded-2xl overflow-hidden">
-                  <img src={selectedArticle.imageUrl} alt={selectedArticle.title} className="w-full h-full object-cover" />
+                <div className="relative h-64 rounded-2xl overflow-hidden bg-gradient-to-br from-slate-900 via-emerald-950/60 to-slate-950 flex items-center justify-center">
+                  <img src={selectedArticle.imageUrl} alt={selectedArticle.title} onError={handleImageError} className="w-full h-full object-cover" />
                   <div className="absolute top-4 left-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getCategoryBadgeColor(selectedArticle.category)}`}>
                       {selectedArticle.category}
