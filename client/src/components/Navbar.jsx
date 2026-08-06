@@ -9,7 +9,7 @@ export default function Navbar() {
   const currentUser = authService.getCurrentUser();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
-  // EcoMind Brand Logo 3-Second Horizontal Split State
+  // EcoMind Brand Logo Natural Crack & Slanted Slow Slide State
   const [isLogoSplit, setIsLogoSplit] = useState(false);
 
   const triggerLogoSplit = () => {
@@ -73,7 +73,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 glass-panel border-b border-slate-800/80 backdrop-blur-md bg-dark-bg/80 transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Brand Logo with 3-Second Horizontal Split Animation */}
+          {/* Brand Logo with Natural Crack & Slanted Slow-Sliding Animation */}
           <Link
             to="/"
             onMouseEnter={triggerLogoSplit}
@@ -85,29 +85,33 @@ export default function Navbar() {
               </div>
             </div>
 
-            {/* Horizontal Split Text Effect Container */}
-            <div className="relative font-bold font-display tracking-tight text-xl h-8 flex items-center min-w-[140px] overflow-visible">
-              {/* Normal Joined Text */}
+            {/* Natural Jagged Crack Text Container */}
+            <div className="relative font-bold font-display tracking-tight text-xl h-8 flex items-center min-w-[145px] overflow-visible">
+              {/* Normal Unbroken Text */}
               <span className={`text-white flex items-center gap-1.5 transition-opacity duration-300 ${isLogoSplit ? 'opacity-0' : 'opacity-100'}`}>
                 EcoMind <span className="text-xs px-2 py-0.5 rounded-full bg-eco-500/20 text-eco-400 border border-eco-500/30">AI</span>
               </span>
 
-              {/* Top Horizontal Half */}
+              {/* Fractured Top Half (Slides Slopingly Over Base) */}
               <span
-                className={`absolute left-0 top-0 text-emerald-300 flex items-center gap-1.5 transition-all duration-500 transform ${
-                  isLogoSplit ? '-translate-y-2.5 opacity-100 drop-shadow-[0_0_15px_rgba(16,185,129,0.95)]' : 'translate-y-0 opacity-0'
+                className={`absolute left-0 top-0 text-emerald-300 flex items-center gap-1.5 transition-all duration-700 ease-out transform origin-bottom-left ${
+                  isLogoSplit 
+                    ? '-translate-y-3 translate-x-3.5 -rotate-3 scale-[1.04] opacity-100 drop-shadow-[0_0_18px_rgba(16,185,129,1)]' 
+                    : 'translate-y-0 translate-x-0 rotate-0 scale-100 opacity-0'
                 }`}
-                style={{ clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 50%)' }}
+                style={{ clipPath: 'polygon(0 0, 100% 0, 100% 48%, 80% 54%, 60% 42%, 40% 56%, 20% 44%, 0 52%)' }}
               >
                 EcoMind <span className="text-xs px-2 py-0.5 rounded-full bg-eco-500/30 text-emerald-300 border border-emerald-400">AI</span>
               </span>
 
-              {/* Bottom Horizontal Half */}
+              {/* Base Bottom Half */}
               <span
-                className={`absolute left-0 top-0 text-teal-300 flex items-center gap-1.5 transition-all duration-500 transform ${
-                  isLogoSplit ? 'translate-y-2.5 opacity-100 drop-shadow-[0_0_15px_rgba(20,184,166,0.95)]' : 'translate-y-0 opacity-0'
+                className={`absolute left-0 top-0 text-teal-300 flex items-center gap-1.5 transition-all duration-700 ease-out transform ${
+                  isLogoSplit 
+                    ? 'translate-y-1.5 rotate-1 opacity-100 drop-shadow-[0_0_15px_rgba(20,184,166,0.9)]' 
+                    : 'translate-y-0 rotate-0 opacity-0'
                 }`}
-                style={{ clipPath: 'polygon(0 50%, 100% 50%, 100% 100%, 0 100%)' }}
+                style={{ clipPath: 'polygon(0 52%, 20% 44%, 40% 56%, 60% 42%, 80% 54%, 100% 48%, 100% 100%, 0 100%)' }}
               >
                 EcoMind <span className="text-xs px-2 py-0.5 rounded-full bg-eco-500/30 text-teal-300 border border-teal-400">AI</span>
               </span>
