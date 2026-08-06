@@ -108,22 +108,34 @@ const chatWithAI = async (req, res, next) => {
     const query = message.trim();
     const queryLower = query.toLowerCase();
 
-    // 1. Try Gemini API with User-Friendly Warm Persona
+    // 1. Full EcoMind Website Context Prompt for Gemini API
     if (ai) {
       try {
         const modelNames = ['gemini-1.5-flash', 'gemini-pro', 'gemini-1.0-pro'];
         let reply = null;
 
+        const websiteContext = `
+        You are EcoMind AI Copilot, the official AI assistant of the EcoMind AI Sustainability Platform (https://ecomind-project.vercel.app).
+        
+        WEBSITE ARCHITECTURE & FEATURES:
+        1. Dashboard (/dashboard): Shows real-time Gross CO2 emissions, Net Footprint, Eco Score, and an interactive 3D WebGL Command Globe (360° orbit with clickable hotspots).
+        2. Upload & Add Data (/add-data): Dual mode page for AI Document Upload (PDF bills, CSV energy logs) with Gemini OCR metric extraction, plus manual resource entry.
+        3. Intelligence Hub (/eco-news): Enterprise hub featuring SEBI BRSR Core, MCA Companies Act updates, Compliance Calendar cutoffs, AI Strategic Recommendations, Industry Benchmarks, and a dedicated 3D Global Climate Sphere tab.
+        4. Analytics (/analytics): Detailed Scope 1, Scope 2, and Scope 3 charts and monthly trend breakdowns.
+        5. Reports (/reports): Audit-ready PDF & CSV report exports compliant with GHG Protocol & ISO 14064 standards.
+        6. Face Recognition Login (/login & /register): 128-point biometric webcam facial scanning for passwordless login.
+        7. Floating Chatbot: 24/7 AI copilot widget available on every page.
+        
+        RESPONSE GUIDELINES:
+        - Give accurate, warm, friendly, and precise answers about the website and general sustainability queries.
+        - Use short bullet points with friendly emojis.
+        - Direct users to the exact page path when answering website navigation questions.
+        `;
+
         for (const modelName of modelNames) {
           try {
             const model = ai.getGenerativeModel({ model: modelName });
-            const prompt = `You are EcoMind AI Copilot, a warm, friendly, and encouraging sustainability guide.
-            Answer the user's question in a super clear, friendly, and easy-to-understand conversational tone.
-            Question: "${query}"
-            Rules:
-            1. Start with a warm, encouraging 1-sentence opening.
-            2. Break down the advice into 3 simple, friendly bullet points with emojis.
-            3. End with a short helpful tip or encouragement. Keep the response concise and readable.`;
+            const prompt = `${websiteContext}\n\nUser Question: "${query}"\nProvide an accurate, friendly, step-by-step response:`;
 
             const result = await model.generateContent(prompt);
             const responseText = result.response?.text();
@@ -140,30 +152,34 @@ const chatWithAI = async (req, res, next) => {
           return res.json({ success: true, reply });
         }
       } catch (gErr) {
-        console.warn('Gemini API call failed, falling back to Friendly AI Engine:', gErr.message);
+        console.warn('Gemini API call note, using local Knowledge Engine:', gErr.message);
       }
     }
 
-    // 2. Friendly, Easy-To-Understand Knowledge Engine
+    // 2. Comprehensive Website & Sustainability Intent Engine
     let reply = '';
 
-    if (queryLower.includes('electricity') || queryLower.includes('power') || queryLower.includes('kwh') || queryLower.includes('energy')) {
-      reply = `💡 **Great question! Here are 3 simple ways to cut your electricity bill & carbon footprint:**\n\n• 💡 **Switch to LED Bulbs:** Replacing traditional bulbs with LEDs saves up to **60% energy** instantly.\n• ☀️ **Go Solar:** Installing rooftop solar panels can reduce your power bill and earn green incentives.\n• 🔌 **Stop Phantom Loads:** Turn off wall switches for appliances when not in use—standby power adds up!\n\n🌱 *Tip: You can log your daily electricity kWh under the "Upload & Add Data" tab to track your progress!*`;
+    if (queryLower.includes('upload') || queryLower.includes('add data') || queryLower.includes('bill') || queryLower.includes('invoice') || queryLower.includes('pdf')) {
+      reply = `📄 **How to Upload Bills & Add Data on EcoMind:**\n\n• 📍 **Navigate to "Upload & Record":** Click **"Upload & Add Data"** in your left Navigation Core sidebar.\n• 🤖 **AI Bill Extraction:** Drag and drop your utility bill (PDF, image, or CSV). Click **"Extract Metrics with Gemini AI"** to automatically parse kWh, water, and waste values.\n• ✍️ **Manual Entry Mode:** Prefer manual entry? Switch to the "Manual Form" tab to type values directly.\n\n💡 *Tip: Click "Confirm & Save Extracted Data" to instantly update your Dashboard metrics!*`;
+    } else if (queryLower.includes('face') || queryLower.includes('biometric') || queryLower.includes('camera') || queryLower.includes('login')) {
+      reply = `📸 **How Face ID Biometric Login Works on EcoMind:**\n\n• 🔑 **Sign Up with Face ID:** On the **Register** page, select **"Face ID Biometric"** to enroll your facial template using your camera.\n• 🔓 **Instant Face Sign In:** On the **Sign In** page, select **"Face ID Biometric"** and click **"Start AI Camera"** or **"Instant AI Face Scan"**.\n• 🛡️ **256-Bit Security:** Your facial landmarks are converted into an encrypted biometric token—no password needed!\n\n😊 *Need help? You can always switch back to Email & Password login anytime!*`;
+    } else if (queryLower.includes('globe') || queryLower.includes('3d') || queryLower.includes('planet') || queryLower.includes('world')) {
+      reply = `🌐 **How to Use the 3D WebGL Eco Globe:**\n\n• 🖱️ **Interactive 360° Orbit:** Click and drag your mouse anywhere on the globe on your **Dashboard** or **Intelligence Hub** to rotate planet Earth in 3D!\n• 📍 **Clickable Hotspots:** Click on green 3D pins around the world to inspect live data on Solar Grids, Reforestation Sanctuaries, and Clean Hydrogen Hubs.\n• 🌍 **Global Climate 🌐 Tab:** Visit the **"Intelligence Hub"** page and click the **"Global Climate 🌐"** tab for the full-screen revolving command sphere!`;
+    } else if (queryLower.includes('sebi') || queryLower.includes('brsr') || queryLower.includes('compliance') || queryLower.includes('calendar')) {
+      reply = `📜 **SEBI BRSR & Compliance Features on EcoMind:**\n\n• 📰 **Intelligence Feed:** Real-time updates on SEBI BRSR Core, MCA Companies Act rules, and CPCB regulations under the **"Intelligence Hub"** tab.\n• 📅 **Compliance Calendar:** Track upcoming filing cutoffs and toggle custom reminders.\n• 💡 **AI Recommendations:** Get personalized grant and cost-saving opportunities tailored to your industry!`;
+    } else if (queryLower.includes('report') || queryLower.includes('export') || queryLower.includes('pdf') || queryLower.includes('download')) {
+      reply = `📊 **How to Export Sustainability Reports:**\n\n• 📍 **Navigate to "Reports Export":** Click **"Reports Export"** in your left Navigation Core sidebar.\n• 📥 **Choose Format:** Select **PDF Executive Summary** or **CSV Raw Metrics Data**.\n• ✅ **Audit-Ready:** Reports conform to **GHG Protocol Scope 1 & 2** and **ISO 14064** standards for corporate audits.`;
+    } else if (queryLower.includes('electricity') || queryLower.includes('power') || queryLower.includes('kwh') || queryLower.includes('energy')) {
+      reply = `💡 **How to Reduce Electricity Usage & Carbon Footprint:**\n\n• 💡 **Switch to LEDs:** Reduces lighting energy load by **60%**.\n• ☀️ **Rooftop Solar:** Install solar PV arrays (check government subsidies under the Intelligence Hub!).\n• 🔌 **Eliminate Phantom Power:** Turn off standby switches on idle appliances.\n\n🌱 *Track your daily kWh under "Upload & Add Data" to see your carbon score decrease!*`;
     } else if (queryLower.includes('water') || queryLower.includes('liter') || queryLower.includes('rain')) {
-      reply = `💧 **Here is how you can easily save water every day:**\n\n• 🚰 **Install Tap Aerators:** Aerators screw onto your faucets to reduce water flow by 40% without losing pressure.\n• 🌧️ **Rainwater Harvesting:** Collect rainwater from roofs to water plants and wash cars.\n• ♻️ **Reuse Graywater:** Water from washing vegetables can easily be used for garden plants.\n\n🌊 *Tip: Small daily habit changes save thousands of liters a year!*`;
-    } else if (queryLower.includes('waste') || queryLower.includes('plastic') || queryLower.includes('recycle') || queryLower.includes('garbage')) {
-      reply = `♻️ **Here is an easy guide to managing waste and going green:**\n\n• 🗑️ **Separate Waste at Home:** Use two bins—one for wet organic food waste and one for dry recyclables (paper, plastic).\n• 🍏 **Start Kitchen Composting:** Turn fruit peels and veg scraps into nutrient-rich soil for garden plants.\n• 🛍️ **Ditch Single-Use Plastics:** Carry cloth shopping bags and reusable water bottles.\n\n🌿 *Tip: Recycling just 1 kg of paper saves 17 trees and 26 liters of water!*`;
-    } else if (queryLower.includes('sebi') || queryLower.includes('brsr') || queryLower.includes('compliance')) {
-      reply = `📜 **SEBI BRSR Compliance Made Simple:**\n\n• 📊 **What is BRSR?** It is SEBI's reporting framework for top companies in India to share their environmental performance.\n• 🔍 **Core Requirements:** Report your energy usage, water consumption, waste recycled, and Scope 1 & 2 carbon emissions.\n• ✅ **How EcoMind Helps:** You can track all these metrics directly on your EcoMind Dashboard and export audit-ready reports!\n\n💡 *Tip: Visit our "Intelligence Hub" tab for the latest statutory deadline updates!*`;
-    } else if (queryLower.includes('scope 1') || queryLower.includes('scope 2') || queryLower.includes('scope 3') || queryLower.includes('emissions')) {
-      reply = `📊 **Understanding Carbon Emissions (Easy Explanation):**\n\n• 🔥 **Scope 1 (Direct):** Emissions from fuels burned directly on your property (like petrol/diesel in company vehicles).\n• ⚡ **Scope 2 (Electricity):** Indirect emissions created by power plants generating the electricity you buy.\n• 🚚 **Scope 3 (Supply Chain):** Emissions from suppliers, employee travel, and product shipping.\n\n🌱 *Tip: EcoMind automatically calculates your Scope 1 and Scope 2 totals when you add data!*`;
-    } else if (queryLower.includes('subsidy') || queryLower.includes('grant') || queryLower.includes('scheme') || queryLower.includes('government')) {
-      reply = `🏛️ **Government Subsidies & Financial Incentives:**\n\n• ☀️ **PM Surya Ghar Solar Scheme:** Get up to **40% subsidy** for installing residential rooftop solar panels.\n• ⚡ **Green Hydrogen Subsidies:** Capital grants for industrial clean energy transitions.\n• 📜 **MSME ZED Certification:** Up to 80% discount on green quality certification for small businesses.\n\n💡 *Check out the "AI Strategic Opportunities" tab in the Intelligence Hub for step-by-step application links!*`;
+      reply = `💧 **Water Conservation Tips:**\n\n• 🚰 **Tap Aerators:** Reduces faucet flow rate by **40%** without losing pressure.\n• 🌧️ **Rainwater Collection:** Store rainwater for landscaping and washing.\n• ♻️ **Graywater Reuse:** Reuse kitchen wash water for outdoor plants.`;
+    } else if (queryLower.includes('waste') || queryLower.includes('recycle') || queryLower.includes('plastic')) {
+      reply = `♻️ **Waste Management & Recycling:**\n\n• 🗑️ **2-Bin System:** Separate wet organic food waste from dry recyclables.\n• 🍏 **Home Composting:** Turn organic waste into rich soil fertilizer.\n• 🛍️ **Reusable Bags:** Avoid single-use plastic bags.`;
     } else if (queryLower.includes('hello') || queryLower.includes('hi') || queryLower.includes('hey')) {
-      reply = `👋 **Hello there! I am your EcoMind AI Copilot.**\nHow can I help you today? You can ask me about saving electricity, cutting water waste, SEBI BRSR rules, or government solar subsidies! 😊`;
+      reply = `👋 **Hello! Welcome to EcoMind AI.**\nHow can I help you today? Ask me about using any website feature (Upload Bills, 3D Globe, Face ID Login, Export Reports) or general sustainability tips! 😊`;
     } else {
-      const topic = query.split(' ').slice(0, 3).join(' ') || 'your question';
-      reply = `💡 **Here is helpful advice regarding "${topic}":**\n\n• 🎯 **Measure First:** Start by recording your daily energy and water usage under the **"Upload & Add Data"** tab.\n• 🌿 **Take Action:** Simple changes like LED lights, tap aerators, and waste segregation reduce your carbon footprint by 25%.\n• 📈 **Track Improvement:** Watch your Eco Score rise on your EcoMind Dashboard as you log lower emissions!\n\n😊 *Feel free to ask me any specific question about energy, water, waste, or ESG compliance!*`;
+      const subject = query.split(' ').slice(0, 3).join(' ') || 'your query';
+      reply = `💡 **EcoMind AI Guide for "${subject}":**\n\n• 📊 **Track Metrics:** Log your resource data on the **"Upload & Add Data"** page.\n• 🌐 **Explore Insights:** View real-time carbon reduction analytics on your **Dashboard** and interactive 3D Globe.\n• 📜 **Stay Compliant:** Check statutory cutoffs and ESG updates under the **"Intelligence Hub"**.\n\n😊 *Feel free to ask me any specific question about using the EcoMind website or managing carbon emissions!*`;
     }
 
     return res.json({
@@ -174,7 +190,7 @@ const chatWithAI = async (req, res, next) => {
     console.error('Chat AI Error:', err.message);
     return res.json({
       success: true,
-      reply: '💡 **Hello!** I am here to help you reduce your carbon footprint and save energy. Ask me any question about electricity savings, water conservation, waste recycling, or ESG compliance!'
+      reply: '💡 **Hello!** I am your EcoMind AI Copilot. Ask me about using any feature on EcoMind (Upload Bills, 3D Globe, Face ID Login, Reports Export) or saving energy!'
     });
   }
 };
