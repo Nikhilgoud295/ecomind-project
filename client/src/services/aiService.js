@@ -9,5 +9,10 @@ export const aiService = {
   async getLatestReport() {
     const res = await api.get('/ai/latest');
     return res.data;
+  },
+
+  async chatWithAI(message) {
+    const res = await api.post('/ai/chat', { message });
+    return res.data;
   }
 };

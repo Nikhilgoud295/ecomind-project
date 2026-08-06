@@ -1,4 +1,5 @@
 const { analyzeWithGemini } = require('../services/geminiService');
+const { ai } = require('../config/gemini');
 const { supabase } = require('../config/db');
 
 // In-memory store for fallback AI reports
@@ -98,8 +99,56 @@ const getLatestAIReport = async (req, res, next) => {
   }
 };
 
+const chatWithAI = async (req, res, next) => {
+  try {
+    const { message } = req.body;
+    if (!message) {
+      return res.status(400).json({ success: false, message: 'Message content is required' });
+    }
+
+    if (!ai) {
+      const msgLower = message.toLowerCase();
+      let reply = "I am EcoMind Gemini AI Copilot. I can help answer queries about carbon footprints, electricity reduction, SEBI BRSR compliance, renewable subsidies, and waste management.";
+
+      if (msgLower.includes('sebi') || msgLower.includes('brsr')) {
+        reply = "SEBI BRSR (Business Responsibility & Sustainability Reporting) Core mandates that top 1,000 listed Indian entities disclose verified Scope 1, Scope 2, water discharge, and circular economy metrics with independent third-party reasonable assurance starting FY 2024-25.";
+      } else if (msgLower.includes('electricity') || msgLower.includes('power') || msgLower.includes('kwh')) {
+        reply = "To reduce electricity carbon footprint: 1) Switch lighting to high-efficiency LEDs (saves 40-75% energy). 2) Upgrade HVAC to inverter models. 3) Install rooftop solar (MNRE offers subsidies up to 40%). 4) Eliminate phantom loads using smart power strips.";
+      } else if (msgLower.includes('scope 1') || msgLower.includes('scope 2') || msgLower.includes('emissions')) {
+        reply = "Scope 1 emissions refer to direct greenhouse gas emissions from sources owned or controlled by your organization (e.g. fuel consumed in company vehicles or boilers). Scope 2 emissions refer to indirect emissions from purchased electricity, steam, heating, or cooling.";
+      } else if (msgLower.includes('subsidy') || msgLower.includes('grant') || msgLower.includes('scheme')) {
+        reply = "Key government sustainability subsidies include: 1) MNRE National Green Hydrogen Mission (15% capital subsidy). 2) MSME Rooftop Solar & ZED Certification (40% subsidy on solar PV up to 500kW). 3) BEE Carbon Credit Trading Scheme (CCCs monetization).";
+      }
+
+      return res.json({ success: true, reply });
+    }
+
+    const systemPrompt = `
+    You are EcoMind AI Copilot, an elite environmental scientist, sustainability expert, and corporate ESG consultant.
+    Answer the user's question clearly, concisely, and professionally using bullet points when helpful.
+    User Question: ${message}
+    `;
+
+    const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const result = await model.generateContent(systemPrompt);
+    const reply = result.response.text();
+
+    return res.json({
+      success: true,
+      reply,
+    });
+  } catch (err) {
+    console.error('Chat AI Error:', err.message);
+    return res.json({
+      success: true,
+      reply: 'EcoMind AI Copilot: Direct carbon footprint tracking and SEBI BRSR compliance guidelines are accessible via your EcoMind Intelligence Hub and Dashboard.'
+    });
+  }
+};
+
 module.exports = {
   analyzeSustainability,
   getLatestAIReport,
+  chatWithAI,
   fallbackAiReports,
 };

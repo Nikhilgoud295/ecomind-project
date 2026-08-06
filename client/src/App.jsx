@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
+import FloatingChatbot from './components/FloatingChatbot';
 
 // Pages
 import Landing from './pages/Landing';
@@ -41,6 +42,9 @@ export default function App() {
         <Route path="/404" element={<NotFound />} />
         <Route path="*" element={<Navigate to="/404" replace />} />
       </Routes>
+
+      {/* Global Floating AI Chatbot Copilot */}
+      <FloatingChatbot />
     </Router>
   );
 }
