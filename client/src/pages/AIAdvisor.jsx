@@ -19,7 +19,7 @@ export default function AIAdvisor() {
   const [chatMessages, setChatMessages] = useState([
     {
       sender: 'ai',
-      text: 'Hello! I am your EcoMind Gemini 1.5 AI Sustainability Advisor. How can I help you reduce your carbon footprint or streamline BRSR compliance today?'
+      text: 'Hello! I am your EcoMind Gemini 1.5 AI Sustainability Advisor. Ask me anything about your carbon footprint, Scope 1-3 reduction strategies, or BRSR compliance!'
     }
   ]);
   const [chatLoading, setChatLoading] = useState(false);
@@ -35,8 +35,11 @@ export default function AIAdvisor() {
 
     try {
       const res = await aiService.analyzeSustainability(metricsToAnalyze);
-      if (res && res.analysis) {
-        setReport(res.analysis);
+      if (res && (res.analysis || res.report)) {
+        setReport(res.analysis || res.report);
+      } else {
+        const fallbackRes = aiService.generateLocalAIAnalysis(metricsToAnalyze);
+        setReport(fallbackRes.analysis);
       }
     } catch (err) {
       console.warn('AI analysis error fallback:', err);
@@ -88,7 +91,7 @@ export default function AIAdvisor() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-dark-bg text-slate-100">
+    <div className="min-h-screen flex flex-col bg-dark-bg text-slate-100 selection:bg-eco-500 selection:text-white">
       <Navbar />
 
       <div className="flex-1 flex max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 gap-6">
@@ -152,11 +155,9 @@ export default function AIAdvisor() {
               <RefreshCw className="w-8 h-8 text-emerald-400 animate-spin mx-auto" />
               <p className="text-xs text-slate-400 font-bold">Gemini AI Calculating Carbon Reduction Strategies...</p>
             </div>
-          ) : report ? (
-            <div className="animate-fade-in space-y-6">
-              <AIRecommendationCards analysis={report} />
-            </div>
-          ) : null}
+          ) : (
+            <AIRecommendationCards report={report} analysis={report} />
+          )}
 
           {/* Interactive Gemini AI Copilot Chat Window */}
           <div className="glass-panel p-6 rounded-3xl border border-slate-800 space-y-4">
