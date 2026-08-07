@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Sparkles, MessageSquare, X, Send, Bot, User, RefreshCw, ChevronDown, Minimize2 } from 'lucide-react';
+import { Sparkles, MessageSquare, X, Send, Bot, User, RefreshCw, ChevronDown, Minimize2, Mic, MicOff } from 'lucide-react';
 import { aiService } from '../services/authService';
 import { aiService as aiApiService } from '../services/aiService';
 
@@ -15,7 +15,9 @@ export default function FloatingChatbot() {
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isVoiceListening, setIsVoiceListening] = useState(false);
   const messagesEndRef = useRef(null);
+  const recognitionRef = useRef(null);
 
   const quickPrompts = [
     '⚡ How can I reduce electricity carbon footprint?',
@@ -71,6 +73,55 @@ export default function FloatingChatbot() {
       ]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const toggleVoiceInput = () => {
+    if (isVoiceListening) {
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch (e) {}
+      }
+      setIsVoiceListening(false);
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Speech recognition is not supported in this browser version.');
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        setIsVoiceListening(true);
+      };
+
+      recognition.onresult = (event) => {
+        let transcript = '';
+        for (let i = 0; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        setInputMessage(transcript);
+      };
+
+      recognition.onerror = () => {
+        setIsVoiceListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsVoiceListening(false);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (err) {
+      console.error('Voice input error:', err);
+      setIsVoiceListening(false);
     }
   };
 
@@ -197,13 +248,29 @@ export default function FloatingChatbot() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
+              if (isVoiceListening && recognitionRef.current) {
+                try { recognitionRef.current.stop(); } catch (err) {}
+              }
               handleSendMessage();
             }}
             className="p-3 border-t border-slate-800 bg-slate-950 flex items-center gap-2"
           >
+            <button
+              type="button"
+              onClick={toggleVoiceInput}
+              className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
+                isVoiceListening
+                  ? 'bg-rose-600 text-white border-rose-500 animate-pulse'
+                  : 'bg-slate-900 hover:bg-slate-800 text-emerald-400 border-slate-700'
+              }`}
+              title={isVoiceListening ? "Stop Voice Recording" : "Dictate Query via Microphone"}
+            >
+              {isVoiceListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+            </button>
+
             <input
               type="text"
-              placeholder="Ask EcoMind AI any query..."
+              placeholder={isVoiceListening ? "Listening to your voice..." : "Ask EcoMind AI any query..."}
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-eco-500 text-xs"

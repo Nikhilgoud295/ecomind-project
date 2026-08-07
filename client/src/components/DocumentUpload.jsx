@@ -21,18 +21,43 @@ import {
   FileCheck,
   Copy,
   Check,
-  Download
+  Download,
+  Mic,
+  MicOff,
+  Volume2,
+  Radio
 } from 'lucide-react';
 
-export default function DocumentUpload({ onExtractedDataSubmit, onExtractedData, isSubmitting }) {
+export default function DocumentUpload({ onExtractedDataSubmit, onExtractedData, isSubmitting, initialInputMode = 'upload' }) {
   const fileInputRef = useRef(null);
+  const recognitionRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [pastedText, setPastedText] = useState('');
-  const [activeInputMode, setActiveInputMode] = useState('upload'); // 'upload' | 'paste'
+  const [activeInputMode, setActiveInputMode] = useState(initialInputMode); // 'upload' | 'paste' | 'voice'
   const [isProcessing, setIsProcessing] = useState(false);
   const [extractionResult, setExtractionResult] = useState(null);
   const [error, setError] = useState('');
   const [copiedSampleIdx, setCopiedSampleIdx] = useState(null);
+
+  // Voice Input Speech Recognition States
+  const [isListening, setIsListening] = useState(false);
+  const [voiceTranscript, setVoiceTranscript] = useState('');
+
+  // Sample Voice Dictation Prompts with Non-Zero Metrics
+  const sampleVoicePrompts = [
+    {
+      title: '⚡ Voice Audit: Commercial Power & Solar',
+      text: 'Voice entry for August 7: Electricity grid consumption was 148.5 kWh, water supply 280 liters, diesel generator fuel 8.5 liters, solid waste 6.8 kg, solar energy share 45 percent, waste recycling 50 percent.'
+    },
+    {
+      title: '💧 Voice Audit: Municipal Water & Recycling',
+      text: 'Audio voice note: Electricity usage 72 kWh, water consumption 520 liters, trash waste 14.2 kg, generator fuel 6 liters, metro public transport commute 25 km, recycling rate 55 percent.'
+    },
+    {
+      title: '🏢 Voice Audit: Enterprise ESG Statement',
+      text: 'Spoken ESG dictation: Office electricity consumption 210 kWh, water supply 680 liters, waste generated 19.5 kg, fleet fuel 18.5 liters, public transit 48 km, solar share 38 percent.'
+    }
+  ];
 
   // Editable parsed metrics state
   const [parsedMetrics, setParsedMetrics] = useState({
@@ -240,6 +265,102 @@ export default function DocumentUpload({ onExtractedDataSubmit, onExtractedData,
     setTimeout(() => {
       parseDocumentText(pastedText, 'Pasted Bill Document');
     }, 600);
+  };
+
+  // Web Speech API Voice Input Dictation Handlers
+  const startVoiceInput = () => {
+    setError('');
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setError('Web Speech API is not natively supported in this browser version. You can click any voice sample prompt below or type text.');
+      return;
+    }
+
+    try {
+      if (recognitionRef.current) {
+        try { recognitionRef.current.abort(); } catch (e) {}
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
+
+      recognition.onresult = (event) => {
+        let currentTranscript = '';
+        for (let i = 0; i < event.results.length; i++) {
+          currentTranscript += event.results[i][0].transcript + ' ';
+        }
+        setVoiceTranscript(currentTranscript.trim());
+      };
+
+      recognition.onerror = (event) => {
+        console.warn('Speech recognition error:', event.error);
+        if (event.error !== 'no-speech') {
+          setError(`Voice recognition notice: ${event.error}. You can use sample voice dictation prompts below.`);
+        }
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (err) {
+      console.error('Speech recognition error:', err);
+      setError('Could not access microphone. Please check browser microphone permissions.');
+      setIsListening(false);
+    }
+  };
+
+  const stopVoiceInput = () => {
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (err) {
+        console.warn('Stop recognition error:', err);
+      }
+    }
+    setIsListening(false);
+  };
+
+  const toggleVoiceInput = () => {
+    if (isListening) {
+      stopVoiceInput();
+    } else {
+      startVoiceInput();
+    }
+  };
+
+  const handleVoiceSubmit = (e) => {
+    if (e) e.preventDefault();
+    if (!voiceTranscript.trim()) {
+      setError('Please speak your bill metrics or select a voice sample dictation prompt below.');
+      return;
+    }
+    if (isListening) {
+      stopVoiceInput();
+    }
+    setIsProcessing(true);
+    setError('');
+    setTimeout(() => {
+      parseDocumentText(voiceTranscript, '🎙️ User Voice Dictation Input');
+    }, 600);
+  };
+
+  const handleSelectVoiceSample = (sample) => {
+    setVoiceTranscript(sample.text);
+    setError('');
+    setIsProcessing(true);
+    setTimeout(() => {
+      parseDocumentText(sample.text, `🎙️ ${sample.title}`);
+    }, 500);
   };
 
   const handleSelectSample = (sample) => {
@@ -496,13 +617,13 @@ export default function DocumentUpload({ onExtractedDataSubmit, onExtractedData,
         <div className="space-y-6">
           {/* Sub Tab Switcher */}
           <div className="flex items-center justify-between border-b border-slate-800/80 pb-3 flex-wrap gap-3">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <button
                 type="button"
                 onClick={() => setActiveInputMode('upload')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   activeInputMode === 'upload'
-                    ? 'bg-slate-800 text-white border border-slate-700'
+                    ? 'bg-slate-800 text-white border border-slate-700 shadow-md'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -511,13 +632,28 @@ export default function DocumentUpload({ onExtractedDataSubmit, onExtractedData,
               <button
                 type="button"
                 onClick={() => setActiveInputMode('paste')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   activeInputMode === 'paste'
-                    ? 'bg-slate-800 text-white border border-slate-700'
+                    ? 'bg-slate-800 text-white border border-slate-700 shadow-md'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
                 <FileText className="w-4 h-4 inline mr-1.5" /> Paste Raw Bill Text
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveInputMode('voice')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  activeInputMode === 'voice'
+                    ? 'bg-emerald-600/30 text-emerald-300 border border-emerald-500/50 shadow-glow-eco'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <Mic className={`w-4 h-4 ${isListening ? 'text-rose-400 animate-pulse' : 'text-emerald-400'}`} />
+                <span>🎙️ Voice Input Dictation</span>
+                {isListening && (
+                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+                )}
               </button>
             </div>
 
@@ -533,36 +669,55 @@ export default function DocumentUpload({ onExtractedDataSubmit, onExtractedData,
 
           {activeInputMode === 'upload' ? (
             /* Drag & Drop Upload Zone */
-            <div
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onClick={() => fileInputRef.current?.click()}
-              className="p-8 rounded-3xl border-2 border-dashed border-slate-700 hover:border-eco-500/70 bg-slate-950/60 hover:bg-slate-900 text-center cursor-pointer transition-all duration-300 space-y-3 group"
-            >
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                accept=".pdf,.csv,.txt,.png,.jpg,.jpeg"
-                className="hidden"
-              />
+            <div className="space-y-3">
+              <div
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onClick={() => fileInputRef.current?.click()}
+                className="p-8 rounded-3xl border-2 border-dashed border-slate-700 hover:border-eco-500/70 bg-slate-950/60 hover:bg-slate-900 text-center cursor-pointer transition-all duration-300 space-y-3 group"
+              >
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept=".pdf,.csv,.txt,.png,.jpg,.jpeg"
+                  className="hidden"
+                />
 
-              <div className="w-14 h-14 rounded-2xl bg-eco-500/20 text-eco-400 border border-eco-500/30 flex items-center justify-center mx-auto group-hover:scale-110 group-hover:bg-eco-500/30 transition-all">
-                {isProcessing ? (
-                  <RefreshCw className="w-7 h-7 animate-spin text-emerald-400" />
-                ) : (
-                  <UploadCloud className="w-7 h-7 text-eco-400" />
-                )}
+                <div className="w-14 h-14 rounded-2xl bg-eco-500/20 text-eco-400 border border-eco-500/30 flex items-center justify-center mx-auto group-hover:scale-110 group-hover:bg-eco-500/30 transition-all">
+                  {isProcessing ? (
+                    <RefreshCw className="w-7 h-7 animate-spin text-emerald-400" />
+                  ) : (
+                    <UploadCloud className="w-7 h-7 text-eco-400" />
+                  )}
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-bold text-white">
+                    {isProcessing ? 'Gemini AI Extracting Consumption Metrics...' : 'Click to Upload or Drag & Drop Bill Document'}
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-1">Supports PDF, CSV, TXT, PNG, JPG files</p>
+                </div>
               </div>
 
-              <div>
-                <h3 className="text-sm font-bold text-white">
-                  {isProcessing ? 'Gemini AI Extracting Consumption Metrics...' : 'Click to Upload or Drag & Drop Bill Document'}
-                </h3>
-                <p className="text-xs text-slate-400 mt-1">Supports PDF, CSV, TXT, PNG, JPG files</p>
+              {/* Quick Voice Input Switcher Option beside Document Upload */}
+              <div className="flex items-center justify-between px-4 py-2.5 rounded-2xl bg-slate-900/80 border border-slate-800">
+                <span className="text-xs text-slate-300 font-medium flex items-center gap-1.5">
+                  <Mic className="w-4 h-4 text-emerald-400" /> Want to speak your bill metrics directly?
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveInputMode('voice');
+                    startVoiceInput();
+                  }}
+                  className="px-3.5 py-1.5 rounded-xl bg-emerald-600/30 hover:bg-emerald-600 text-emerald-200 text-xs font-bold border border-emerald-500/40 flex items-center gap-1.5 transition-all cursor-pointer shadow-glow-eco"
+                >
+                  <Mic className="w-3.5 h-3.5 text-emerald-300" /> Open Voice Input Microphone
+                </button>
               </div>
             </div>
-          ) : (
+          ) : activeInputMode === 'paste' ? (
             /* Text Paste Input Zone */
             <form onSubmit={handlePasteSubmit} className="space-y-3">
               <textarea
@@ -572,15 +727,152 @@ export default function DocumentUpload({ onExtractedDataSubmit, onExtractedData,
                 placeholder="Paste raw text from electricity bill, water invoice, or fuel receipt here..."
                 className="w-full p-4 rounded-2xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-eco-500 text-xs font-mono"
               />
-              <button
-                type="submit"
-                disabled={isProcessing}
-                className="px-5 py-2.5 rounded-xl bg-eco-600 hover:bg-eco-500 text-white font-bold text-xs shadow-glow-eco flex items-center gap-2 transition-all cursor-pointer"
-              >
-                {isProcessing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                Parse & Extract Metrics via Gemini AI
-              </button>
+              <div className="flex items-center justify-between">
+                <button
+                  type="submit"
+                  disabled={isProcessing}
+                  className="px-5 py-2.5 rounded-xl bg-eco-600 hover:bg-eco-500 text-white font-bold text-xs shadow-glow-eco flex items-center gap-2 transition-all cursor-pointer"
+                >
+                  {isProcessing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  Parse & Extract Metrics via Gemini AI
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveInputMode('voice');
+                    startVoiceInput();
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-bold border border-slate-700 flex items-center gap-1.5 transition-all cursor-pointer"
+                >
+                  <Mic className="w-3.5 h-3.5 text-emerald-400" /> Switch to Voice Input
+                </button>
+              </div>
             </form>
+          ) : (
+            /* Voice Input Dictation Zone */
+            <div className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-4">
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <div className="flex items-center gap-3">
+                  <div className={`p-3 rounded-2xl transition-all ${isListening ? 'bg-rose-500/20 border border-rose-500/50 shadow-lg shadow-rose-500/20 animate-pulse' : 'bg-emerald-500/20 border border-emerald-500/30'}`}>
+                    {isListening ? (
+                      <Mic className="w-7 h-7 text-rose-400 animate-bounce" />
+                    ) : (
+                      <Mic className="w-7 h-7 text-emerald-400" />
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                      Voice Dictation & Speech Scanner
+                      {isListening && (
+                        <span className="px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-400 text-[10px] font-mono border border-rose-500/40 animate-pulse flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span> Live Audio Recording
+                        </span>
+                      )}
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Speak your electricity, water, waste, or fuel numbers clearly. Gemini AI extracts quantities automatically.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Mic Toggle Button */}
+                <button
+                  type="button"
+                  onClick={toggleVoiceInput}
+                  className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                    isListening
+                      ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/30 animate-pulse'
+                      : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-glow-eco'
+                  }`}
+                >
+                  {isListening ? (
+                    <>
+                      <MicOff className="w-4 h-4" /> Stop Microphone
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="w-4 h-4" /> Start Microphone Input
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Real-time Voice Wave Visualizer indicator */}
+              {isListening && (
+                <div className="p-3 rounded-2xl bg-slate-950 border border-emerald-500/30 flex items-center justify-between text-xs text-emerald-300">
+                  <div className="flex items-center gap-2">
+                    <Radio className="w-4 h-4 text-rose-400 animate-spin" />
+                    <span className="font-mono text-xs">Listening to your voice... Speak now (e.g. "Electricity 148.5 kWh, water 280 liters")</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-1.5 h-4 bg-emerald-400 animate-pulse"></span>
+                    <span className="w-1.5 h-6 bg-emerald-300 animate-pulse delay-75"></span>
+                    <span className="w-1.5 h-3 bg-emerald-500 animate-pulse delay-150"></span>
+                    <span className="w-1.5 h-5 bg-emerald-400 animate-pulse delay-100"></span>
+                  </div>
+                </div>
+              )}
+
+              {/* Voice Transcript Textarea */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs font-semibold text-slate-300">
+                  <span>Voice Speech Transcript:</span>
+                  {voiceTranscript && (
+                    <button
+                      type="button"
+                      onClick={() => setVoiceTranscript('')}
+                      className="text-[11px] text-slate-400 hover:text-rose-400 transition-colors"
+                    >
+                      Clear Speech Text
+                    </button>
+                  )}
+                </div>
+                <textarea
+                  rows={4}
+                  value={voiceTranscript}
+                  onChange={(e) => setVoiceTranscript(e.target.value)}
+                  placeholder='Spoken text will appear here in real-time as you speak... Or click one of the voice sample dictations below!'
+                  className="w-full p-4 rounded-2xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 text-xs font-mono"
+                />
+              </div>
+
+              {/* Submit & Voice Prompts Header */}
+              <div className="flex items-center justify-between flex-wrap gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={handleVoiceSubmit}
+                  disabled={isProcessing}
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-glow-eco flex items-center gap-2 transition-all cursor-pointer"
+                >
+                  {isProcessing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-emerald-200" />}
+                  Extract & Parse Voice Transcript via Gemini AI
+                </button>
+
+                <span className="text-[11px] text-slate-400 font-medium">
+                  Or test instantly with pre-recorded voice dictation prompts:
+                </span>
+              </div>
+
+              {/* Voice Samples Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                {sampleVoicePrompts.map((vSample, sIdx) => (
+                  <div
+                    key={sIdx}
+                    onClick={() => handleSelectVoiceSample(vSample)}
+                    className="p-3.5 rounded-2xl bg-slate-950/90 hover:bg-slate-950 border border-slate-800 hover:border-emerald-500/60 transition-all cursor-pointer space-y-1.5 group"
+                  >
+                    <div className="text-xs font-bold text-white flex items-center gap-1.5 group-hover:text-emerald-300">
+                      <Volume2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                      <span>{vSample.title}</span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 line-clamp-2 italic font-mono">
+                      "{vSample.text}"
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
 
           {/* Working Sample Example Documents with Non-Zero Values */}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileUp, Edit3, Sparkles, CheckCircle2, ArrowRight, FileText, Download, FileSpreadsheet } from 'lucide-react';
+import { FileUp, Edit3, Sparkles, CheckCircle2, ArrowRight, FileText, Download, FileSpreadsheet, Mic } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
@@ -14,7 +14,7 @@ import { exportReportToPDF, exportReportToCSV } from '../utils/exportHelpers';
 
 export default function AddData() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('manual'); // 'manual' | 'document'
+  const [activeTab, setActiveTab] = useState('manual'); // 'manual' | 'document' | 'voice'
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [aiReportResult, setAiReportResult] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
@@ -162,7 +162,7 @@ export default function AddData() {
           )}
 
           {/* Mode Switcher Tabs */}
-          <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-slate-950 border border-slate-800">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-1.5 rounded-2xl bg-slate-950 border border-slate-800">
             <button
               onClick={() => setActiveTab('manual')}
               className={`py-3 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer ${
@@ -184,14 +184,27 @@ export default function AddData() {
             >
               <Sparkles className="w-4 h-4 text-emerald-300" /> AI Document & Bill Scanner
             </button>
+
+            <button
+              onClick={() => setActiveTab('voice')}
+              className={`py-3 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer ${
+                activeTab === 'voice'
+                  ? 'bg-emerald-600 text-white shadow-glow-eco scale-[1.01]'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-900'
+              }`}
+            >
+              <Mic className="w-4 h-4 text-emerald-300" /> Voice Dictation Input
+            </button>
           </div>
 
           {/* Form Content */}
           <div className="glass-panel p-6 rounded-3xl border border-slate-800">
             {activeTab === 'manual' ? (
               <ResourceForm onSubmit={handleFormSubmit} isSubmitting={isSubmitting} />
+            ) : activeTab === 'voice' ? (
+              <DocumentUpload key="voice-mode" initialInputMode="voice" onExtractedData={handleFormSubmit} isSubmitting={isSubmitting} />
             ) : (
-              <DocumentUpload onExtractedData={handleFormSubmit} isSubmitting={isSubmitting} />
+              <DocumentUpload key="document-mode" initialInputMode="upload" onExtractedData={handleFormSubmit} isSubmitting={isSubmitting} />
             )}
           </div>
 

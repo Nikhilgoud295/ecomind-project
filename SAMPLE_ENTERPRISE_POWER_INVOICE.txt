@@ -1,0 +1,26 @@
+================================================================================
+           PACIFIC GRID ENERGY & RENEWABLES CORP
+           Commercial Utility & Carbon Audit Invoice
+================================================================================
+Invoice No: PGE-99824-2026
+Account No: 8849-2026-ESG
+Billing Date: 2026-08-07
+Service Period: July 01 - July 31, 2026
+Customer: EcoMind Enterprise HQ (450 Innovation Parkway, Suite 100)
+
+--------------------------------------------------------------------------------
+RESOURCE CONSUMPTION & GHG SCOPE BREAKDOWN
+--------------------------------------------------------------------------------
+1. Grid Electricity Usage    : 148.5 kWh    [Scope 2 Power Grid]
+2. Clean Solar Share Offset  : 35 %         [Renewable Solar REC]
+3. Generator Diesel Fuel     : 8.5 Liters   [Scope 1 Stationary Combustion]
+4. Employee Metro Commute    : 32.0 km      [Scope 3 Employee Commute]
+5. Water Facility Supply     : 280.0 Liters [Scope 3 Potable Water]
+6. Solid Waste Disposed      : 6.8 kg       [Scope 3 Landfill Waste]
+7. Waste Recycling Rate      : 50 %         [Materials Recovery Facility]
+
+--------------------------------------------------------------------------------
+FINANCIAL STATEMENT
+Total Net Amount Due         : $342.80 (PAID IN FULL)
+Status                       : VERIFIED ESG UTILITY INVOICE
+================================================================================

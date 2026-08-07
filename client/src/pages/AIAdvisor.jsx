@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Sparkles, RefreshCw, Bot, ShieldCheck, Flame, CloudRain, FileUp, Send, User, MessageSquare } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Sparkles, RefreshCw, Bot, ShieldCheck, Flame, CloudRain, FileUp, Send, User, MessageSquare, Mic, MicOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
@@ -23,6 +23,8 @@ export default function AIAdvisor() {
     }
   ]);
   const [chatLoading, setChatLoading] = useState(false);
+  const [isAdvisorListening, setIsAdvisorListening] = useState(false);
+  const recognitionRef = useRef(null);
 
   const fetchAIReport = async () => {
     setLoading(true);
@@ -87,6 +89,55 @@ export default function AIAdvisor() {
       setChatMessages(prev => [...prev, { sender: 'ai', text: `Gemini AI Recommendation for "${userQuery}": Implement smart power timers and divert organic waste into municipal composting streams.` }]);
     } finally {
       setChatLoading(false);
+    }
+  };
+
+  const toggleAdvisorVoice = () => {
+    if (isAdvisorListening) {
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch (e) {}
+      }
+      setIsAdvisorListening(false);
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Speech recognition is not supported in this browser version.');
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        setIsAdvisorListening(true);
+      };
+
+      recognition.onresult = (event) => {
+        let transcript = '';
+        for (let i = 0; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        setChatInput(transcript);
+      };
+
+      recognition.onerror = () => {
+        setIsAdvisorListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsAdvisorListening(false);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (err) {
+      console.error('Advisor voice input error:', err);
+      setIsAdvisorListening(false);
     }
   };
 
@@ -211,12 +262,35 @@ export default function AIAdvisor() {
               )}
             </div>
 
-            <form onSubmit={handleSendMessage} className="flex gap-2 pt-2">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (isAdvisorListening && recognitionRef.current) {
+                  try { recognitionRef.current.stop(); } catch (err) {}
+                }
+                handleSendMessage(e);
+              }}
+              className="flex gap-2 pt-2"
+            >
+              <button
+                type="button"
+                onClick={toggleAdvisorVoice}
+                className={`px-3 py-2.5 rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold ${
+                  isAdvisorListening
+                    ? 'bg-rose-600 text-white border-rose-500 animate-pulse'
+                    : 'bg-slate-900 hover:bg-slate-800 text-emerald-400 border-slate-700'
+                }`}
+                title={isAdvisorListening ? "Stop Voice Dictation" : "Dictate Query via Voice Input"}
+              >
+                {isAdvisorListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4 text-emerald-400" />}
+                <span className="hidden sm:inline">{isAdvisorListening ? 'Listening...' : 'Voice Input'}</span>
+              </button>
+
               <input
                 type="text"
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
-                placeholder="Ask Gemini AI (e.g. 'How do I reduce my Scope 2 electricity emissions by 20%?')..."
+                placeholder={isAdvisorListening ? "Listening to your voice query..." : "Ask Gemini AI (e.g. 'How do I reduce my Scope 2 electricity emissions by 20%?')..."}
                 className="flex-1 px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-eco-500 text-xs font-semibold"
               />
               <button
