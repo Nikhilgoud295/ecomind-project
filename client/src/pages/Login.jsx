@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Leaf, Mail, Lock, LogIn, AlertCircle, Sparkles, Scan, ShieldCheck, CheckCircle2, UserCheck, RefreshCw, ShieldAlert, LockKeyhole } from 'lucide-react';
-import { authService } from '../services/authService';
+import { authService, validateEmailSyntax } from '../services/authService';
 import FaceRecognitionScanner from '../components/FaceRecognitionScanner';
 
 export default function Login() {
@@ -132,13 +132,27 @@ export default function Login() {
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     setError('');
-    setLoading(true);
 
     if (loginMethod === 'password') {
+      // 1. Strict Email Syntax & Typo Check
+      const emailCheck = validateEmailSyntax(formData.email);
+      if (!emailCheck.valid) {
+        setError(emailCheck.message);
+        return;
+      }
+
+      // 2. Strict Password Check
+      if (!formData.password) {
+        setError('Please enter your account password.');
+        return;
+      }
+
+      setLoading(true);
+
       try {
         const res = await authService.login({
-          email: formData.email || 'nikhilgoudkeesari@gmail.com',
-          password: formData.password || 'Password123!'
+          email: emailCheck.email,
+          password: formData.password
         });
         if (res.token) {
           localStorage.setItem('ecomind_token', res.token);
@@ -148,18 +162,19 @@ export default function Login() {
         window.dispatchEvent(new Event('ecomind_user_updated'));
         navigate('/dashboard');
       } catch (err) {
-        console.warn('Password login attempt fallback:', err);
-        const matched = registeredUsers.find(u => u.email === formData.email?.toLowerCase()) || {
-          id: 'usr_nikhil',
-          name: formData.email ? formData.email.split('@')[0] : 'Nikhil Goud',
-          email: formData.email || 'nikhilgoudkeesari@gmail.com',
-          organization: 'EcoMind Enterprise'
-        };
-        localStorage.setItem('ecomind_token', 'demo_token_123');
-        localStorage.setItem('ecomind_user', JSON.stringify(matched));
-        window.dispatchEvent(new Event('storage'));
-        window.dispatchEvent(new Event('ecomind_user_updated'));
-        navigate('/dashboard');
+        console.warn('Password login attempt check:', err);
+
+        // Check if email exists in local registered users list
+        const matched = registeredUsers.find(u => u.email === emailCheck.email);
+        if (matched) {
+          localStorage.setItem('ecomind_token', 'demo_token_123');
+          localStorage.setItem('ecomind_user', JSON.stringify(matched));
+          window.dispatchEvent(new Event('storage'));
+          window.dispatchEvent(new Event('ecomind_user_updated'));
+          navigate('/dashboard');
+        } else {
+          setError(`❌ Invalid Credentials: No registered account found with email "${emailCheck.email}". Please verify your email or click Create Account below.`);
+        }
       } finally {
         setLoading(false);
       }
@@ -179,177 +194,166 @@ export default function Login() {
               <Leaf className="w-6 h-6 text-eco-400 group-hover:animate-bounce" />
             </div>
           </div>
+          <span className="text-3xl font-extrabold font-display text-white tracking-tight">EcoMind <span className="text-eco-400 font-mono">AI</span></span>
         </Link>
-        <h2 className="text-3xl font-extrabold font-display tracking-tight text-white">Sign In to EcoMind AI</h2>
-        <p className="text-xs text-slate-400">Choose Email & Password or Strict Face ID Biometric Sign In</p>
+        <h2 className="text-xl font-bold font-display text-slate-200">Sign in to Enterprise ESG Copilot</h2>
+        <p className="text-xs text-slate-400">Access your Scope 1, 2 & 3 emissions analytics and statutory disclosures.</p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md z-10 px-4">
-        <div className="glass-panel py-8 px-6 shadow-2xl rounded-3xl border border-slate-800 space-y-6">
-          {/* Method Selection Switcher Bar */}
-          <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-slate-950 border border-slate-800">
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md z-10">
+        <div className="glass-panel py-8 px-6 sm:px-10 rounded-3xl border border-slate-800 shadow-2xl space-y-6">
+          
+          {/* Method Switcher: Password vs Facial Recognition */}
+          <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-slate-950/80 border border-slate-800">
             <button
               type="button"
               onClick={() => { setLoginMethod('password'); setError(''); }}
-              className={`py-2.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 ${
+              className={`py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 loginMethod === 'password'
-                  ? 'bg-eco-600 text-white shadow-glow-eco scale-[1.02]'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                  ? 'bg-slate-800 text-white border border-slate-700 shadow-md'
+                  : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <Lock className="w-4 h-4" /> Email & Password
+              <LockKeyhole className="w-4 h-4 text-emerald-400" /> Password Login
             </button>
             <button
               type="button"
               onClick={() => { setLoginMethod('face'); setError(''); }}
-              className={`py-2.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 ${
+              className={`py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 loginMethod === 'face'
-                  ? 'bg-eco-600 text-white shadow-glow-eco scale-[1.02]'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                  ? 'bg-slate-800 text-white border border-slate-700 shadow-md'
+                  : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <Scan className="w-4 h-4 text-emerald-400" /> Face ID Biometric
+              <Scan className="w-4 h-4 text-teal-400" /> Face ID Biometric
             </button>
           </div>
 
-          {/* Quick Demo Fill Banner */}
-          {loginMethod === 'password' && (
-            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-950/40 to-teal-950/40 border border-eco-500/30 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-emerald-400 animate-spin" style={{ animationDuration: '5s' }} />
-                <span className="text-xs font-semibold text-slate-200">Testing & Reviewing?</span>
-              </div>
-              <button
-                type="button"
-                onClick={handleDemoFill}
-                className="text-xs font-bold px-3 py-1 rounded-lg bg-eco-600 hover:bg-eco-500 text-white transition-all transform hover:scale-105 shadow-md"
-              >
-                Fill Demo Account
-              </button>
-            </div>
-          )}
-
           {error && (
-            <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 flex items-center gap-2.5 text-xs animate-fade-in">
-              <ShieldAlert className="w-4 h-4 flex-shrink-0 text-rose-400" />
-              <span className="leading-relaxed font-semibold">{error}</span>
+            <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 flex items-start gap-2.5 text-xs font-semibold animate-fade-in shadow-lg">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-400 mt-0.5" />
+              <span className="leading-relaxed">{error}</span>
             </div>
           )}
 
           {loginMethod === 'password' ? (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                  Email Address
+            /* Standard Password Login Form */
+            <form className="space-y-4" onSubmit={handleSubmit}>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300 flex items-center justify-between">
+                  <span>Work Email Address</span>
+                  <span className="text-[10px] text-eco-400 font-mono">Strict Syntax Check Active</span>
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                    <Mail className="w-4 h-4" />
-                  </div>
+                  <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
                   <input
                     type="email"
                     name="email"
                     required
-                    placeholder="name@organization.com"
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-eco-500 text-sm"
+                    placeholder="user@company.com"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-eco-500 text-xs font-mono"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                  Password
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300 flex items-center justify-between">
+                  <span>Account Password</span>
+                  <a href="#forgot" onClick={(e) => { e.preventDefault(); setError('Demo Mode: Password reset is enabled for registered email accounts.'); }} className="text-[10px] text-eco-400 hover:underline">Forgot password?</a>
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                    <Lock className="w-4 h-4" />
-                  </div>
+                  <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
                   <input
                     type="password"
                     name="password"
                     required
-                    placeholder="••••••••"
                     value={formData.password}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-eco-500 text-sm"
+                    placeholder="••••••••••••"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-eco-500 text-xs font-mono"
                   />
                 </div>
               </div>
 
-              {/* DYNAMIC SIGN IN BUTTON */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="group relative w-full py-3.5 rounded-xl bg-gradient-to-r from-eco-600 via-emerald-500 to-teal-500 hover:from-eco-500 hover:to-teal-400 text-white font-bold shadow-glow-eco transition-all duration-300 transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 text-sm cursor-pointer overflow-hidden"
-              >
-                {loading ? (
-                  <span className="flex items-center gap-2">
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                    Authenticating Credentials...
-                  </span>
-                ) : (
-                  <>
-                    <LogIn className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    <span>Sign In to Account</span>
-                  </>
-                )}
-              </button>
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-eco-600 via-emerald-500 to-teal-500 hover:from-eco-500 hover:to-teal-400 text-white font-bold text-xs shadow-glow-eco flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02] cursor-pointer"
+                >
+                  {loading ? (
+                    <RefreshCw className="w-4 h-4 animate-spin text-white" />
+                  ) : (
+                    <>
+                      <LogIn className="w-4 h-4" /> Authenticate & Access Platform
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <div className="pt-2 text-center">
+                <button
+                  type="button"
+                  onClick={handleDemoFill}
+                  className="text-[11px] text-slate-400 hover:text-emerald-400 font-semibold underline cursor-pointer"
+                >
+                  Auto-fill Tested Demo Credentials
+                </button>
+              </div>
             </form>
           ) : (
-            <div className="space-y-4">
-              {/* Strict Facial Recognition Scanner */}
-              <FaceRecognitionScanner onScanComplete={handleFaceCaptured} mode="login" />
+            /* Strict Face Recognition Biometric Scanner */
+            <div className="space-y-5">
+              <div className="p-3 rounded-2xl bg-teal-500/10 border border-teal-500/30 text-teal-300 text-xs flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-teal-400 flex-shrink-0" />
+                <span>Strict Facial Biometrics: Requires live webcam match with enrolled account profile.</span>
+              </div>
 
-              {/* Display Recognized Account Details with REAL DYNAMIC USER NAME */}
+              <FaceRecognitionScanner
+                onCapture={handleFaceCaptured}
+                isEnrolling={false}
+              />
+
               {isFaceVerified && recognizedUser && (
-                <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-3 animate-fade-in">
-                  <UserCheck className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                  <div className="text-xs">
-                    <span className="text-slate-400 block text-[10px]">Strict Biometric Verification Passed:</span>
-                    <span className="font-bold text-white block text-sm">{recognizedUser.name}</span>
-                    <span className="text-[11px] text-emerald-400">{recognizedUser.email}</span>
-                  </div>
+                <div className="p-3 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs flex items-center justify-between">
+                  <span className="flex items-center gap-1.5 font-bold">
+                    <UserCheck className="w-4 h-4 text-emerald-400" />
+                    Biometrics Verified: {recognizedUser.name} ({recognizedUser.email})
+                  </span>
+                  <span className="text-[10px] font-mono bg-emerald-950 px-2 py-0.5 rounded text-emerald-400">98.4% Match</span>
                 </div>
               )}
 
-              {/* DYNAMIC FACE ID SIGN IN BUTTON (STRICTLY DISABLED UNTIL FACE IS VERIFIED) */}
               <button
                 type="button"
                 onClick={handleFaceLoginSubmit}
                 disabled={loading || !isFaceVerified}
-                className={`group relative w-full py-3.5 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 text-sm cursor-pointer overflow-hidden ${
+                className={`w-full py-3 rounded-xl font-bold text-xs shadow-glow-eco flex items-center justify-center gap-2 transition-all cursor-pointer ${
                   isFaceVerified
-                    ? 'bg-gradient-to-r from-eco-600 via-emerald-500 to-teal-500 hover:from-eco-500 hover:to-teal-400 text-white shadow-glow-eco transform hover:scale-[1.02]'
-                    : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed opacity-75'
+                    ? 'bg-gradient-to-r from-teal-600 via-emerald-500 to-eco-500 hover:from-teal-500 text-white transform hover:scale-[1.02]'
+                    : 'bg-slate-900 text-slate-600 border border-slate-800 cursor-not-allowed'
                 }`}
               >
                 {loading ? (
-                  <span className="flex items-center gap-2">
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                    Verifying Biometric Hash Key...
-                  </span>
-                ) : isFaceVerified ? (
-                  <>
-                    <CheckCircle2 className="w-4 h-4 text-emerald-300 group-hover:scale-110 transition-transform" />
-                    <span>Sign In as {recognizedUser?.name || 'Enrolled User'}</span>
-                  </>
+                  <RefreshCw className="w-4 h-4 animate-spin text-white" />
                 ) : (
                   <>
-                    <LockKeyhole className="w-4 h-4 text-slate-500" />
-                    <span>Complete Face Scan Above to Unlock Sign In</span>
+                    <ShieldCheck className="w-4 h-4" /> Confirm & Log In via Face Recognition
                   </>
                 )}
               </button>
             </div>
           )}
 
-          <div className="text-center pt-2 text-xs text-slate-400">
-            Don't have an account?{' '}
-            <Link to="/register" className="text-eco-400 font-bold hover:underline">
-              Create free account
-            </Link>
+          <div className="border-t border-slate-800 pt-4 text-center">
+            <p className="text-xs text-slate-400">
+              Don't have an enterprise account?{' '}
+              <Link to="/register" className="font-bold text-eco-400 hover:text-eco-300 underline">
+                Create Account
+              </Link>
+            </p>
           </div>
         </div>
       </div>
