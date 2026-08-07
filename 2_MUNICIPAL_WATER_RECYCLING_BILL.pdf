@@ -1,0 +1,66 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Length 1101 >>
+stream
+BT
+/F1 18 Tf
+50 740 Td
+(METROPOLITAN MUNICIPAL WATER & WASTE) Tj
+0 -25 Td
+/F1 11 Tf
+(Commercial Utility & Carbon Audit Invoice #MMU-88210-2026) Tj
+0 -25 Td
+(Billing Date: 2026-08-07 | Service Period: July 01 - July 31, 2026) Tj
+0 -20 Td
+(Customer: EcoMind Enterprise HQ - Account #8849-2026-ESG) Tj
+0 -35 Td
+/F1 13 Tf
+(RESOURCE CONSUMPTION & GHG SCOPE METRICS:) Tj
+0 -25 Td
+/F1 11 Tf
+(1. Grid Electricity Usage:    72.0 kWh    [Scope 2 Power Grid]) Tj
+0 -20 Td
+(2. Clean Solar Share Offset:  30 %         [Renewable Solar REC]) Tj
+0 -20 Td
+(3. Generator Diesel Fuel:     6.0 Liters   [Scope 1 Stationary Combustion]) Tj
+0 -20 Td
+(4. Employee Metro Commute:    25.0 km      [Scope 3 Employee Commute]) Tj
+0 -20 Td
+(5. Water Facility Supply:     520.0 Liters [Scope 3 Potable Water]) Tj
+0 -20 Td
+(6. Solid Waste Disposed:      14.2 kg       [Scope 3 Landfill Waste]) Tj
+0 -20 Td
+(7. Waste Recycling Rate:      55 %         [Materials Recovery Facility]) Tj
+0 -35 Td
+/F1 12 Tf
+(Total Amount Due: $185.40 - PAID IN FULL) Tj
+0 -20 Td
+(Verified ESG Audit Statement for EcoMind AI OCR Document Upload) Tj
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000244 00000 n 
+0000000315 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1466
+%%EOF
