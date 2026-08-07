@@ -16,36 +16,51 @@ import {
   Pie,
   Cell,
 } from 'recharts';
+import { BarChart3, CloudRain } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-export default function AnalyticsCharts({ chartData = [] }) {
+export default function AnalyticsCharts({ summary }) {
   const [activeTab, setActiveTab] = useState('emissions');
 
-  const defaultData = chartData.length > 0 ? chartData : [
-    { date: 'Aug 01', co2: 17.8, electricity: 18.5, water: 140, waste: 3.2, renewable: 25, recycling: 40 },
-    { date: 'Aug 02', co2: 24.1, electricity: 22.0, water: 165, waste: 4.1, renewable: 20, recycling: 35 },
-    { date: 'Aug 03', co2: 9.3, electricity: 12.0, water: 95, waste: 1.8, renewable: 50, recycling: 70 },
-    { date: 'Aug 04', co2: 13.6, electricity: 15.2, water: 110, waste: 2.5, renewable: 35, recycling: 50 },
-    { date: 'Aug 05', co2: 11.4, electricity: 14.0, water: 105, waste: 2.0, renewable: 40, recycling: 60 },
-  ];
+  const hasData = summary?.hasData && summary?.logs?.length > 0;
+  const logs = summary?.logs || [];
 
-  const pieData = [
-    { name: 'Electricity CO2', value: 45, color: '#f59e0b' },
-    { name: 'Fuel & Commute', value: 30, color: '#ef4444' },
-    { name: 'Waste Disposal', value: 15, color: '#ec4899' },
-    { name: 'Water Treatment', value: 10, color: '#3b82f6' },
-  ];
+  // Build real-time chart data directly from user's logged entries
+  const chartData = hasData
+    ? logs.slice().reverse().map(l => ({
+        date: l.date,
+        co2: l.total_co2_kg,
+        electricity: l.electricity_kwh,
+        water: l.water_liters,
+        waste: l.waste_kg,
+        scope1: l.scope1_kg,
+        scope2: l.scope2_kg,
+        scope3: l.scope3_kg,
+      }))
+    : [];
+
+  const pieData = hasData
+    ? [
+        { name: 'Scope 1 (Direct Fuel)', value: summary.scope1 || 1, color: '#ef4444' },
+        { name: 'Scope 2 (Electricity)', value: summary.scope2 || 1, color: '#f59e0b' },
+        { name: 'Scope 3 (Water & Waste)', value: summary.scope3 || 1, color: '#10b981' },
+      ]
+    : [];
 
   return (
     <div className="space-y-6">
       {/* Chart Selector Tabs */}
       <div className="flex items-center justify-between border-b border-slate-800 pb-3 flex-wrap gap-2">
-        <h3 className="text-base font-bold font-display text-white">Sustainability Analytics & Visualizations</h3>
+        <h3 className="text-base font-bold font-display text-white flex items-center gap-2">
+          <BarChart3 className="w-5 h-5 text-eco-400" />
+          Sustainability Analytics & Visualizations
+        </h3>
         <div className="flex items-center gap-1 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
           {[
             { id: 'emissions', label: 'CO2 Trend' },
             { id: 'energy', label: 'Electricity & Water' },
-            { id: 'waste', label: 'Waste & Recycling' },
-            { id: 'breakdown', label: 'Impact Distribution' },
+            { id: 'waste', label: 'Waste Log' },
+            { id: 'breakdown', label: 'Scope Breakdown' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -62,75 +77,82 @@ export default function AnalyticsCharts({ chartData = [] }) {
         </div>
       </div>
 
-      {/* Main Active Chart */}
-      <div className="glass-panel p-5 rounded-2xl border border-slate-800 h-80">
-        <ResponsiveContainer width="100%" height="100%">
-          {activeTab === 'emissions' && (
-            <AreaChart data={defaultData}>
-              <defs>
-                <linearGradient id="co2Grad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1e2e33" />
-              <XAxis dataKey="date" stroke="#64748b" fontSize={12} />
-              <YAxis stroke="#64748b" fontSize={12} unit=" kg" />
-              <Tooltip
-                contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', borderRadius: '12px', color: '#fff' }}
-              />
-              <Area type="monotone" dataKey="co2" name="CO2 Emissions (kg)" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#co2Grad)" />
-            </AreaChart>
-          )}
+      {/* Main Active Chart View */}
+      <div className="glass-panel p-5 rounded-2xl border border-slate-800 h-80 flex flex-col justify-center">
+        {!hasData ? (
+          <div className="text-center space-y-3 p-6">
+            <CloudRain className="w-10 h-10 text-slate-600 mx-auto" />
+            <p className="text-xs text-slate-400 font-medium">
+              No carbon audit logs recorded yet. Add your resource data to generate real-time analytics.
+            </p>
+            <Link
+              to="/add-data"
+              className="inline-block px-4 py-2 rounded-xl bg-eco-600 hover:bg-eco-500 text-white font-bold text-xs transition-all shadow-glow-eco"
+            >
+              + Log Resource Usage
+            </Link>
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            {activeTab === 'emissions' && (
+              <AreaChart data={chartData}>
+                <defs>
+                  <linearGradient id="co2Grad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                <XAxis dataKey="date" stroke="#64748b" fontSize={11} />
+                <YAxis stroke="#64748b" fontSize={11} unit=" kg" />
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', fontSize: '12px' }}
+                />
+                <Area type="monotone" dataKey="co2" name="Net CO2 (kg)" stroke="#10b981" strokeWidth={2.5} fill="url(#co2Grad)" />
+              </AreaChart>
+            )}
 
-          {activeTab === 'energy' && (
-            <LineChart data={defaultData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1e2e33" />
-              <XAxis dataKey="date" stroke="#64748b" fontSize={12} />
-              <YAxis stroke="#64748b" fontSize={12} />
-              <Tooltip
-                contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', borderRadius: '12px', color: '#fff' }}
-              />
-              <Legend />
-              <Line type="monotone" dataKey="electricity" name="Electricity (kWh)" stroke="#f59e0b" strokeWidth={2.5} dot={{ r: 4 }} />
-              <Line type="monotone" dataKey="water" name="Water (Liters)" stroke="#3b82f6" strokeWidth={2.5} dot={{ r: 4 }} />
-            </LineChart>
-          )}
+            {activeTab === 'energy' && (
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                <XAxis dataKey="date" stroke="#64748b" fontSize={11} />
+                <YAxis stroke="#64748b" fontSize={11} />
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', fontSize: '12px' }}
+                />
+                <Legend wrapperStyle={{ fontSize: '11px' }} />
+                <Bar dataKey="electricity" name="Electricity (kWh)" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="water" name="Water (Liters)" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            )}
 
-          {activeTab === 'waste' && (
-            <BarChart data={defaultData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1e2e33" />
-              <XAxis dataKey="date" stroke="#64748b" fontSize={12} />
-              <YAxis stroke="#64748b" fontSize={12} />
-              <Tooltip
-                contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', borderRadius: '12px', color: '#fff' }}
-              />
-              <Legend />
-              <Bar dataKey="waste" name="Waste (kg)" fill="#ef4444" radius={[6, 6, 0, 0]} />
-              <Bar dataKey="recycling" name="Recycling Rate (%)" fill="#22c55e" radius={[6, 6, 0, 0]} />
-            </BarChart>
-          )}
+            {activeTab === 'waste' && (
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                <XAxis dataKey="date" stroke="#64748b" fontSize={11} />
+                <YAxis stroke="#64748b" fontSize={11} unit=" kg" />
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', fontSize: '12px' }}
+                />
+                <Bar dataKey="waste" name="Waste (kg)" fill="#ec4899" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            )}
 
-          {activeTab === 'breakdown' && (
-            <PieChart>
-              <Pie
-                data={pieData}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={95}
-                paddingAngle={5}
-                dataKey="value"
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-              >
-                {pieData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '12px' }} />
-            </PieChart>
-          )}
-        </ResponsiveContainer>
+            {activeTab === 'breakdown' && (
+              <PieChart>
+                <Pie data={pieData} cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={4} dataKey="value">
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', fontSize: '12px' }}
+                />
+                <Legend wrapperStyle={{ fontSize: '11px' }} />
+              </PieChart>
+            )}
+          </ResponsiveContainer>
+        )}
       </div>
     </div>
   );

@@ -9,6 +9,7 @@ import DocumentUpload from '../components/DocumentUpload';
 import AIRecommendationCards from '../components/AIRecommendationCards';
 import { usageService } from '../services/usageService';
 import { aiService } from '../services/aiService';
+import { auditStore } from '../services/auditStore';
 
 export default function AddData() {
   const navigate = useNavigate();
@@ -23,25 +24,29 @@ export default function AddData() {
     setAiReportResult(null);
 
     try {
-      // 1. Submit Usage Record
-      const usageRes = await usageService.addUsage(formData);
+      // 1. Save directly to auditStore so Dashboard, Analytics, Reports & AI update in real-time
+      const savedRecord = auditStore.addRecord(formData);
+      setSuccessMessage(`✅ Resource usage record logged! Net Carbon Emissions: ${savedRecord.total_co2_kg} kg CO2e.`);
 
-      if (usageRes.success) {
-        setSuccessMessage('Resource usage record saved successfully!');
+      // 2. Try backend API save
+      try {
+        await usageService.addUsage(formData);
+      } catch (apiErr) {
+        console.warn('Backend API note:', apiErr.message);
+      }
 
-        // 2. Trigger Gemini AI analysis on the submitted data
-        try {
-          const aiRes = await aiService.analyzeSustainability({
-            usageId: usageRes.usage.id,
-            ...formData,
-          });
+      // 3. Trigger Gemini AI analysis on the submitted data
+      try {
+        const aiRes = await aiService.analyzeSustainability({
+          usageId: savedRecord.id,
+          ...formData,
+        });
 
-          if (aiRes.success) {
-            setAiReportResult(aiRes.analysis);
-          }
-        } catch (aiErr) {
-          console.warn('AI analysis call warning:', aiErr);
+        if (aiRes.success) {
+          setAiReportResult(aiRes.analysis);
         }
+      } catch (aiErr) {
+        console.warn('AI analysis call warning:', aiErr);
       }
     } catch (err) {
       console.error('Error saving resource usage:', err);
@@ -58,112 +63,86 @@ export default function AddData() {
         <Sidebar />
 
         <main className="flex-1 space-y-6 overflow-hidden">
-          {/* Main Command Header */}
-          <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-5 bg-gradient-to-r from-slate-900 via-slate-900/95 to-emerald-950/30">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-800/80 pb-5">
-              <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-eco-500/20 text-eco-400 border border-eco-500/30 text-xs font-semibold">
-                  <Layers className="w-3.5 h-3.5" />
-                  Select Data Input Method
-                </div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold font-display text-white tracking-tight mt-2 flex items-center gap-2.5">
-                  {activeTab === 'manual' ? (
-                    <>
-                      <Edit3 className="w-7 h-7 text-eco-400" />
-                      Manual Resource Usage Entry
-                    </>
-                  ) : (
-                    <>
-                      <FileUp className="w-7 h-7 text-eco-400" />
-                      Document & Utility Bill Upload
-                    </>
-                  )}
-                </h1>
-                <p className="text-xs sm:text-sm text-slate-300 mt-1">
-                  Choose between <span className="text-eco-400 font-semibold">Manual Input Form</span> or <span className="text-teal-400 font-semibold">AI Document Upload</span> to log your daily electricity, water, waste, and transport metrics.
-                </p>
-              </div>
+          {/* Header Card */}
+          <div className="glass-panel p-6 rounded-3xl border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold font-display text-white flex items-center gap-2">
+                <FileUp className="w-6 h-6 text-eco-400" />
+                Upload & Record Sustainability Data
+              </h1>
+              <p className="text-xs text-slate-400 mt-1">
+                Log resource consumption figures manually or extract data automatically from utility bills.
+              </p>
             </div>
 
-            {/* High-Contrast Clear Mode Selector Bar */}
-            <div className="space-y-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
-                Choose Mode:
-              </span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-950/80 p-2 rounded-2xl border border-slate-800">
-                {/* Manual Entry Button */}
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('manual')}
-                  className={`p-3.5 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-3 border ${
-                    activeTab === 'manual'
-                      ? 'bg-gradient-to-r from-eco-600 to-emerald-600 text-white border-eco-400 shadow-glow-eco scale-[1.01]'
-                      : 'bg-slate-900/60 text-slate-300 hover:text-white border-slate-800 hover:bg-slate-800'
-                  }`}
-                >
-                  <Edit3 className={`w-4 h-4 ${activeTab === 'manual' ? 'text-white' : 'text-eco-400'}`} />
-                  <span>✍️ Manual Data Entry Form</span>
-                  {activeTab === 'manual' && (
-                    <span className="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full bg-white/20 text-white ml-auto">
-                      Active
-                    </span>
-                  )}
-                </button>
-
-                {/* Document Upload Button */}
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('document')}
-                  className={`p-3.5 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-3 border ${
-                    activeTab === 'document'
-                      ? 'bg-gradient-to-r from-teal-600 to-eco-600 text-white border-teal-400 shadow-glow-eco scale-[1.01]'
-                      : 'bg-slate-900/60 text-slate-300 hover:text-white border-slate-800 hover:bg-slate-800'
-                  }`}
-                >
-                  <FileUp className={`w-4 h-4 ${activeTab === 'document' ? 'text-white' : 'text-teal-400'}`} />
-                  <span>📄 AI Document & Bill Upload</span>
-                  {activeTab === 'document' && (
-                    <span className="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full bg-white/20 text-white ml-auto">
-                      Active
-                    </span>
-                  )}
-                </button>
-              </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-all"
+              >
+                View Live Dashboard <ArrowRight className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
 
+          {/* Success Banner */}
           {successMessage && (
-            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-center justify-between animate-fade-in">
-              <div className="flex items-center gap-3">
+            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center justify-between animate-fade-in shadow-lg">
+              <div className="flex items-center gap-2.5">
                 <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                <span className="text-sm font-medium">{successMessage}</span>
+                <span>{successMessage}</span>
               </div>
               <button
                 onClick={() => navigate('/dashboard')}
-                className="text-xs font-bold px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1 transition-colors shadow-md"
+                className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all shadow-glow-eco"
               >
-                Go to Dashboard <ArrowRight className="w-3.5 h-3.5" />
+                View Updated Dashboard →
               </button>
             </div>
           )}
 
-          {/* Active Tab Panel */}
-          <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800">
+          {/* Mode Tabs */}
+          <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-slate-950 border border-slate-800">
+            <button
+              onClick={() => setActiveTab('manual')}
+              className={`py-3 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 ${
+                activeTab === 'manual'
+                  ? 'bg-eco-600 text-white shadow-glow-eco scale-[1.01]'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-900'
+              }`}
+            >
+              <Edit3 className="w-4 h-4" /> Manual Data Input Form
+            </button>
+
+            <button
+              onClick={() => setActiveTab('document')}
+              className={`py-3 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 ${
+                activeTab === 'document'
+                  ? 'bg-eco-600 text-white shadow-glow-eco scale-[1.01]'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-900'
+              }`}
+            >
+              <FileText className="w-4 h-4" /> AI Document & Bill Scanner
+            </button>
+          </div>
+
+          {/* Form Content */}
+          <div className="glass-panel p-6 rounded-3xl border border-slate-800">
             {activeTab === 'manual' ? (
               <ResourceForm onSubmit={handleFormSubmit} isSubmitting={isSubmitting} />
             ) : (
-              <DocumentUpload onExtractedDataSubmit={handleFormSubmit} isSubmitting={isSubmitting} />
+              <DocumentUpload onExtractedData={handleFormSubmit} />
             )}
           </div>
 
-          {/* AI Analysis Feedback after submission */}
+          {/* AI Advisor Real-time Recommendations Output */}
           {aiReportResult && (
-            <div className="space-y-4 pt-4 border-t border-slate-800">
-              <div className="flex items-center gap-2">
+            <div className="animate-fade-in space-y-4">
+              <div className="flex items-center gap-2 text-eco-400 font-bold text-sm font-display">
                 <Sparkles className="w-5 h-5 text-emerald-400 animate-spin" style={{ animationDuration: '6s' }} />
-                <h3 className="text-lg font-bold font-display text-white">Instant Gemini AI Advisory Feedback</h3>
+                <span>Gemini AI Instant Advisory Insights</span>
               </div>
-              <AIRecommendationCards report={aiReportResult} />
+              <AIRecommendationCards analysis={aiReportResult} />
             </div>
           )}
         </main>

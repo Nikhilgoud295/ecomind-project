@@ -2,35 +2,41 @@ import React from 'react';
 import { Target, TrendingDown, Sun, RefreshCw, Award } from 'lucide-react';
 
 export default function ProgressTracker({ summary }) {
-  const {
-    avgRenewablePct = 34,
-    avgRecyclingPct = 51,
-    sustainabilityScore = 82,
-    co2ChangePct = -8.5,
-  } = summary || {};
+  const hasData = summary?.hasData ?? false;
+  const logs = summary?.logs || [];
+
+  const avgRenewablePct = hasData && logs.length > 0
+    ? Math.round(logs.reduce((acc, r) => acc + (r.renewable_energy_pct || 0), 0) / logs.length)
+    : 0;
+
+  const avgRecyclingPct = hasData && logs.length > 0
+    ? Math.round(logs.reduce((acc, r) => acc + (r.recycling_pct || 0), 0) / logs.length)
+    : 0;
+
+  const co2ChangePct = hasData ? summary.co2ChangePct : 0;
 
   const targets = [
     {
       title: 'Net Zero Carbon Target',
-      current: `${Math.abs(co2ChangePct)}%`,
+      current: hasData ? `${Math.abs(co2ChangePct)}%` : '0%',
       goal: '15% reduction/mo',
-      percentage: Math.min(100, Math.round((Math.abs(co2ChangePct) / 15) * 100)),
+      percentage: hasData ? Math.min(100, Math.round((Math.abs(co2ChangePct) / 15) * 100)) : 0,
       icon: TrendingDown,
       color: 'from-emerald-500 to-teal-400',
     },
     {
       title: 'Renewable Energy Adoption',
-      current: `${avgRenewablePct}%`,
+      current: hasData ? `${avgRenewablePct}%` : '0%',
       goal: '50% clean power',
-      percentage: Math.min(100, Math.round((avgRenewablePct / 50) * 100)),
+      percentage: hasData ? Math.min(100, Math.round((avgRenewablePct / 50) * 100)) : 0,
       icon: Sun,
       color: 'from-amber-400 to-yellow-500',
     },
     {
       title: 'Zero Waste Recycling Rate',
-      current: `${avgRecyclingPct}%`,
+      current: hasData ? `${avgRecyclingPct}%` : '0%',
       goal: '70% diversion',
-      percentage: Math.min(100, Math.round((avgRecyclingPct / 70) * 100)),
+      percentage: hasData ? Math.min(100, Math.round((avgRecyclingPct / 70) * 100)) : 0,
       icon: RefreshCw,
       color: 'from-emerald-400 to-cyan-500',
     },
@@ -58,14 +64,15 @@ export default function ProgressTracker({ summary }) {
                 </span>
                 <div className="flex items-center gap-2">
                   <span className="text-white font-bold">{target.current}</span>
-                  <span className="text-slate-500">/ Goal: {target.goal}</span>
+                  <span className="text-slate-500">/ {target.goal}</span>
                 </div>
               </div>
-              <div className="w-full h-2 rounded-full bg-slate-900 overflow-hidden border border-slate-800">
+
+              <div className="w-full h-2 rounded-full bg-slate-900 overflow-hidden border border-slate-800 p-0.5">
                 <div
                   className={`h-full rounded-full bg-gradient-to-r ${target.color} transition-all duration-500`}
                   style={{ width: `${target.percentage}%` }}
-                ></div>
+                />
               </div>
             </div>
           );

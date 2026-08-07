@@ -1,58 +1,59 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, PlusCircle, Download, FileSpreadsheet, Sparkles, Calendar, CheckCircle2 } from 'lucide-react';
+import { FileText, PlusCircle, Download, FileSpreadsheet, Sparkles, Calendar, CheckCircle2, CloudRain, FileUp } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
 import ReportsTable from '../components/ReportsTable';
-import { reportService } from '../services/reportService';
+import { auditStore } from '../services/auditStore';
+import { authService } from '../services/authService';
 
 export default function Reports() {
-  const [reports, setReports] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [generating, setGenerating] = useState(false);
-  const [reportType, setReportType] = useState('weekly');
-  const [customTitle, setCustomTitle] = useState('');
+  const [summary, setSummary] = useState(() => auditStore.getSummary());
+  const currentUser = authService.getCurrentUser();
   const [successMsg, setSuccessMsg] = useState('');
 
-  useEffect(() => {
-    fetchReports();
-  }, []);
-
-  const fetchReports = async () => {
-    try {
-      setLoading(true);
-      const res = await reportService.getReports();
-      if (res.success) {
-        setReports(res.reports || []);
-      }
-    } catch (err) {
-      console.error('Error fetching reports:', err);
-    } finally {
-      setLoading(false);
-    }
+  const syncAuditData = () => {
+    setSummary(auditStore.getSummary());
   };
 
-  const handleGenerateReport = async (e) => {
-    e.preventDefault();
-    setGenerating(true);
-    setSuccessMsg('');
+  useEffect(() => {
+    syncAuditData();
+    window.addEventListener('ecomind_audit_updated', syncAuditData);
+    window.addEventListener('storage', syncAuditData);
+    return () => {
+      window.removeEventListener('ecomind_audit_updated', syncAuditData);
+      window.removeEventListener('storage', syncAuditData);
+    };
+  }, []);
 
-    try {
-      const res = await reportService.generateReport({
-        type: reportType,
-        title: customTitle || `EcoMind ${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Sustainability Audit`,
-      });
+  const handleExportCSV = () => {
+    if (!summary.hasData || summary.logs.length === 0) return;
 
-      if (res.success) {
-        setSuccessMsg(`New ${reportType.toUpperCase()} report generated successfully!`);
-        setCustomTitle('');
-        fetchReports();
-      }
-    } catch (err) {
-      console.error('Error generating report:', err);
-    } finally {
-      setGenerating(false);
-    }
+    const headers = ['ID', 'Date', 'Electricity (kWh)', 'Water (Liters)', 'Waste (kg)', 'Fuel (L)', 'Scope 1 (kg)', 'Scope 2 (kg)', 'Scope 3 (kg)', 'Total CO2 (kg)'];
+    const rows = summary.logs.map(l => [
+      l.id,
+      l.date,
+      l.electricity_kwh,
+      l.water_liters,
+      l.waste_kg,
+      l.fuel_liters,
+      l.scope1_kg,
+      l.scope2_kg,
+      l.scope3_kg,
+      l.total_co2_kg
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `EcoMind_Carbon_Audit_Report_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setSuccessMsg('✅ Audit Report CSV exported successfully!');
+    setTimeout(() => setSuccessMsg(''), 5000);
   };
 
   return (
@@ -63,89 +64,91 @@ export default function Reports() {
         <Sidebar />
 
         <main className="flex-1 space-y-6 overflow-hidden">
-          {/* Header */}
-          <div className="glass-panel p-6 rounded-3xl border border-slate-800 space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                Compliance & ESG Documentation
-              </span>
+          {/* Header Card */}
+          <div className="glass-panel p-6 rounded-3xl border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  SEBI BRSR Statutory Audit Compliance
+                </span>
+                <span className="text-xs font-mono text-slate-400">
+                  {summary.hasData ? `${summary.recordCount} Audit Logs Verified` : '0 Logs Recorded'}
+                </span>
+              </div>
+              <h1 className="text-2xl font-bold font-display text-white mt-1 flex items-center gap-2">
+                <FileText className="w-6 h-6 text-eco-400" />
+                Sustainability & BRSR Reports Core
+              </h1>
+              <p className="text-xs text-slate-400">
+                Statutory audit reports calculated strictly from user-entered resource usage.
+              </p>
             </div>
-            <h1 className="text-2xl font-bold font-display text-white flex items-center gap-2">
-              <FileText className="w-6 h-6 text-eco-400" />
-              Sustainability Reports & Exports
-            </h1>
-            <p className="text-xs text-slate-400">
-              Generate daily, weekly, or monthly carbon audit reports. Download formatted PDF files or raw CSV spreadsheets for stakeholder compliance.
-            </p>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleExportCSV}
+                disabled={!summary.hasData}
+                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-eco-600 to-teal-500 hover:from-eco-500 hover:to-teal-400 text-white font-bold text-xs shadow-glow-eco flex items-center gap-2 transition-all disabled:opacity-40 cursor-pointer"
+              >
+                <Download className="w-4 h-4" /> Export CSV Audit Log
+              </button>
+            </div>
           </div>
 
-          {/* Generator Form Card */}
+          {successMsg && (
+            <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center gap-2 animate-fade-in">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <span>{successMsg}</span>
+            </div>
+          )}
+
+          {/* User Data Summary Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-1">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Logged Footprint</span>
+              <span className="text-2xl font-extrabold text-white font-mono">{summary.hasData ? `${summary.totalCO2} kg` : '0.0 kg'}</span>
+              <span className="text-[11px] text-emerald-400 block font-mono">{summary.totalCO2Tons} Tons CO2e</span>
+            </div>
+
+            <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-1">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Scope 1 Direct</span>
+              <span className="text-2xl font-extrabold text-white font-mono">{summary.hasData ? `${summary.scope1} kg` : '0.0 kg'}</span>
+              <span className="text-[11px] text-slate-400 block">Fuel & Gas</span>
+            </div>
+
+            <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-1">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Scope 2 Electricity</span>
+              <span className="text-2xl font-extrabold text-white font-mono">{summary.hasData ? `${summary.scope2} kg` : '0.0 kg'}</span>
+              <span className="text-[11px] text-slate-400 block">{summary.totalElectricity} kWh grid</span>
+            </div>
+
+            <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-1">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Scope 3 Indirect</span>
+              <span className="text-2xl font-extrabold text-white font-mono">{summary.hasData ? `${summary.scope3} kg` : '0.0 kg'}</span>
+              <span className="text-[11px] text-slate-400 block">Water & Waste</span>
+            </div>
+          </div>
+
+          {/* User Audit Records Table Component */}
           <div className="glass-panel p-6 rounded-3xl border border-slate-800 space-y-4">
-            <h3 className="text-sm font-bold font-display text-white flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-eco-400" />
-              Generate New Sustainability Report
+            <h3 className="text-base font-bold font-display text-white flex items-center gap-2">
+              <FileSpreadsheet className="w-5 h-5 text-eco-400" />
+              Verified User Resource Audit Records
             </h3>
 
-            {successMsg && (
-              <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                <span>{successMsg}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleGenerateReport} className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                  Report Type
-                </label>
-                <select
-                  value={reportType}
-                  onChange={(e) => setReportType(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white focus:border-eco-500 text-sm"
+            {!summary.hasData ? (
+              <div className="p-8 text-center space-y-3">
+                <CloudRain className="w-8 h-8 text-slate-500 mx-auto" />
+                <p className="text-xs text-slate-400">No audit records logged yet by current user.</p>
+                <Link
+                  to="/add-data"
+                  className="inline-block px-4 py-2 rounded-xl bg-eco-600 hover:bg-eco-500 text-white font-bold text-xs transition-all shadow-glow-eco"
                 >
-                  <option value="daily">Daily Audit Report</option>
-                  <option value="weekly">Weekly Aggregate Audit</option>
-                  <option value="monthly">Monthly ESG Executive Report</option>
-                </select>
+                  + Add First Audit Record
+                </Link>
               </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                  Custom Title (Optional)
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Q3 Carbon Audit Report"
-                  value={customTitle}
-                  onChange={(e) => setCustomTitle(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 focus:border-eco-500 text-sm"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={generating}
-                className="py-2.5 px-6 rounded-xl bg-gradient-to-r from-eco-600 to-teal-500 hover:from-eco-500 hover:to-teal-400 text-white font-medium text-xs shadow-glow-eco flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-              >
-                {generating ? (
-                  <span>Generating Report...</span>
-                ) : (
-                  <>
-                    <PlusCircle className="w-4 h-4" />
-                    Compile Report
-                  </>
-                )}
-              </button>
-            </form>
-          </div>
-
-          {/* Generated Reports Table */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-bold font-display text-white">Generated Report History</h3>
-            {loading ? (
-              <div className="glass-panel p-8 text-center text-xs text-slate-400">Loading reports...</div>
             ) : (
-              <ReportsTable reports={reports} />
+              <ReportsTable reports={summary.logs} />
             )}
           </div>
         </main>

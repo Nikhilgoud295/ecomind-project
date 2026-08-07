@@ -1,15 +1,18 @@
 import React from 'react';
-import { Zap, Droplets, Trash2, CloudRain, ShieldAlert, ArrowDownRight, ArrowUpRight, Award } from 'lucide-react';
+import { Zap, Droplets, Trash2, CloudRain, ShieldAlert, ArrowDownRight, ArrowUpRight, Award, PlusCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { getScoreBadge } from '../utils/calculations';
 
 export default function DashboardCards({ summary }) {
+  const hasData = summary?.hasData ?? false;
+
   const {
-    sustainabilityScore = 82,
-    totalCO2 = 75.8,
-    totalElectricity = 81.7,
-    totalWater = 615,
-    totalWaste = 13.6,
-    co2ChangePct = -8.5,
+    sustainabilityScore = hasData ? summary.sustainabilityScore : 0,
+    totalCO2 = hasData ? summary.totalCO2 : 0,
+    totalElectricity = hasData ? summary.totalElectricity : 0,
+    totalWater = hasData ? summary.totalWater : 0,
+    totalWaste = hasData ? summary.totalWaste : 0,
+    co2ChangePct = hasData ? summary.co2ChangePct : 0,
   } = summary || {};
 
   const badge = getScoreBadge(sustainabilityScore);
@@ -17,19 +20,19 @@ export default function DashboardCards({ summary }) {
   const cards = [
     {
       title: 'Sustainability Score',
-      value: `${sustainabilityScore}/100`,
-      subtext: badge.label,
+      value: hasData ? `${sustainabilityScore}/100` : '0/100',
+      subtext: hasData ? badge.label : 'Awaiting Audit Entry',
       icon: Award,
       color: 'from-emerald-500/20 to-teal-500/10',
       iconColor: 'text-emerald-400',
       borderColor: 'border-emerald-500/30',
-      badgeClass: badge.color,
+      badgeClass: hasData ? badge.color : 'bg-slate-800 text-slate-400',
     },
     {
       title: 'Carbon Footprint',
-      value: `${totalCO2} kg`,
+      value: hasData ? `${totalCO2} kg` : '0.0 kg',
       unit: 'CO2e',
-      subtext: `${co2ChangePct <= 0 ? `${co2ChangePct}% vs last week` : `+${co2ChangePct}% vs last week`}`,
+      subtext: hasData ? (co2ChangePct <= 0 ? `${co2ChangePct}% vs last period` : `+${co2ChangePct}% vs last period`) : 'No logs recorded',
       isGood: co2ChangePct <= 0,
       icon: CloudRain,
       color: 'from-cyan-500/20 to-blue-500/10',
@@ -38,9 +41,9 @@ export default function DashboardCards({ summary }) {
     },
     {
       title: 'Electricity Consumption',
-      value: `${totalElectricity}`,
+      value: hasData ? `${totalElectricity}` : '0',
       unit: 'kWh',
-      subtext: 'Grid power log aggregate',
+      subtext: hasData ? 'User audit aggregate' : 'No electricity logged',
       icon: Zap,
       color: 'from-amber-500/20 to-yellow-500/10',
       iconColor: 'text-amber-400',
@@ -48,9 +51,9 @@ export default function DashboardCards({ summary }) {
     },
     {
       title: 'Water Usage',
-      value: `${totalWater}`,
+      value: hasData ? `${totalWater}` : '0',
       unit: 'Liters',
-      subtext: 'Clean water consumption',
+      subtext: hasData ? 'Clean water log aggregate' : 'No water logged',
       icon: Droplets,
       color: 'from-blue-500/20 to-sky-500/10',
       iconColor: 'text-blue-400',
@@ -58,11 +61,11 @@ export default function DashboardCards({ summary }) {
     },
     {
       title: 'Waste Generated',
-      value: `${totalWaste}`,
+      value: hasData ? `${totalWaste}` : '0',
       unit: 'kg',
-      subtext: 'Solid waste generated',
+      subtext: hasData ? 'Solid waste log aggregate' : 'No waste logged',
       icon: Trash2,
-      color: 'from-rose-500/20 to-orange-500/10',
+      color: 'from-rose-500/20 to-pink-500/10',
       iconColor: 'text-rose-400',
       borderColor: 'border-rose-500/30',
     },
@@ -75,39 +78,29 @@ export default function DashboardCards({ summary }) {
         return (
           <div
             key={idx}
-            className={`glass-panel glass-panel-hover p-4 rounded-2xl border ${card.borderColor} bg-gradient-to-br ${card.color} relative overflow-hidden`}
+            className={`glass-panel p-5 rounded-3xl border ${card.borderColor} bg-gradient-to-br ${card.color} space-y-3 relative overflow-hidden transition-all duration-300 hover:scale-[1.02] shadow-lg`}
           >
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-medium text-slate-400">{card.title}</span>
-              <div className={`p-2 rounded-xl bg-slate-900/60 border border-slate-800 ${card.iconColor}`}>
-                <Icon className="w-4 h-4" />
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider">{card.title}</span>
+              <div className={`p-2 rounded-xl bg-slate-950/60 border border-slate-800 ${card.iconColor}`}>
+                <Icon className="w-5 h-5" />
               </div>
             </div>
 
-            <div className="flex items-baseline gap-1.5 mb-2">
-              <span className="text-2xl font-bold font-display text-white tracking-tight">{card.value}</span>
-              {card.unit && <span className="text-xs text-slate-400 font-medium">{card.unit}</span>}
-            </div>
-
-            <div className="flex items-center gap-1">
-              {card.badgeClass ? (
-                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${card.badgeClass}`}>
-                  {card.subtext}
-                </span>
-              ) : (
-                <div className="flex items-center gap-1 text-xs">
-                  {card.isGood !== undefined && (
-                    card.isGood ? (
-                      <ArrowDownRight className="w-3.5 h-3.5 text-emerald-400" />
-                    ) : (
-                      <ArrowUpRight className="w-3.5 h-3.5 text-rose-400" />
-                    )
-                  )}
-                  <span className={card.isGood ? 'text-emerald-400' : card.isGood === false ? 'text-rose-400' : 'text-slate-400'}>
+            <div>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-2xl font-extrabold font-display text-white">{card.value}</span>
+                {card.unit && <span className="text-xs font-medium text-slate-400">{card.unit}</span>}
+              </div>
+              <div className="flex items-center gap-1.5 mt-1.5">
+                {card.badgeClass ? (
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${card.badgeClass}`}>
                     {card.subtext}
                   </span>
-                </div>
-              )}
+                ) : (
+                  <span className="text-xs text-slate-400">{card.subtext}</span>
+                )}
+              </div>
             </div>
           </div>
         );

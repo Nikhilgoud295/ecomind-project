@@ -1,36 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, Calendar, Filter, Download, Zap, Droplets, Trash2, CloudRain } from 'lucide-react';
+import { BarChart3, Calendar, Filter, Download, Zap, Droplets, Trash2, CloudRain, ShieldCheck, FileUp } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
 import AnalyticsCharts from '../components/AnalyticsCharts';
-import { usageService } from '../services/usageService';
+import { auditStore } from '../services/auditStore';
 
 export default function Analytics() {
-  const [analytics, setAnalytics] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [timeframe, setTimeframe] = useState('30days');
+  const [summary, setSummary] = useState(() => auditStore.getSummary());
 
-  useEffect(() => {
-    fetchAnalytics();
-  }, [timeframe]);
-
-  const fetchAnalytics = async () => {
-    try {
-      setLoading(true);
-      const res = await usageService.getAnalytics();
-      if (res.success) {
-        setAnalytics(res);
-      }
-    } catch (err) {
-      console.error('Error loading analytics:', err);
-    } finally {
-      setLoading(false);
-    }
+  const syncAuditData = () => {
+    setSummary(auditStore.getSummary());
   };
 
-  const summary = analytics?.summary || {};
-  const breakdown = analytics?.breakdown || {};
+  useEffect(() => {
+    syncAuditData();
+    window.addEventListener('ecomind_audit_updated', syncAuditData);
+    window.addEventListener('storage', syncAuditData);
+    return () => {
+      window.removeEventListener('ecomind_audit_updated', syncAuditData);
+      window.removeEventListener('storage', syncAuditData);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-dark-bg text-slate-100">
@@ -47,67 +39,59 @@ export default function Analytics() {
                 <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
                   Data Visualizer & GHG Metrics
                 </span>
+                <span className="text-xs font-mono text-slate-400">
+                  {summary.hasData ? `${summary.recordCount} Log Entries Analyzed` : '0 Entries Logged'}
+                </span>
               </div>
               <h1 className="text-2xl font-bold font-display text-white mt-1 flex items-center gap-2">
                 <BarChart3 className="w-6 h-6 text-eco-400" />
                 Sustainability Analytics
               </h1>
-              <p className="text-xs text-slate-400">Interactive charts and emissions breakdown across electricity, water, waste, and transport.</p>
+              <p className="text-xs text-slate-400">
+                Interactive charts and emissions breakdown calculated strictly from your logged resource entries.
+              </p>
             </div>
 
-            <div className="flex items-center gap-2 bg-slate-900/80 p-1.5 rounded-xl border border-slate-800 text-xs">
-              <Filter className="w-3.5 h-3.5 text-slate-400 ml-2" />
-              {['7days', '30days', '90days', 'all'].map((tf) => (
-                <button
-                  key={tf}
-                  onClick={() => setTimeframe(tf)}
-                  className={`px-3 py-1 rounded-lg font-medium capitalize transition-colors ${
-                    timeframe === tf ? 'bg-eco-600 text-white' : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  {tf === 'all' ? 'All Time' : tf.replace('days', ' Days')}
-                </button>
-              ))}
+            <Link
+              to="/add-data"
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-eco-600 to-teal-500 hover:from-eco-500 hover:to-teal-400 text-white font-medium text-xs shadow-glow-eco flex items-center gap-2 transition-all"
+            >
+              <FileUp className="w-4 h-4" /> Add Usage Record
+            </Link>
+          </div>
+
+          {/* Prompt if no user data logged */}
+          {!summary.hasData && (
+            <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 text-center space-y-2">
+              <CloudRain className="w-8 h-8 text-slate-500 mx-auto" />
+              <h3 className="text-sm font-bold text-white">No Analytics Data Available Yet</h3>
+              <p className="text-xs text-slate-400">Log electricity, water, or waste entries in "Upload & Add Data" to view custom analytics graphs.</p>
+            </div>
+          )}
+
+          {/* Scope Breakdown Metrics Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="glass-panel p-5 rounded-2xl border border-rose-500/30 bg-rose-500/5 space-y-2">
+              <span className="text-xs font-bold text-rose-400 uppercase tracking-wider block">Scope 1 (Direct Fuel)</span>
+              <span className="text-2xl font-extrabold text-white font-mono">{summary.hasData ? `${summary.scope1} kg` : '0.0 kg'}</span>
+              <span className="text-[11px] text-slate-400 block">Fuel, generator & gas emissions</span>
+            </div>
+
+            <div className="glass-panel p-5 rounded-2xl border border-amber-500/30 bg-amber-500/5 space-y-2">
+              <span className="text-xs font-bold text-amber-400 uppercase tracking-wider block">Scope 2 (Electricity Grid)</span>
+              <span className="text-2xl font-extrabold text-white font-mono">{summary.hasData ? `${summary.scope2} kg` : '0.0 kg'}</span>
+              <span className="text-[11px] text-slate-400 block">Purchased grid power emissions</span>
+            </div>
+
+            <div className="glass-panel p-5 rounded-2xl border border-emerald-500/30 bg-emerald-500/5 space-y-2">
+              <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider block">Scope 3 (Water, Waste, Transport)</span>
+              <span className="text-2xl font-extrabold text-white font-mono">{summary.hasData ? `${summary.scope3} kg` : '0.0 kg'}</span>
+              <span className="text-[11px] text-slate-400 block">Supply chain & waste disposal emissions</span>
             </div>
           </div>
 
-          {/* Breakdown Summary Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="glass-panel p-4 rounded-2xl border border-cyan-500/30 space-y-2">
-              <span className="text-xs text-slate-400 flex items-center gap-2">
-                <CloudRain className="w-4 h-4 text-cyan-400" /> Total Net CO2
-              </span>
-              <p className="text-2xl font-bold font-display text-white">{summary.totalCO2 || 0} kg</p>
-              <span className="text-[10px] text-slate-400">Net footprint total</span>
-            </div>
-
-            <div className="glass-panel p-4 rounded-2xl border border-amber-500/30 space-y-2">
-              <span className="text-xs text-slate-400 flex items-center gap-2">
-                <Zap className="w-4 h-4 text-amber-400" /> Electricity Impact
-              </span>
-              <p className="text-2xl font-bold font-display text-white">{breakdown.electricityEmissions || 0} kg</p>
-              <span className="text-[10px] text-amber-400">{summary.totalElectricity || 0} kWh consumed</span>
-            </div>
-
-            <div className="glass-panel p-4 rounded-2xl border border-blue-500/30 space-y-2">
-              <span className="text-xs text-slate-400 flex items-center gap-2">
-                <Droplets className="w-4 h-4 text-blue-400" /> Water Impact
-              </span>
-              <p className="text-2xl font-bold font-display text-white">{breakdown.waterEmissions || 0} kg</p>
-              <span className="text-[10px] text-blue-400">{summary.totalWater || 0} Liters used</span>
-            </div>
-
-            <div className="glass-panel p-4 rounded-2xl border border-rose-500/30 space-y-2">
-              <span className="text-xs text-slate-400 flex items-center gap-2">
-                <Trash2 className="w-4 h-4 text-rose-400" /> Waste Impact
-              </span>
-              <p className="text-2xl font-bold font-display text-white">{breakdown.wasteEmissions || 0} kg</p>
-              <span className="text-[10px] text-rose-400">{summary.totalWaste || 0} kg generated</span>
-            </div>
-          </div>
-
-          {/* Interactive Recharts visualizer */}
-          <AnalyticsCharts chartData={analytics?.chartData} />
+          {/* Dynamic Recharts Component */}
+          <AnalyticsCharts summary={summary} />
         </main>
       </div>
 
