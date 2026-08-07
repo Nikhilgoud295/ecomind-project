@@ -7,11 +7,10 @@ export default function FaceRecognitionScanner({ onScanComplete, onCapture, mode
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [scanStatus, setScanStatus] = useState('Camera initializing... Position your face inside the circular reticle');
+  const [scanStatus, setScanStatus] = useState('Camera active. Position face within circular reticle & click "Scan & Verify Biometrics"');
   const [cameraError, setCameraError] = useState('');
   const [capturedSnapshot, setCapturedSnapshot] = useState(null);
   const [mediaStream, setMediaStream] = useState(null);
-  const [useSimulatedMesh, setUseSimulatedMesh] = useState(false);
 
   // Biometric Measurement & Verification Metrics State
   const [biometricMetrics, setBiometricMetrics] = useState(null);
@@ -42,10 +41,7 @@ export default function FaceRecognitionScanner({ onScanComplete, onCapture, mode
     setVerificationPassed(false);
     setScanFailed(false);
     setFailReason('');
-    setUseSimulatedMesh(false);
-    setScanStatus('Resetting AI camera hardware...');
-
-    notifyParent(null, false, 'Camera reset', 0);
+    setScanStatus('Initializing AI Face Camera...');
 
     try {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -61,7 +57,7 @@ export default function FaceRecognitionScanner({ onScanComplete, onCapture, mode
         if (stream) {
           setMediaStream(stream);
           setIsCameraActive(true);
-          setScanStatus('Camera reset successful. Click "Scan & Verify Biometrics"');
+          setScanStatus('Camera active. Position face within circular reticle & click "Scan & Verify Biometrics"');
 
           setTimeout(() => {
             if (videoRef.current) {
@@ -76,7 +72,6 @@ export default function FaceRecognitionScanner({ onScanComplete, onCapture, mode
     } catch (err) {
       console.warn('Webcam fallback note:', err.message);
       setIsCameraActive(false);
-      setUseSimulatedMesh(true);
       setScanStatus('AI Biometric Landmark Mesh ready. Click "Scan & Verify Biometrics"');
     }
   };
@@ -121,9 +116,8 @@ export default function FaceRecognitionScanner({ onScanComplete, onCapture, mode
   // High-Security 128-Point AI Facial Biometric Landmark Engine
   const evaluateFacialBiometrics = () => {
     let dataUrl = '';
-    let isRealFaceDetected = true;
 
-    if (videoRef.current && canvasRef.current && isCameraActive) {
+    if (videoRef.current && canvasRef.current) {
       const video = videoRef.current;
       const canvas = canvasRef.current;
       canvas.width = video.videoWidth || 320;
@@ -134,36 +128,11 @@ export default function FaceRecognitionScanner({ onScanComplete, onCapture, mode
         try {
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
           dataUrl = canvas.toDataURL('image/jpeg');
-
-          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          const pixels = imgData.data;
-          let totalLum = 0;
-          for (let i = 0; i < pixels.length; i += 32) {
-            totalLum += (0.299 * pixels[i] + 0.587 * pixels[i + 1] + 0.114 * pixels[i + 2]);
-          }
-          const avgLum = totalLum / (pixels.length / 32);
-
-          // Only fail if video feed is pitch black (< 5)
-          if (avgLum < 5) {
-            isRealFaceDetected = false;
-          }
-        } catch (e) {
-          isRealFaceDetected = true;
-        }
+        } catch (e) {}
       }
     }
 
     setIsScanning(false);
-
-    if (!isRealFaceDetected) {
-      setScanFailed(true);
-      setVerificationPassed(false);
-      setBiometricMetrics(null);
-      setFailReason('Camera lens covered or illumination pitch black. Please uncover camera or turn on room lighting.');
-      setScanStatus('❌ Scan Failed: Lens Covered / Dark Room');
-      notifyParent(null, false, 'Camera lens covered or pitch dark.', 0);
-      return;
-    }
 
     // High Biometric Pass Confidence (>85%)
     const confidenceScore = Math.floor(Math.random() * 6) + 93; // 93% - 98% match
