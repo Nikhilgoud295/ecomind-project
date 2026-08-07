@@ -13,19 +13,22 @@ import { auditStore } from '../services/auditStore';
 
 export default function Dashboard() {
   const [summary, setSummary] = useState(() => auditStore.getSummary());
-  const currentUser = authService.getCurrentUser();
+  const [currentUser, setCurrentUser] = useState(() => authService.getCurrentUser());
 
-  const syncAuditData = () => {
+  const syncAllData = () => {
     setSummary(auditStore.getSummary());
+    setCurrentUser(authService.getCurrentUser());
   };
 
   useEffect(() => {
-    syncAuditData();
-    window.addEventListener('ecomind_audit_updated', syncAuditData);
-    window.addEventListener('storage', syncAuditData);
+    syncAllData();
+    window.addEventListener('ecomind_audit_updated', syncAllData);
+    window.addEventListener('ecomind_user_updated', syncAllData);
+    window.addEventListener('storage', syncAllData);
     return () => {
-      window.removeEventListener('ecomind_audit_updated', syncAuditData);
-      window.removeEventListener('storage', syncAuditData);
+      window.removeEventListener('ecomind_audit_updated', syncAllData);
+      window.removeEventListener('ecomind_user_updated', syncAllData);
+      window.removeEventListener('storage', syncAllData);
     };
   }, []);
 

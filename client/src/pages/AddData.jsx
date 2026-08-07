@@ -26,7 +26,7 @@ export default function AddData() {
     try {
       // 1. Save directly to auditStore so Dashboard, Analytics, Reports & AI update in real-time
       const savedRecord = auditStore.addRecord(formData);
-      setSuccessMessage(`✅ Resource usage record logged! Net Carbon Emissions: ${savedRecord.total_co2_kg} kg CO2e.`);
+      setSuccessMessage(`✅ Resource usage record logged! Net Carbon Emissions: ${savedRecord.total_co2_kg} kg CO2e. Redirecting to Dashboard...`);
 
       // 2. Try backend API save
       try {
@@ -48,6 +48,11 @@ export default function AddData() {
       } catch (aiErr) {
         console.warn('AI analysis call warning:', aiErr);
       }
+
+      // Automatically redirect to Dashboard so user sees the new values immediately
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1200);
     } catch (err) {
       console.error('Error saving resource usage:', err);
     } finally {
@@ -56,7 +61,7 @@ export default function AddData() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-dark-bg text-slate-100">
+    <div className="min-h-screen flex flex-col bg-dark-bg text-slate-100 selection:bg-eco-500 selection:text-white">
       <Navbar />
 
       <div className="flex-1 flex max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 gap-6">
@@ -78,7 +83,7 @@ export default function AddData() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => navigate('/dashboard')}
-                className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-all"
+                className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
               >
                 View Live Dashboard <ArrowRight className="w-3.5 h-3.5" />
               </button>
@@ -94,7 +99,7 @@ export default function AddData() {
               </div>
               <button
                 onClick={() => navigate('/dashboard')}
-                className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all shadow-glow-eco"
+                className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all shadow-glow-eco cursor-pointer"
               >
                 View Updated Dashboard →
               </button>
