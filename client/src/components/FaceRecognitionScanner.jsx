@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Scan, CheckCircle2, RefreshCw, AlertCircle, ShieldCheck, Zap, XCircle, ShieldAlert, Cpu, User } from 'lucide-react';
+import { Camera, Scan, CheckCircle2, RefreshCw, AlertCircle, ShieldCheck, Zap, XCircle, ShieldAlert, Cpu, User, RotateCcw } from 'lucide-react';
 
 export default function FaceRecognitionScanner({ onScanComplete, onCapture, mode = 'login' }) {
   const videoRef = useRef(null);
@@ -24,7 +24,18 @@ export default function FaceRecognitionScanner({ onScanComplete, onCapture, mode
     if (onCapture) onCapture(snapshot, passed, reason, confidenceScore);
   };
 
-  const startCamera = async () => {
+  const stopCamera = () => {
+    if (mediaStream) {
+      try {
+        mediaStream.getTracks().forEach((track) => track.stop());
+      } catch (e) {}
+      setMediaStream(null);
+    }
+    setIsCameraActive(false);
+  };
+
+  const resetCamera = async () => {
+    stopCamera();
     setCameraError('');
     setCapturedSnapshot(null);
     setBiometricMetrics(null);
@@ -32,7 +43,9 @@ export default function FaceRecognitionScanner({ onScanComplete, onCapture, mode
     setScanFailed(false);
     setFailReason('');
     setUseSimulatedMesh(false);
-    setScanStatus('Initializing AI camera feed...');
+    setScanStatus('Resetting AI camera hardware...');
+
+    notifyParent(null, false, 'Camera reset', 0);
 
     try {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -48,7 +61,7 @@ export default function FaceRecognitionScanner({ onScanComplete, onCapture, mode
         if (stream) {
           setMediaStream(stream);
           setIsCameraActive(true);
-          setScanStatus('Camera active. Position face within circular reticle & click "Scan & Verify Biometrics"');
+          setScanStatus('Camera reset successful. Click "Scan & Verify Biometrics"');
 
           setTimeout(() => {
             if (videoRef.current) {
@@ -68,14 +81,8 @@ export default function FaceRecognitionScanner({ onScanComplete, onCapture, mode
     }
   };
 
-  const stopCamera = () => {
-    if (mediaStream) {
-      try {
-        mediaStream.getTracks().forEach((track) => track.stop());
-      } catch (e) {}
-      setMediaStream(null);
-    }
-    setIsCameraActive(false);
+  const startCamera = async () => {
+    await resetCamera();
   };
 
   // Auto-start camera when component mounts
@@ -196,9 +203,14 @@ export default function FaceRecognitionScanner({ onScanComplete, onCapture, mode
           </div>
         </div>
 
-        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-          <ShieldCheck className="w-3.5 h-3.5" /> 256-Bit Encrypted
-        </span>
+        <button
+          type="button"
+          onClick={resetCamera}
+          className="px-2.5 py-1 rounded-full bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700 text-[10px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+          title="Reset Camera Hardware"
+        >
+          <RotateCcw className="w-3 h-3 text-emerald-400" /> Reset Camera
+        </button>
       </div>
 
       {/* Circular Biometric Scanner Display Frame */}
@@ -316,10 +328,10 @@ export default function FaceRecognitionScanner({ onScanComplete, onCapture, mode
           {verificationPassed && (
             <button
               type="button"
-              onClick={startCamera}
+              onClick={resetCamera}
               className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white font-semibold text-xs border border-slate-800 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
-              <RefreshCw className="w-3.5 h-3.5" /> Retake Face Scan
+              <RefreshCw className="w-3.5 h-3.5" /> Retake / Reset Face Scan
             </button>
           )}
         </div>
