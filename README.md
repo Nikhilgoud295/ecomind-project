@@ -1,67 +1,66 @@
-# 🌿 EcoMind AI – Smart Sustainability Assistant
+# 🌿 EcoMind AI - AI-Powered Environmental Footprint & BRSR Compliance Platform
 
-![EcoMind AI Banner](https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=1200)
-
-**EcoMind AI** is an AI-powered, production-ready sustainability management platform built to help individuals, businesses, and organizations track carbon emissions, optimize electricity and water usage, minimize waste, and receive personalized AI advisory strategies via **Google Gemini**.
+EcoMind AI is an enterprise-grade sustainability management platform powered by Google Gemini 1.5 AI Flash. It enables organizations and individuals to track resource consumption, calculate carbon emissions (Scopes 1, 2, and 3), receive real-time AI reduction strategies, unlock performance rewards, and generate statutory SEBI BRSR ESG compliance reports.
 
 ---
 
-## ✨ Features Overview
+## 🌟 Key Features
 
-### 🔐 Authentication & Security
-- **JWT Token Authentication** with protected client routes.
-- **bcrypt Password Hashing** for robust security.
-- **Zod Schema Validation** on both frontend forms and backend endpoints.
-- **Helmet, CORS, and Express Rate Limiting** to prevent brute-force attacks and security vulnerabilities.
-
-### 📊 Resource Tracking & Carbon Accounting
-- Log daily metrics for:
+### 📊 Real-Time Carbon Footprint Ledger
+- Dynamic tracking for core environmental resource streams:
   - **Electricity Usage** (kWh)
   - **Water Consumption** (Liters)
   - **Waste Generated** (kg)
-  - **Fuel Usage** (Liters)
-  - **Public Transport** (km)
-  - **Renewable Energy Share** (%)
+  - **Fuel & Diesel Usage** (Liters)
+  - **Public Transport & Commute** (km)
+  - **Renewable Solar Energy Share** (%)
   - **Recycling Diversion Rate** (%)
-- Instant **IPCC-aligned carbon footprint calculations** (kg CO2e) with real-time feedback.
+- Instant **IPCC & GHG Protocol emission factor calculations** ($\text{kg CO}_2\text{e}$) with live metric card updates across the platform.
 
 ### 🤖 Google Gemini AI Advisor
-- Powered by `@google/genai` SDK.
-- Secure backend API integration (API keys stored exclusively in server environment variables).
+- Integrated with Google Gemini 1.5 AI Flash API.
 - Generates structured JSON analysis including:
-  - **Sustainability Score** (0-100)
+  - **Sustainability Eco-Score** (0-100)
   - **Executive Summary & Key Strengths**
-  - **Efficiency Hotspots & Concerns**
-  - **Customized Carbon, Water, Energy, & Waste Action Plans**
-  - **Priority Action Items**
+  - **Targeted Energy, Water, and Waste Action Plans**
+  - **Interactive AI Copilot Chat Interface** for real-time sustainability queries.
 
-### 📈 Interactive Dashboards & Analytics
+### 📈 Interactive Dashboards & 3D WebGL Globe
 - Dynamic data visualization powered by **Recharts**:
   - Carbon Emissions Trend Lines & Area Charts
-  - Electricity vs Water Usage Comparison
-  - Waste vs Recycling Diversion Bar Charts
-  - Resource Impact Distribution Pie Charts
+  - Scope 1, 2, and 3 Distribution Pie Charts
+  - Electricity vs Water Usage Comparison Bar Charts
+- **Interactive 3D WebGL Command Globe** visualizing global eco nodes and atmospheric particle fields.
 
-### 📄 Compliance Reports & Exports
-- Compile **Daily**, **Weekly**, and **Monthly** ESG audit reports.
+### 📜 Compliance Reports & Rewards Core
 - One-click export to:
-  - **PDF Reports** formatted with headers, aggregate statistics, and data grids using `jspdf`.
-  - **CSV Spreadsheets** for raw data compliance auditing.
+  - **CSV Audit Logs** for raw data statutory compliance auditing.
+  - **Printable Certificate of Sustainability Appreciation** (Unlocks strictly at 500 XP / Level 2 status).
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Technology Stack
 
-- **Frontend**: React.js 18, Vite, React Router v6, Tailwind CSS, Recharts, Lucide Icons, Axios, jsPDF
-- **Backend**: Node.js, Express.js, JWT (`jsonwebtoken`), bcryptjs, Zod validation, `@google/genai` SDK, `@supabase/supabase-js`, Helmet, CORS, Rate Limiting
-- **Database**: Supabase PostgreSQL (Row Level Security enabled, indexes, triggers)
+| Layer | Technology / Library | Purpose |
+| :--- | :--- | :--- |
+| **Frontend Framework** | React.js 18 & Vite | Fast reactive user interface and modular component architecture |
+| **Styling & Theme** | Tailwind CSS & Glassmorphism | Custom HSL eco palette, neural network background animations |
+| **Data Visualization** | Recharts & Three.js | Real-time carbon trend graphs and 3D WebGL eco globe |
+| **Icons & Media** | Lucide React Icons | Modern SVG UI icons |
+| **Backend API** | Node.js & Express.js | High-throughput REST API server |
+| **Password Security** | **Bcrypt.js (10 Salt Rounds)** | Enterprise-grade password hashing, salt encryption, and auth verification |
+| **Session Security** | JSON Web Tokens (`jsonwebtoken`) | Stateless JWT auth token signing and session management |
+| **Input Validation** | Zod Schema Validation | Strict runtime API request body and parameter validation |
+| **AI Intelligence** | Google Gemini 1.5 AI Flash (`@google/genai`) | Automated carbon reduction strategy generation and AI chat copilot |
+| **Database & ORM** | Supabase PostgreSQL | Relational database storage with Row Level Security (RLS) policies |
+| **Network & Security** | Helmet, CORS, Express-Rate-Limit | API rate limiting, CORS protection, and HTTP security headers |
 
 ---
 
 ## 🚀 Quick Setup Instructions
 
 ### Prerequisites
-- Portable Node.js / Node v18+ installed.
+- Node.js v18+ installed.
 - Supabase account & Google Gemini API Key.
 
 ### 1. Backend Setup
@@ -70,7 +69,7 @@ cd server
 npm install
 cp .env.example .env
 ```
-Update `.env` with your Supabase and Gemini credentials:
+Update `server/.env` with your credentials:
 ```env
 PORT=5000
 SUPABASE_URL=https://your-supabase-id.supabase.co
@@ -78,12 +77,10 @@ SUPABASE_KEY=your-supabase-service-key
 JWT_SECRET=your-jwt-secret-key-32-chars
 GOOGLE_API_KEY=your-gemini-api-key
 ```
-
-Start the backend server:
+Start backend server:
 ```bash
 npm run dev
 ```
-Server runs at `http://localhost:5000`.
 
 ### 2. Frontend Setup
 ```bash
@@ -91,31 +88,9 @@ cd client
 npm install
 npm run dev
 ```
-App opens at `http://localhost:5173`.
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
-## 🗄️ Database Schema Execution
-
-Execute `schema.sql` (found in project root or `server/database/schema.sql`) inside your Supabase SQL Editor to initialize:
-- `users` table
-- `resource_usage` table
-- `analytics` table
-- `ai_reports` table
-- `reports` table
-- Row Level Security (RLS) policies and automatic `updated_at` triggers.
-
----
-
-## 📄 Project Documentation Links
-
-- [API Documentation](file:///c:/Users/KAVYA/OneDrive/Desktop/all%20projects/sustainability%20project/API_DOCUMENTATION.md)
-- [Postman Collection](file:///c:/Users/KAVYA/OneDrive/Desktop/all%20projects/sustainability%20project/postman_collection.json)
-- [Deployment Guide](file:///c:/Users/KAVYA/OneDrive/Desktop/all%20projects/sustainability%20project/DEPLOYMENT_GUIDE.md)
-- [PostgreSQL Schema](file:///c:/Users/KAVYA/OneDrive/Desktop/all%20projects/sustainability%20project/schema.sql)
-
----
-
-## 🏆 Hackathon Winning Design
-
-Built with modern glassmorphism UI, glowing emerald/teal aesthetics, micro-interactions, responsive mobile drawers, and zero unresolved TODOs or dummy placeholders. Ready for instant deployment on Vercel and Render!
+## 📜 License
+Licensed under the MIT License.
