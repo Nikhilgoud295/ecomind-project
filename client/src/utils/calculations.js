@@ -21,13 +21,17 @@ export function calculateCO2Emissions(data) {
 }
 
 export function calculateSustainabilityScore(totalCO2Kg, avgRenewablePct = 0, avgRecyclingPct = 0) {
-  // Base 100 score minus emissions penalty (1 point per 200 kg CO2) + renewable/recycling bonus
-  const co2Penalty = (parseFloat(totalCO2Kg) || 0) / 250;
-  const renewableBonus = (parseFloat(avgRenewablePct) || 0) * 0.15;
-  const recyclingBonus = (parseFloat(avgRecyclingPct) || 0) * 0.15;
+  const co2 = parseFloat(totalCO2Kg) || 0;
+  const renew = parseFloat(avgRenewablePct) || 0;
+  const recyc = parseFloat(avgRecyclingPct) || 0;
 
-  let score = Math.round(100 - co2Penalty + renewableBonus + recyclingBonus);
-  return Math.max(12, Math.min(100, score));
+  // Base 95 score minus carbon penalty (0.4 pts per kg CO2 above 10 kg) + renewable & recycling bonuses
+  const co2Penalty = co2 > 10 ? (co2 - 10) * 0.4 : 0;
+  const renewableBonus = renew * 0.2; // up to +20 pts
+  const recyclingBonus = recyc * 0.2; // up to +20 pts
+
+  let score = Math.round(95 - co2Penalty + renewableBonus + recyclingBonus);
+  return Math.max(15, Math.min(100, score));
 }
 
 export function getScoreBadge(score) {
