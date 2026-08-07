@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileUp, Edit3, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
+import { FileUp, Edit3, Sparkles, CheckCircle2, ArrowRight, FileText } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
 import ResourceForm from '../components/ResourceForm';
+import DocumentUpload from '../components/DocumentUpload';
 import AIRecommendationCards from '../components/AIRecommendationCards';
 import { usageService } from '../services/usageService';
 import { aiService } from '../services/aiService';
@@ -12,6 +13,7 @@ import { auditStore } from '../services/auditStore';
 
 export default function AddData() {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('manual'); // 'manual' | 'document'
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [aiReportResult, setAiReportResult] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
@@ -65,11 +67,11 @@ export default function AddData() {
           <div className="glass-panel p-6 rounded-3xl border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold font-display text-white flex items-center gap-2">
-                <Edit3 className="w-6 h-6 text-eco-400" />
-                Record Resource Consumption Data
+                <FileUp className="w-6 h-6 text-eco-400" />
+                Upload & Record Sustainability Data
               </h1>
               <p className="text-xs text-slate-400 mt-1">
-                Enter your daily electricity, water, fuel, and waste consumption figures below to update your carbon footprint.
+                Fill in consumption figures manually or extract metrics automatically from utility bill documents.
               </p>
             </div>
 
@@ -99,9 +101,38 @@ export default function AddData() {
             </div>
           )}
 
-          {/* User Resource Form Content */}
+          {/* Mode Switcher Tabs */}
+          <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-slate-950 border border-slate-800">
+            <button
+              onClick={() => setActiveTab('manual')}
+              className={`py-3 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer ${
+                activeTab === 'manual'
+                  ? 'bg-eco-600 text-white shadow-glow-eco scale-[1.01]'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-900'
+              }`}
+            >
+              <Edit3 className="w-4 h-4" /> Manual Data Input Form
+            </button>
+
+            <button
+              onClick={() => setActiveTab('document')}
+              className={`py-3 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer ${
+                activeTab === 'document'
+                  ? 'bg-eco-600 text-white shadow-glow-eco scale-[1.01]'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-900'
+              }`}
+            >
+              <Sparkles className="w-4 h-4 text-emerald-300" /> AI Document & Bill Scanner
+            </button>
+          </div>
+
+          {/* Form Content */}
           <div className="glass-panel p-6 rounded-3xl border border-slate-800">
-            <ResourceForm onSubmit={handleFormSubmit} isSubmitting={isSubmitting} />
+            {activeTab === 'manual' ? (
+              <ResourceForm onSubmit={handleFormSubmit} isSubmitting={isSubmitting} />
+            ) : (
+              <DocumentUpload onExtractedData={handleFormSubmit} isSubmitting={isSubmitting} />
+            )}
           </div>
 
           {/* AI Advisor Real-time Recommendations Output */}
