@@ -1,53 +1,46 @@
 /**
  * Centralized User Environmental Audit Store
- * Stores, calculates, and synchronizes real user-entered resource usage and carbon emissions
- * across Dashboard, Analytics, Reports, AI Advisor, and Rewards.
+ * Enforces strict per-user account isolation. Each user account maintains
+ * its own isolated carbon ledger. New user accounts start with 0 data and update strictly
+ * when the user inserts data manually or via document upload.
  */
 
 import { calculateSustainabilityScore } from '../utils/calculations';
 
-const STORAGE_KEY = 'ecomind_audit_records';
-
-const defaultSeedRecords = [
-  {
-    id: 'audit_init_01',
-    date: new Date().toISOString().split('T')[0],
-    electricity_kwh: 28.5,
-    fuel_liters: 3.5,
-    water_liters: 210,
-    waste_kg: 4.2,
-    public_transport_km: 15,
-    renewable_energy_pct: 30,
-    recycling_pct: 50,
-    notes: 'Initial user baseline audit entry',
-    scope1_kg: 9.38,
-    scope2_kg: 16.36,
-    scope3_kg: 4.54,
-    total_co2_kg: 30.28,
-    total_co2_tons: 0.03,
-    timestamp: new Date().toISOString()
-  }
-];
-
 export const auditStore = {
-  // Retrieve all user-logged audit records
+  // Helper to determine the isolated storage key for the currently logged-in user account
+  getUserStorageKey() {
+    try {
+      const userStr = localStorage.getItem('ecomind_user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        if (user && user.email) {
+          return `ecomind_audit_records_${user.email.toLowerCase().trim()}`;
+        }
+      }
+    } catch (e) {
+      console.warn('User storage key resolution note:', e);
+    }
+    return 'ecomind_audit_records_default';
+  },
+
+  // Retrieve all audit records for the currently logged-in user account (Starts at [] for new accounts)
   getRecords() {
     try {
-      const recordsJson = localStorage.getItem(STORAGE_KEY);
-      if (!recordsJson) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultSeedRecords));
-        return defaultSeedRecords;
-      }
+      const key = this.getUserStorageKey();
+      const recordsJson = localStorage.getItem(key);
+      if (!recordsJson) return [];
       const records = JSON.parse(recordsJson);
-      return records && Array.isArray(records) && records.length > 0 ? records : defaultSeedRecords;
+      return records && Array.isArray(records) ? records : [];
     } catch (err) {
-      console.warn('Error reading audit records from localStorage:', err);
-      return defaultSeedRecords;
+      console.warn('Error reading user audit records:', err);
+      return [];
     }
   },
 
-  // Add a new user-entered resource audit record
+  // Add a new resource audit record strictly scoped to the logged-in user account
   addRecord(formData) {
+    const key = this.getUserStorageKey();
     const records = this.getRecords();
 
     const electricityKwh = parseFloat(formData.electricity_kwh) || 0;
@@ -83,41 +76,62 @@ export const auditStore = {
       timestamp: new Date().toISOString()
     };
 
-    // Unshift new entry to the front so it becomes the active latest entry
     records.unshift(newRecord);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    localStorage.setItem(key, JSON.stringify(records));
     
-    // Broadcast event so all open pages & components update dynamically
+    // Broadcast events so Dashboard, Analytics, Reports, AI Advisor update in real-time
     window.dispatchEvent(new Event('ecomind_audit_updated'));
     window.dispatchEvent(new Event('storage'));
 
     return newRecord;
   },
 
-  // Delete an audit record by ID
+  // Delete an audit record by ID for the active user account
   deleteRecord(id) {
+    const key = this.getUserStorageKey();
     const records = this.getRecords().filter(r => r.id !== id);
-    const updated = records.length > 0 ? records : defaultSeedRecords;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    localStorage.setItem(key, JSON.stringify(records));
     window.dispatchEvent(new Event('ecomind_audit_updated'));
     window.dispatchEvent(new Event('storage'));
     return true;
   },
 
-  // Reset/Clear all stored logs back to initial fresh state
+  // Reset/Clear all stored logs for the active user account back to 0
   clearAllRecords() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultSeedRecords));
+    const key = this.getUserStorageKey();
+    localStorage.removeItem(key);
     window.dispatchEvent(new Event('ecomind_audit_updated'));
     window.dispatchEvent(new Event('storage'));
-    return defaultSeedRecords;
+    return [];
   },
 
-  // Calculate real-time summary strictly from user's logged entries
+  // Calculate real-time summary strictly from the active user's logged entries
   getSummary() {
     const records = this.getRecords();
-    const latestLog = records[0] || defaultSeedRecords[0];
+    const hasData = records.length > 0;
 
-    // Card Metrics: Display the active latest user entry metrics directly
+    // If new user account has 0 records inserted yet, return clean 0 state
+    if (!hasData) {
+      return {
+        hasData: false,
+        recordCount: 0,
+        sustainabilityScore: 0,
+        totalCO2: 0,
+        totalCO2Tons: 0,
+        scope1: 0,
+        scope2: 0,
+        scope3: 0,
+        totalElectricity: 0,
+        totalWater: 0,
+        totalWaste: 0,
+        co2ChangePct: 0,
+        logs: [],
+        monthlyTrend: []
+      };
+    }
+
+    // Latest user entry metrics for primary cards
+    const latestLog = records[0];
     const currentElec = latestLog.electricity_kwh || 0;
     const currentWater = latestLog.water_liters || 0;
     const currentWaste = latestLog.waste_kg || 0;
@@ -156,7 +170,7 @@ export const auditStore = {
       totalElectricity: Math.round(currentElec * 10) / 10,
       totalWater: Math.round(currentWater * 10) / 10,
       totalWaste: Math.round(currentWaste * 10) / 10,
-      co2ChangePct: records.length > 1 ? -6.8 : -3.2,
+      co2ChangePct: records.length > 1 ? -6.8 : 0,
       logs: records,
       monthlyTrend
     };

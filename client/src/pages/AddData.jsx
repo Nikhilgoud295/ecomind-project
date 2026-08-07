@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileUp, Edit3, Sparkles, CheckCircle2, ArrowRight, FileText } from 'lucide-react';
+import { FileUp, Edit3, Sparkles, CheckCircle2, ArrowRight, FileText, Download, FileSpreadsheet } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
@@ -10,6 +10,7 @@ import AIRecommendationCards from '../components/AIRecommendationCards';
 import { usageService } from '../services/usageService';
 import { aiService } from '../services/aiService';
 import { auditStore } from '../services/auditStore';
+import { exportReportToPDF, exportReportToCSV } from '../utils/exportHelpers';
 
 export default function AddData() {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ export default function AddData() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [aiReportResult, setAiReportResult] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
+  const [lastSavedRecord, setLastSavedRecord] = useState(null);
 
   const handleFormSubmit = async (formData) => {
     setIsSubmitting(true);
@@ -24,9 +26,10 @@ export default function AddData() {
     setAiReportResult(null);
 
     try {
-      // 1. Save directly to auditStore so Dashboard, Analytics, Reports & AI update in real-time
+      // 1. Save directly to per-user isolated auditStore
       const savedRecord = auditStore.addRecord(formData);
-      setSuccessMessage(`✅ Resource usage record logged! Net Carbon Emissions: ${savedRecord.total_co2_kg} kg CO2e. Redirecting to Dashboard...`);
+      setLastSavedRecord(savedRecord);
+      setSuccessMessage(`✅ Account audit ledger updated! Net Emissions: ${savedRecord.total_co2_kg} kg CO2e.`);
 
       // 2. Try backend API save
       try {
@@ -48,16 +51,51 @@ export default function AddData() {
       } catch (aiErr) {
         console.warn('AI analysis call warning:', aiErr);
       }
-
-      // Automatically redirect to Dashboard so user sees the new values immediately
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 1200);
     } catch (err) {
       console.error('Error saving resource usage:', err);
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleExportPDF = () => {
+    if (!lastSavedRecord) return;
+    exportReportToPDF({
+      title: `Carbon Audit Entry #${lastSavedRecord.id}`,
+      type: 'User Audit Record',
+      start_date: lastSavedRecord.date,
+      end_date: lastSavedRecord.date,
+      created_at: lastSavedRecord.timestamp || new Date().toISOString(),
+      summary_data: {
+        total_co2_kg: lastSavedRecord.total_co2_kg,
+        total_electricity_kwh: lastSavedRecord.electricity_kwh,
+        total_water_liters: lastSavedRecord.water_liters,
+        total_waste_kg: lastSavedRecord.waste_kg,
+        scope1_kg: lastSavedRecord.scope1_kg,
+        scope2_kg: lastSavedRecord.scope2_kg,
+        scope3_kg: lastSavedRecord.scope3_kg
+      }
+    });
+  };
+
+  const handleExportCSV = () => {
+    if (!lastSavedRecord) return;
+    exportReportToCSV({
+      title: `Carbon Audit Entry #${lastSavedRecord.id}`,
+      type: 'User Audit Record',
+      start_date: lastSavedRecord.date,
+      end_date: lastSavedRecord.date,
+      created_at: lastSavedRecord.timestamp || new Date().toISOString(),
+      summary_data: {
+        total_co2_kg: lastSavedRecord.total_co2_kg,
+        total_electricity_kwh: lastSavedRecord.electricity_kwh,
+        total_water_liters: lastSavedRecord.water_liters,
+        total_waste_kg: lastSavedRecord.waste_kg,
+        scope1_kg: lastSavedRecord.scope1_kg,
+        scope2_kg: lastSavedRecord.scope2_kg,
+        scope3_kg: lastSavedRecord.scope3_kg
+      }
+    });
   };
 
   return (
@@ -90,19 +128,36 @@ export default function AddData() {
             </div>
           </div>
 
-          {/* Success Banner */}
+          {/* Success Banner with Instant PDF & CSV Export Options */}
           {successMessage && (
-            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center justify-between animate-fade-in shadow-lg">
+            <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in shadow-lg">
               <div className="flex items-center gap-2.5">
                 <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
                 <span>{successMessage}</span>
               </div>
-              <button
-                onClick={() => navigate('/dashboard')}
-                className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all shadow-glow-eco cursor-pointer"
-              >
-                View Updated Dashboard →
-              </button>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={handleExportPDF}
+                  className="px-3 py-1.5 rounded-xl bg-emerald-600/30 hover:bg-emerald-600 text-white font-bold text-xs border border-emerald-500/50 flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
+                >
+                  <Download className="w-3.5 h-3.5" /> Export PDF Report
+                </button>
+                <button
+                  type="button"
+                  onClick={handleExportCSV}
+                  className="px-3 py-1.5 rounded-xl bg-teal-600/30 hover:bg-teal-600 text-white font-bold text-xs border border-teal-500/50 flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5" /> Export CSV Spreadsheet
+                </button>
+                <button
+                  onClick={() => navigate('/dashboard')}
+                  className="px-3.5 py-1.5 rounded-xl bg-eco-600 hover:bg-eco-500 text-white font-bold text-xs transition-all shadow-glow-eco cursor-pointer"
+                >
+                  View Updated Dashboard →
+                </button>
+              </div>
             </div>
           )}
 
