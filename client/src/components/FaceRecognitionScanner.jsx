@@ -34,9 +34,6 @@ export default function FaceRecognitionScanner({ onScanComplete, onCapture, mode
     setUseSimulatedMesh(false);
     setScanStatus('Initializing AI camera feed...');
 
-    // Notify parent reset
-    notifyParent(null, false, 'Camera reset', 0);
-
     try {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         let stream = null;

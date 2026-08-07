@@ -64,7 +64,9 @@ export default function Login() {
     if (passed === false) {
       setIsFaceVerified(false);
       setFaceBiometricData(null);
-      setError(`❌ ${reason || 'Strict Biometric Verification Failed: Access Denied.'}`);
+      if (reason && reason !== 'Camera reset' && !reason.includes('reset')) {
+        setError(`❌ ${reason}`);
+      }
       return;
     }
 
