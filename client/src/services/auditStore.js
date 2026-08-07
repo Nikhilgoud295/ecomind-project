@@ -4,6 +4,8 @@
  * across Dashboard, Analytics, Reports, AI Advisor, and Rewards.
  */
 
+import { calculateSustainabilityScore } from '../utils/calculations';
+
 const STORAGE_KEY = 'ecomind_audit_records';
 
 const defaultSeedRecords = [
@@ -123,13 +125,10 @@ export const auditStore = {
       totalWaste += (r.waste_kg || 0);
     });
 
-    // Dynamic Sustainability Score Calculation (1-100)
+    // Dynamic Responsive Sustainability Score Calculation (1-100)
     const avgRenewable = records.reduce((acc, r) => acc + (r.renewable_energy_pct || 0), 0) / (records.length || 1);
     const avgRecycling = records.reduce((acc, r) => acc + (r.recycling_pct || 0), 0) / (records.length || 1);
-    let score = 75 + Math.round((avgRenewable * 0.15) + (avgRecycling * 0.15));
-    if (totalCO2Kg > 500) score -= 10;
-    if (totalCO2Kg > 1500) score -= 15;
-    score = Math.max(10, Math.min(100, score));
+    const score = calculateSustainabilityScore(totalCO2Kg, avgRenewable, avgRecycling);
 
     // Group monthly trend directly from user's logged dates
     const monthlyMap = {};
