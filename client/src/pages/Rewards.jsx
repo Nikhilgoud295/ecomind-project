@@ -41,7 +41,7 @@ export default function Rewards() {
 
   // Celebration Animation States
   const [isLeafAnimating, setIsLeafAnimating] = useState(false); // Phase 1: Big Leaf Screen Cover (1 sec)
-  const [isDJAnimating, setIsDJAnimating] = useState(false);     // Phase 2: Colorful DJ Lights (3 sec)
+  const [isDJAnimating, setIsDJAnimating] = useState(false);     // Phase 2: 5 Horizontal DJ Lights (5 sec)
 
   // Sync points with local storage and dispatch events for Navbar points badge
   useEffect(() => {
@@ -164,7 +164,7 @@ export default function Rewards() {
     }
   ];
 
-  // Trigger Master Celebration Sequence: 1 Sec Big Leaf Screen Cover -> 3 Sec DJ Laser Lights
+  // Trigger Master Celebration Sequence: 1 Sec Big Leaf Screen Cover -> 5 Sec 5-DJ-Spotlight Laser Lights
   const triggerCelebrationAnimation = (message) => {
     setCelebrationMsg(message);
 
@@ -173,14 +173,14 @@ export default function Rewards() {
     setIsDJAnimating(false);
 
     setTimeout(() => {
-      // End Leaf Cover & Start Phase 2: 3 Second DJ Laser Lights
+      // End Leaf Cover & Start Phase 2: 5 Seconds 5-DJ-Spotlight Laser Lights
       setIsLeafAnimating(false);
       setIsDJAnimating(true);
 
       setTimeout(() => {
-        // End DJ Laser Lights Celebration
+        // End DJ Laser Lights Celebration after 5 seconds
         setIsDJAnimating(false);
-      }, 3000);
+      }, 5000);
     }, 1000);
   };
 
@@ -241,38 +241,73 @@ export default function Rewards() {
       )}
 
       {/* ========================================================================= */}
-      {/* 🎆 PHASE 2: COLORFUL PARTY DJ LASER LIGHTS ANIMATION (3 SECONDS) */}
+      {/* 🎆 PHASE 2: 5 HORIZONTAL TOP DJ SPOTLIGHTS & LASERS (5 SECONDS DURATION) */}
       {/* ========================================================================= */}
       {isDJAnimating && (
         <div className="fixed inset-0 z-50 pointer-events-none overflow-hidden flex flex-col items-center justify-start pt-12">
-          {/* DJ Flash Overlay Background */}
-          <div className="absolute inset-0 bg-gradient-to-b from-indigo-950/40 via-purple-950/30 to-transparent animate-dj-flash" />
+          {/* DJ Strobe Flash Overlay Background */}
+          <div className="absolute inset-0 bg-gradient-to-b from-indigo-950/50 via-purple-950/40 to-slate-950/60 animate-dj-flash" />
 
-          {/* Sweeping DJ Laser Beams radiating from top lights */}
-          <div className="absolute top-0 left-1/6 w-4 h-[120vh] bg-gradient-to-b from-rose-500 via-rose-500/40 to-transparent blur-md transform -translate-x-1/2 origin-top animate-laser-red" />
-          <div className="absolute top-0 left-2/6 w-5 h-[120vh] bg-gradient-to-b from-emerald-400 via-emerald-400/40 to-transparent blur-md transform -translate-x-1/2 origin-top animate-laser-green" />
-          <div className="absolute top-0 left-3/6 w-6 h-[120vh] bg-gradient-to-b from-cyan-400 via-cyan-400/40 to-transparent blur-md transform -translate-x-1/2 origin-top animate-laser-blue" />
-          <div className="absolute top-0 left-4/6 w-5 h-[120vh] bg-gradient-to-b from-amber-400 via-amber-400/40 to-transparent blur-md transform -translate-x-1/2 origin-top animate-laser-yellow" />
-          <div className="absolute top-0 left-5/6 w-4 h-[120vh] bg-gradient-to-b from-purple-500 via-purple-500/40 to-transparent blur-md transform -translate-x-1/2 origin-top animate-laser-red" />
+          {/* 5 HORIZONTAL DJ CONCERT SPOTLIGHT BEAMS RADIATING FROM TOP HEADER */}
+          <div className="absolute top-0 w-full h-[120vh] overflow-hidden">
+            {/* Beam 1: Rose Pink (Left 10%) */}
+            <div className="absolute top-0 left-[10%] w-8 sm:w-16 h-[120vh] bg-gradient-to-b from-rose-500 via-rose-500/30 to-transparent blur-md origin-top animate-laser-red" />
+            
+            {/* Beam 2: Emerald Green (Left 30%) */}
+            <div className="absolute top-0 left-[30%] w-10 sm:w-20 h-[120vh] bg-gradient-to-b from-emerald-400 via-emerald-400/30 to-transparent blur-md origin-top animate-laser-green" />
+            
+            {/* Beam 3: Electric Cyan (Center 50%) */}
+            <div className="absolute top-0 left-[50%] w-12 sm:w-24 h-[120vh] bg-gradient-to-b from-cyan-400 via-cyan-400/30 to-transparent blur-md origin-top animate-laser-blue" />
+            
+            {/* Beam 4: Amber Gold (Left 70%) */}
+            <div className="absolute top-0 left-[70%] w-10 sm:w-20 h-[120vh] bg-gradient-to-b from-amber-400 via-amber-400/30 to-transparent blur-md origin-top animate-laser-yellow" />
+            
+            {/* Beam 5: Deep Purple (Left 90%) */}
+            <div className="absolute top-0 left-[90%] w-8 sm:w-16 h-[120vh] bg-gradient-to-b from-purple-500 via-purple-500/30 to-transparent blur-md origin-top animate-laser-red" />
+          </div>
 
-          {/* Glowing Top Spotlight Bulbs */}
-          <div className="absolute top-0 w-full flex justify-around px-8">
-            <div className="w-10 h-10 rounded-full bg-rose-500 shadow-[0_0_40px_#f43f5e] animate-pulse" />
-            <div className="w-10 h-10 rounded-full bg-emerald-400 shadow-[0_0_40px_#10b981] animate-pulse" />
-            <div className="w-12 h-12 rounded-full bg-cyan-400 shadow-[0_0_50px_#06b6d4] animate-pulse" />
-            <div className="w-10 h-10 rounded-full bg-amber-400 shadow-[0_0_40px_#f59e0b] animate-pulse" />
-            <div className="w-10 h-10 rounded-full bg-purple-500 shadow-[0_0_40px_#a855f7] animate-pulse" />
+          {/* 5 HORIZONTAL TOP SPOTLIGHT FIXTURE BULBS MOUNTED AT THE TOP OF WEBSITE */}
+          <div className="absolute top-0 w-full flex justify-between px-6 sm:px-16 z-20">
+            {/* Spotlight 1 */}
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-4 bg-slate-900 border-b-2 border-slate-700 rounded-b-lg shadow-lg"></div>
+              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-rose-500 shadow-[0_0_50px_#f43f5e] animate-pulse border-2 border-white/40"></div>
+            </div>
+
+            {/* Spotlight 2 */}
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-4 bg-slate-900 border-b-2 border-slate-700 rounded-b-lg shadow-lg"></div>
+              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-emerald-400 shadow-[0_0_50px_#10b981] animate-pulse border-2 border-white/40"></div>
+            </div>
+
+            {/* Spotlight 3 (Center) */}
+            <div className="flex flex-col items-center">
+              <div className="w-14 h-5 bg-slate-900 border-b-2 border-slate-700 rounded-b-lg shadow-lg"></div>
+              <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-cyan-400 shadow-[0_0_60px_#06b6d4] animate-pulse border-2 border-white/50"></div>
+            </div>
+
+            {/* Spotlight 4 */}
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-4 bg-slate-900 border-b-2 border-slate-700 rounded-b-lg shadow-lg"></div>
+              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-amber-400 shadow-[0_0_50px_#f59e0b] animate-pulse border-2 border-white/40"></div>
+            </div>
+
+            {/* Spotlight 5 */}
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-4 bg-slate-900 border-b-2 border-slate-700 rounded-b-lg shadow-lg"></div>
+              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-purple-500 shadow-[0_0_50px_#a855f7] animate-pulse border-2 border-white/40"></div>
+            </div>
           </div>
 
           {/* Celebration Banner Card */}
-          <div className="relative z-50 mt-16 p-6 rounded-3xl bg-slate-950/95 border-2 border-emerald-500/80 text-center space-y-2 shadow-2xl max-w-lg mx-4 animate-bounce">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-extrabold border border-emerald-500/40">
-              <Sparkles className="w-4 h-4 text-emerald-400" /> CELEBRATION ACTIVE!
+          <div className="relative z-50 mt-20 p-6 sm:p-8 rounded-3xl bg-slate-950/95 border-2 border-emerald-500/80 text-center space-y-3 shadow-2xl max-w-lg mx-4 animate-bounce">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-extrabold border border-emerald-500/40">
+              <Sparkles className="w-4 h-4 text-emerald-400" /> 5-SECOND DJ CELEBRATION ACTIVE!
             </div>
-            <h2 className="text-2xl font-extrabold text-white font-display">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white font-display">
               🎉 REWARD CLAIMED SUCCESSFULLY!
             </h2>
-            <p className="text-xs text-slate-200 font-semibold">{celebrationMsg}</p>
+            <p className="text-xs sm:text-sm text-slate-200 font-semibold">{celebrationMsg}</p>
           </div>
         </div>
       )}
