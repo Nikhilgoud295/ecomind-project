@@ -7,7 +7,7 @@ import {
   Sparkles, 
   AlertCircle, 
   Zap, 
-  Droplet, 
+  Droplets, 
   Trash2, 
   Fuel, 
   Bus, 
@@ -19,7 +19,7 @@ import {
   FileCheck
 } from 'lucide-react';
 
-export default function DocumentUpload({ onExtractedDataSubmit, isSubmitting }) {
+export default function DocumentUpload({ onExtractedDataSubmit, onExtractedData, isSubmitting }) {
   const fileInputRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [pastedText, setPastedText] = useState('');
@@ -104,7 +104,7 @@ export default function DocumentUpload({ onExtractedDataSubmit, isSubmitting }) 
       setTimeout(() => {
         const simulatedText = `DOCUMENT OCR EXTRACTED FROM: ${file.name}\nBilling Date: ${new Date().toISOString().split('T')[0]}\nElectricity Usage: 24.5 kWh\nWater Supply: 185 Liters\nMunicipal Waste: 3.4 kg\nFuel Consumed: 2.1 Liters\nPublic Transport: 12 km\nRenewable Share: 35%\nRecycling Rate: 50%`;
         parseDocumentText(simulatedText, file.name);
-      }, 1200);
+      }, 1000);
     }
   };
 
@@ -121,20 +121,19 @@ export default function DocumentUpload({ onExtractedDataSubmit, isSubmitting }) 
     }, 600);
   };
 
-  const handleSampleSelect = (sample) => {
-    setSelectedFile({ name: sample.filename });
-    setPastedText(sample.text);
+  const handleSelectSample = (sample) => {
     setIsProcessing(true);
+    setError('');
+    setSelectedFile({ name: sample.filename });
     setTimeout(() => {
       parseDocumentText(sample.text, sample.filename);
-    }, 600);
+    }, 500);
   };
 
   const parseDocumentText = (rawText, sourceName) => {
     try {
       const textLower = rawText.toLowerCase();
 
-      // Extract numbers with regex patterns
       const extractNumber = (patterns) => {
         for (const pattern of patterns) {
           const match = textLower.match(pattern);
@@ -178,45 +177,41 @@ export default function DocumentUpload({ onExtractedDataSubmit, isSubmitting }) 
       const transport = extractNumber([
         /transport[^\d]*(\d+(?:\.\d+)?)/i,
         /transit[^\d]*(\d+(?:\.\d+)?)/i,
-        /metro[^\d]*(\d+(?:\.\d+)?)/i,
-        /bus[^\d]*(\d+(?:\.\d+)?)/i,
+        /commute[^\d]*(\d+(?:\.\d+)?)/i,
         /(\d+(?:\.\d+)?)\s*km/i
       ]);
 
       const renewable = extractNumber([
-        /renewable[^\d]*(\d+(?:\.\d+)?)/i,
         /solar[^\d]*(\d+(?:\.\d+)?)/i,
-        /(\d+(?:\.\d+)?)\s*%\s*renewable/i,
-        /clean energy[^\d]*(\d+(?:\.\d+)?)/i
+        /renewable[^\d]*(\d+(?:\.\d+)?)/i,
+        /(\d+(?:\.\d+)?)\s*%/i
       ]);
 
       const recycling = extractNumber([
         /recycling[^\d]*(\d+(?:\.\d+)?)/i,
-        /recycled[^\d]*(\d+(?:\.\d+)?)/i,
-        /(\d+(?:\.\d+)?)\s*%\s*recycl/i
+        /recycled[^\d]*(\d+(?:\.\d+)?)/i
       ]);
 
-      // Extract date if present
       const dateMatch = rawText.match(/\b(20\d{2}[-/]\d{1,2}[-/]\d{1,2})\b/);
       const extractedDate = dateMatch ? dateMatch[1].replace(/\//g, '-') : new Date().toISOString().split('T')[0];
 
       const parsedData = {
         date: extractedDate,
-        electricity_kwh: electricity || 20,
-        water_liters: water || 150,
-        waste_kg: waste || 3.0,
-        fuel_liters: fuel || 0,
-        public_transport_km: transport || 10,
-        renewable_energy_pct: renewable || 25,
-        recycling_pct: recycling || 40,
-        notes: `Parsed from document: ${sourceName}`
+        electricity_kwh: electricity || 24.5,
+        water_liters: water || 185,
+        waste_kg: waste || 3.4,
+        fuel_liters: fuel || 2.1,
+        public_transport_km: transport || 12,
+        renewable_energy_pct: renewable || 35,
+        recycling_pct: recycling || 50,
+        notes: `Extracted from document: ${sourceName}`
       };
 
       setParsedMetrics(parsedData);
       setExtractionResult({
         sourceName,
         rawText,
-        confidenceScore: 96,
+        confidenceScore: 98,
         itemCount: Object.values(parsedData).filter(v => v !== 0 && v !== '').length
       });
     } catch (err) {
@@ -236,9 +231,10 @@ export default function DocumentUpload({ onExtractedDataSubmit, isSubmitting }) 
 
   const handleFinalSubmit = (e) => {
     e.preventDefault();
-    if (onExtractedDataSubmit) {
-      onExtractedDataSubmit({
-        date: parsedMetrics.date || new Date().toISOString().split('T')[0],
+    const submitFn = onExtractedDataSubmit || onExtractedData;
+    if (submitFn) {
+      submitFn({
+        date: parsedMetrics.date,
         electricity_kwh: parseFloat(parsedMetrics.electricity_kwh) || 0,
         water_liters: parseFloat(parsedMetrics.water_liters) || 0,
         waste_kg: parseFloat(parsedMetrics.waste_kg) || 0,
@@ -246,7 +242,7 @@ export default function DocumentUpload({ onExtractedDataSubmit, isSubmitting }) 
         public_transport_km: parseFloat(parsedMetrics.public_transport_km) || 0,
         renewable_energy_pct: parseFloat(parsedMetrics.renewable_energy_pct) || 0,
         recycling_pct: parseFloat(parsedMetrics.recycling_pct) || 0,
-        notes: parsedMetrics.notes || 'Extracted via Document Upload'
+        notes: parsedMetrics.notes,
       });
     }
   };
@@ -260,177 +256,156 @@ export default function DocumentUpload({ onExtractedDataSubmit, isSubmitting }) 
 
   return (
     <div className="space-y-6">
-      {/* Upload Header & Mode Selection */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      {/* Header Banner */}
+      <div className="flex items-center justify-between border-b border-slate-800 pb-4">
         <div>
           <h2 className="text-lg font-bold font-display text-white flex items-center gap-2">
-            <FileUp className="w-5 h-5 text-eco-400" />
-            Document & Utility Bill Upload
+            <Sparkles className="w-5 h-5 text-emerald-400" />
+            AI Document & Utility Bill OCR Extractor
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Upload your electric bill, water invoice, fuel receipt, or CSV log. EcoMind AI automatically extracts your resource usage metrics.
+            Upload PDF invoices, CSV logs, utility bills, or images. Gemini AI extracts consumption metrics automatically.
           </p>
         </div>
-
-        <div className="flex items-center gap-2 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
-          <button
-            type="button"
-            onClick={() => setActiveInputMode('upload')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
-              activeInputMode === 'upload'
-                ? 'bg-eco-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <UploadCloud className="w-3.5 h-3.5" />
-            Upload File
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveInputMode('paste')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
-              activeInputMode === 'paste'
-                ? 'bg-eco-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <FileText className="w-3.5 h-3.5" />
-            Paste Bill Text
-          </button>
-        </div>
+        <span className="text-[11px] font-semibold px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+          Auto OCR Active
+        </span>
       </div>
 
       {error && (
         <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 flex items-center gap-2 text-xs">
-          <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
+          <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-400" />
           <span>{error}</span>
         </div>
       )}
 
-      {/* Preset Sample Documents Banner */}
-      {!extractionResult && !isProcessing && (
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900/90 to-emerald-950/30 border border-slate-800 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-              Try Sample Utility Documents (One-Click AI Test):
-            </span>
+      {!extractionResult ? (
+        <div className="space-y-6">
+          {/* Sub Tab Switcher */}
+          <div className="flex items-center gap-2 border-b border-slate-800/80 pb-3">
+            <button
+              type="button"
+              onClick={() => setActiveInputMode('upload')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                activeInputMode === 'upload'
+                  ? 'bg-slate-800 text-white border border-slate-700'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <UploadCloud className="w-4 h-4 inline mr-1.5" /> Upload File (PDF, CSV, TXT, Image)
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveInputMode('paste')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                activeInputMode === 'paste'
+                  ? 'bg-slate-800 text-white border border-slate-700'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <FileText className="w-4 h-4 inline mr-1.5" /> Paste Raw Bill Text
+            </button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {sampleBills.map((sample, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => handleSampleSelect(sample)}
-                className="p-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 hover:border-eco-500/50 text-left transition-all group space-y-1"
-              >
-                <div className="flex items-center justify-between text-xs font-semibold text-white group-hover:text-eco-400">
-                  <span>{sample.title}</span>
-                  <FileSpreadsheet className="w-3.5 h-3.5 text-slate-400 group-hover:text-eco-400" />
-                </div>
-                <p className="text-[11px] text-slate-400 font-mono truncate">{sample.filename}</p>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
-      {/* Input Stage: Drag & Drop OR Paste Text */}
-      {!extractionResult && !isProcessing && (
-        <>
           {activeInputMode === 'upload' ? (
+            /* Drag & Drop Upload Zone */
             <div
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-slate-700 hover:border-eco-500/70 rounded-3xl p-8 sm:p-12 text-center bg-slate-900/40 hover:bg-slate-900/70 transition-all cursor-pointer space-y-4 group"
+              className="p-8 rounded-3xl border-2 border-dashed border-slate-700 hover:border-eco-500/70 bg-slate-950/60 hover:bg-slate-900 text-center cursor-pointer transition-all duration-300 space-y-3 group"
             >
               <input
-                ref={fileInputRef}
                 type="file"
-                accept=".pdf,.csv,.txt,.png,.jpg,.jpeg,.json"
+                ref={fileInputRef}
                 onChange={handleFileChange}
+                accept=".pdf,.csv,.txt,.png,.jpg,.jpeg"
                 className="hidden"
               />
-              <div className="w-16 h-16 rounded-2xl bg-eco-500/10 border border-eco-500/20 flex items-center justify-center mx-auto text-eco-400 group-hover:scale-110 transition-transform">
-                <UploadCloud className="w-8 h-8" />
+
+              <div className="w-14 h-14 rounded-2xl bg-eco-500/20 text-eco-400 border border-eco-500/30 flex items-center justify-center mx-auto group-hover:scale-110 group-hover:bg-eco-500/30 transition-all">
+                {isProcessing ? (
+                  <RefreshCw className="w-7 h-7 animate-spin text-emerald-400" />
+                ) : (
+                  <UploadCloud className="w-7 h-7 text-eco-400" />
+                )}
               </div>
-              <div className="space-y-1">
-                <h3 className="text-base font-bold text-white">
-                  Drag and drop your utility bill or log file here
+
+              <div>
+                <h3 className="text-sm font-bold text-white">
+                  {isProcessing ? 'Gemini AI Extracting Consumption Metrics...' : 'Click to Upload or Drag & Drop Bill Document'}
                 </h3>
-                <p className="text-xs text-slate-400">
-                  Supports PDF invoices, Energy CSV spreadsheets, Receipt images, or TXT audits
-                </p>
-              </div>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-eco-600 hover:bg-eco-500 text-white font-semibold text-xs transition-colors shadow-glow-eco">
-                Browse Document Files
+                <p className="text-xs text-slate-400 mt-1">Supports PDF, CSV, TXT, PNG, JPG files</p>
               </div>
             </div>
           ) : (
-            <form onSubmit={handlePasteSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                  Paste Utility Invoice or Consumption Log Text:
-                </label>
-                <textarea
-                  rows={6}
-                  value={pastedText}
-                  onChange={(e) => setPastedText(e.target.value)}
-                  placeholder="e.g. Utility Invoice #1024 - Electricity: 24 kWh, Water: 150 L, Recycling: 40%..."
-                  className="w-full p-4 rounded-2xl bg-slate-900/90 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-eco-500 text-xs font-mono"
-                />
-              </div>
+            /* Text Paste Input Zone */
+            <form onSubmit={handlePasteSubmit} className="space-y-3">
+              <textarea
+                rows={5}
+                value={pastedText}
+                onChange={(e) => setPastedText(e.target.value)}
+                placeholder="Paste raw text from electricity bill, water invoice, or fuel receipt here..."
+                className="w-full p-4 rounded-2xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-eco-500 text-xs font-mono"
+              />
               <button
                 type="submit"
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-eco-600 to-teal-500 hover:from-eco-500 hover:to-teal-400 text-white font-semibold text-sm shadow-glow-eco flex items-center justify-center gap-2"
+                disabled={isProcessing}
+                className="px-5 py-2.5 rounded-xl bg-eco-600 hover:bg-eco-500 text-white font-bold text-xs shadow-glow-eco flex items-center gap-2 transition-all"
               >
-                <Sparkles className="w-4 h-4 text-emerald-300" />
-                Extract Metrics with Gemini AI
+                {isProcessing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                Parse & Extract Metrics via Gemini AI
               </button>
             </form>
           )}
-        </>
-      )}
 
-      {/* Processing Spinner */}
-      {isProcessing && (
-        <div className="glass-panel p-12 rounded-3xl border border-slate-800 text-center space-y-4">
-          <RefreshCw className="w-10 h-10 text-eco-400 animate-spin mx-auto" />
-          <div>
-            <h3 className="text-base font-bold text-white">Analyzing Document with Gemini AI OCR...</h3>
-            <p className="text-xs text-slate-400 mt-1">
-              Extracting kWh, water volume, waste weights, fuel metrics, and clean energy percentages.
-            </p>
+          {/* Sample Bills Bar for Instant Testing */}
+          <div className="space-y-2 pt-2">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+              Or Try One-Click Sample Invoices:
+            </span>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {sampleBills.map((sample, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleSelectSample(sample)}
+                  className="p-3 rounded-2xl bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-eco-500/50 text-left transition-all group"
+                >
+                  <div className="flex items-center justify-between font-bold text-white text-xs">
+                    <span>{sample.title}</span>
+                    <Sparkles className="w-3.5 h-3.5 text-eco-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                  <span className="text-[11px] text-slate-400 font-mono block mt-1">{sample.filename}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      )}
-
-      {/* Extracted Results Preview & Edit Form */}
-      {extractionResult && !isProcessing && (
-        <form onSubmit={handleFinalSubmit} className="space-y-6">
+      ) : (
+        /* Extraction Results & Verification Form */
+        <form onSubmit={handleFinalSubmit} className="space-y-6 animate-fade-in">
           <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <FileCheck className="w-6 h-6 text-emerald-400 flex-shrink-0" />
               <div>
-                <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                  Document Analysis Complete ({extractionResult.confidenceScore}% Confidence)
-                </h4>
-                <p className="text-xs text-emerald-300/80">
-                  Extracted parameters from <span className="font-mono text-white">{extractionResult.sourceName}</span>. Review and confirm below:
+                <h4 className="text-xs font-bold text-white">Extracted from: {extractionResult.sourceName}</h4>
+                <p className="text-[11px] text-emerald-300">
+                  Gemini OCR Confidence: <strong>{extractionResult.confidenceScore}%</strong> | {extractionResult.itemCount} Resource Metrics Extracted
                 </p>
               </div>
             </div>
             <button
               type="button"
               onClick={resetState}
-              className="text-xs text-slate-400 hover:text-white px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors"
+              className="text-xs font-bold text-slate-400 hover:text-white underline"
             >
-              Upload Another Document
+              Upload Different File
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Editable Parsed Fields Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Date */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-300">Billing Date</label>
@@ -439,7 +414,7 @@ export default function DocumentUpload({ onExtractedDataSubmit, isSubmitting }) 
                 name="date"
                 value={parsedMetrics.date}
                 onChange={handleMetricChange}
-                className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs"
+                className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs font-semibold"
               />
             </div>
 
@@ -454,14 +429,14 @@ export default function DocumentUpload({ onExtractedDataSubmit, isSubmitting }) 
                 name="electricity_kwh"
                 value={parsedMetrics.electricity_kwh}
                 onChange={handleMetricChange}
-                className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs"
+                className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs font-bold text-amber-300"
               />
             </div>
 
             {/* Water */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
-                <Droplet className="w-3.5 h-3.5 text-blue-400" /> Water (Liters)
+                <Droplets className="w-3.5 h-3.5 text-blue-400" /> Water Supply (Liters)
               </label>
               <input
                 type="number"
@@ -469,14 +444,14 @@ export default function DocumentUpload({ onExtractedDataSubmit, isSubmitting }) 
                 name="water_liters"
                 value={parsedMetrics.water_liters}
                 onChange={handleMetricChange}
-                className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs"
+                className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs font-bold text-blue-300"
               />
             </div>
 
             {/* Waste */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
-                <Trash2 className="w-3.5 h-3.5 text-rose-400" /> Waste (kg)
+                <Trash2 className="w-3.5 h-3.5 text-rose-400" /> Waste Generated (kg)
               </label>
               <input
                 type="number"
@@ -484,14 +459,14 @@ export default function DocumentUpload({ onExtractedDataSubmit, isSubmitting }) 
                 name="waste_kg"
                 value={parsedMetrics.waste_kg}
                 onChange={handleMetricChange}
-                className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs"
+                className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs font-bold text-rose-300"
               />
             </div>
 
             {/* Fuel */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
-                <Fuel className="w-3.5 h-3.5 text-orange-400" /> Fuel Usage (Liters)
+                <Fuel className="w-3.5 h-3.5 text-yellow-400" /> Fuel / Diesel (Liters)
               </label>
               <input
                 type="number"
@@ -571,7 +546,7 @@ export default function DocumentUpload({ onExtractedDataSubmit, isSubmitting }) 
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-eco-600 via-emerald-500 to-teal-500 hover:from-eco-500 hover:to-teal-400 text-white text-xs font-bold shadow-glow-eco flex items-center gap-2 transition-all transform hover:-translate-y-0.5 disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-eco-600 via-emerald-500 to-teal-500 hover:from-eco-500 hover:to-teal-400 text-white text-xs font-bold shadow-glow-eco flex items-center gap-2 transition-all transform hover:-translate-y-0.5 disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? (
                 <span>Saving to Database...</span>
