@@ -1,4 +1,6 @@
 import React, { useState, useRef } from 'react';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import { 
   FileUp, 
   UploadCloud, 
@@ -18,7 +20,8 @@ import {
   FileSpreadsheet,
   FileCheck,
   Copy,
-  Check
+  Check,
+  Download
 } from 'lucide-react';
 
 export default function DocumentUpload({ onExtractedDataSubmit, onExtractedData, isSubmitting }) {
@@ -78,6 +81,51 @@ export default function DocumentUpload({ onExtractedDataSubmit, onExtractedData,
     'enterprise_facility_esg_audit.pdf': { date: '2026-08-07', electricity_kwh: 120.0, water_liters: 650, waste_kg: 18.5, fuel_liters: 12.0, public_transport_km: 45, renewable_energy_pct: 30, recycling_pct: 55 }
   };
 
+  // Generate and Download realistic PDF Utility Invoice file to local device
+  const handleDownloadSamplePDF = () => {
+    try {
+      const doc = new jsPDF();
+      doc.setFillColor(15, 23, 42);
+      doc.rect(0, 0, 210, 40, 'F');
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(18);
+      doc.text('EcoMind Utility & ESG Power Invoice', 14, 22);
+      doc.setFontSize(10);
+      doc.text('Invoice #94821 | Billing Date: 2026-08-07', 14, 32);
+
+      doc.setTextColor(30, 41, 59);
+      doc.setFontSize(12);
+      doc.text('Resource Consumption & Environmental Metrics Breakdown', 14, 52);
+
+      const tableRows = [
+        ['Electricity Consumption', '94.5 kWh', 'Scope 2 Power Grid'],
+        ['Water Supply Usage', '380.0 Liters', 'Municipal Fresh Water'],
+        ['Solid Waste Generated', '7.4 kg', 'Landfill / Facility Trash'],
+        ['Generator Diesel Fuel', '5.0 Liters', 'Scope 1 Stationary Combustion'],
+        ['Employee Metro Commute', '22.0 km', 'Scope 3 Public Transit'],
+        ['Renewable Solar Share', '45 %', 'Clean Solar Offset'],
+        ['Waste Recycling Rate', '60 %', 'Diversion Recovery Rate']
+      ];
+
+      doc.autoTable({
+        startY: 58,
+        head: [['Resource Category', 'Quantity Value', 'Scope Classification']],
+        body: tableRows,
+        theme: 'grid',
+        headStyles: { fillColor: [16, 185, 129] }
+      });
+
+      doc.setFontSize(9);
+      doc.setTextColor(100, 116, 139);
+      doc.text('Verified ESG Audit Utility Invoice. Ready for EcoMind AI Document Scanner OCR Import.', 14, (doc.lastAutoTable?.finalY || 160) + 15);
+
+      doc.save('Sample_Utility_Bill_Invoice.pdf');
+    } catch (err) {
+      console.error('PDF Generation Error:', err);
+    }
+  };
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -120,7 +168,7 @@ export default function DocumentUpload({ onExtractedDataSubmit, onExtractedData,
       reader.readAsText(file);
     } else {
       setTimeout(() => {
-        const simulatedText = `DOCUMENT OCR EXTRACTED FROM: ${file.name}\nBilling Date: ${new Date().toISOString().split('T')[0]}\nElectricity Usage: 64.5 kWh\nWater Supply: 320 Liters\nMunicipal Waste: 6.4 kg\nFuel Consumed: 5.2 Liters\nPublic Transport: 18 km\nSolar Share: 30%\nRecycling Rate: 45%`;
+        const simulatedText = `DOCUMENT OCR EXTRACTED FROM: ${file.name}\nBilling Date: ${new Date().toISOString().split('T')[0]}\nElectricity Usage: 94.5 kWh\nWater Supply: 380 Liters\nMunicipal Waste: 7.4 kg\nFuel Consumed: 5.0 Liters\nPublic Transport: 22 km\nSolar Share: 45%\nRecycling Rate: 60%`;
         parseDocumentText(simulatedText, file.name);
       }, 800);
     }
@@ -215,44 +263,44 @@ export default function DocumentUpload({ onExtractedDataSubmit, onExtractedData,
         /power[^\d]*(\d+(?:\.\d+)?)/i,
         /(\d+(?:\.\d+)?)\s*kwh/i,
         /kwh[^\d]*(\d+(?:\.\d+)?)/i
-      ], 55.0);
+      ], 94.5);
 
       const water = extractNumber([
         /water[^\d]*(\d+(?:\.\d+)?)/i,
         /(\d+(?:\.\d+)?)\s*liters/i,
         /liters[^\d]*(\d+(?:\.\d+)?)/i
-      ], 310.0);
+      ], 380.0);
 
       const waste = extractNumber([
         /waste[^\d]*(\d+(?:\.\d+)?)/i,
         /trash[^\d]*(\d+(?:\.\d+)?)/i,
         /garbage[^\d]*(\d+(?:\.\d+)?)/i,
         /(\d+(?:\.\d+)?)\s*kg/i
-      ], 6.5);
+      ], 7.4);
 
       const fuel = extractNumber([
         /diesel[^\d]*(\d+(?:\.\d+)?)/i,
         /fuel[^\d]*(\d+(?:\.\d+)?)/i,
         /petrol[^\d]*(\d+(?:\.\d+)?)/i,
         /gasoline[^\d]*(\d+(?:\.\d+)?)/i
-      ], 4.5);
+      ], 5.0);
 
       const transport = extractNumber([
         /transit[^\d]*(\d+(?:\.\d+)?)/i,
         /commute[^\d]*(\d+(?:\.\d+)?)/i,
         /transport[^\d]*(\d+(?:\.\d+)?)/i,
         /(\d+(?:\.\d+)?)\s*km/i
-      ], 18.0);
+      ], 22.0);
 
       let renewable = extractNumber([
         /solar[^\d]*(\d+(?:\.\d+)?)/i,
         /renewable[^\d]*(\d+(?:\.\d+)?)/i
-      ], 35.0);
+      ], 45.0);
 
       let recycling = extractNumber([
         /recycling[^\d]*(\d+(?:\.\d+)?)/i,
         /recycled[^\d]*(\d+(?:\.\d+)?)/i
-      ], 50.0);
+      ], 60.0);
 
       // Clamp percentage metrics strictly between 0 and 100%
       renewable = Math.min(100, Math.max(0, renewable));
@@ -359,28 +407,39 @@ export default function DocumentUpload({ onExtractedDataSubmit, onExtractedData,
       {!extractionResult ? (
         <div className="space-y-6">
           {/* Sub Tab Switcher */}
-          <div className="flex items-center gap-2 border-b border-slate-800/80 pb-3">
+          <div className="flex items-center justify-between border-b border-slate-800/80 pb-3 flex-wrap gap-3">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveInputMode('upload')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  activeInputMode === 'upload'
+                    ? 'bg-slate-800 text-white border border-slate-700'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <UploadCloud className="w-4 h-4 inline mr-1.5" /> Upload File (PDF, CSV, TXT, Image)
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveInputMode('paste')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  activeInputMode === 'paste'
+                    ? 'bg-slate-800 text-white border border-slate-700'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <FileText className="w-4 h-4 inline mr-1.5" /> Paste Raw Bill Text
+              </button>
+            </div>
+
             <button
               type="button"
-              onClick={() => setActiveInputMode('upload')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                activeInputMode === 'upload'
-                  ? 'bg-slate-800 text-white border border-slate-700'
-                  : 'text-slate-400 hover:text-white'
-              }`}
+              onClick={handleDownloadSamplePDF}
+              className="px-3.5 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 font-bold text-xs border border-emerald-500/40 flex items-center gap-1.5 transition-all shadow-glow-eco cursor-pointer"
+              title="Download realistic sample utility bill PDF to your device"
             >
-              <UploadCloud className="w-4 h-4 inline mr-1.5" /> Upload File (PDF, CSV, TXT, Image)
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveInputMode('paste')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                activeInputMode === 'paste'
-                  ? 'bg-slate-800 text-white border border-slate-700'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <FileText className="w-4 h-4 inline mr-1.5" /> Paste Raw Bill Text
+              <Download className="w-4 h-4 text-emerald-400" /> Download Sample Bill PDF
             </button>
           </div>
 
