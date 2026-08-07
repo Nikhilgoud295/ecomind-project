@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { PlusCircle, FileUp, Sparkles, FileText, ArrowRight, Clock, Trash2, Calendar, Zap, Droplets, Leaf, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { PlusCircle, FileUp, Sparkles, FileText, ArrowRight, Clock, Trash2, Calendar, Zap, Droplets, Leaf, ShieldAlert, CheckCircle2, RotateCcw } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
@@ -33,8 +33,14 @@ export default function Dashboard() {
     auditStore.deleteRecord(id);
   };
 
+  const handleResetLogs = () => {
+    if (window.confirm('Reset accumulated test logs back to baseline user entry?')) {
+      auditStore.clearAllRecords();
+    }
+  };
+
   return (
-    <div className="min-h-screen flex flex-col bg-dark-bg text-slate-100">
+    <div className="min-h-screen flex flex-col bg-dark-bg text-slate-100 selection:bg-eco-500 selection:text-white">
       <Navbar />
 
       <div className="flex-1 flex max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 gap-6">
@@ -56,9 +62,7 @@ export default function Dashboard() {
                 Welcome Back, {currentUser?.name || 'User'} 👋
               </h1>
               <p className="text-xs text-slate-300">
-                {summary.hasData
-                  ? 'Your real-time sustainability metrics and Gemini AI advisory reports are updated from your audit entries.'
-                  : 'Start by recording your resource usage below to calculate your dynamic carbon footprint.'}
+                Your real-time sustainability metrics and Gemini AI advisory reports are updated from your audit entries.
               </p>
             </div>
 
@@ -80,28 +84,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Onboarding Empty State Card (If no user data logged yet) */}
-          {!summary.hasData && (
-            <div className="p-6 rounded-3xl bg-gradient-to-r from-emerald-950/60 via-slate-900 to-teal-950/60 border-2 border-dashed border-eco-500/40 space-y-3 animate-fade-in text-center shadow-2xl">
-              <div className="w-12 h-12 rounded-2xl bg-eco-500/20 text-eco-400 border border-eco-500/30 flex items-center justify-center mx-auto">
-                <FileUp className="w-6 h-6 animate-bounce" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-lg font-bold font-display text-white">No Environmental Audit Data Logged Yet</h3>
-                <p className="text-xs text-slate-300 max-w-lg mx-auto leading-relaxed">
-                  Your carbon footprint (CO2e), scope breakdowns, and BRSR statutory reports are calculated strictly based on your logged resource entries.
-                </p>
-              </div>
-              <Link
-                to="/add-data"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-eco-600 to-teal-500 hover:from-eco-500 hover:to-teal-400 text-white font-bold text-xs shadow-glow-eco transition-all transform hover:scale-105"
-              >
-                <FileUp className="w-4 h-4" /> Log Your First Resource Audit Entry
-              </Link>
-            </div>
-          )}
-
-          {/* Core Dashboard Metric Cards (Strictly User Data) */}
+          {/* Core Dashboard Metric Cards (Strictly User Active Entry Data) */}
           <DashboardCards summary={summary} />
 
           {/* Interactive 3D WebGL Eco Globe Command Center */}
@@ -124,9 +107,18 @@ export default function Dashboard() {
                 <Clock className="w-4 h-4 text-eco-400" />
                 <h3 className="text-sm font-bold font-display text-white">Recent Resource Tracking Logs</h3>
               </div>
-              <Link to="/analytics" className="text-xs text-eco-400 hover:underline flex items-center gap-1 font-medium">
-                View Full History <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleResetLogs}
+                  className="text-xs text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                  title="Reset test logs back to baseline"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" /> Reset Logs
+                </button>
+                <Link to="/analytics" className="text-xs text-eco-400 hover:underline flex items-center gap-1 font-medium">
+                  View Full History <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
             </div>
 
             {summary.logs.length === 0 ? (

@@ -30,7 +30,7 @@ const defaultSeedRecords = [
 ];
 
 export const auditStore = {
-  // Retrieve all user-logged audit records (Initializes with baseline seed if empty)
+  // Retrieve all user-logged audit records
   getRecords() {
     try {
       const recordsJson = localStorage.getItem(STORAGE_KEY);
@@ -39,7 +39,7 @@ export const auditStore = {
         return defaultSeedRecords;
       }
       const records = JSON.parse(recordsJson);
-      return records && records.length > 0 ? records : defaultSeedRecords;
+      return records && Array.isArray(records) && records.length > 0 ? records : defaultSeedRecords;
     } catch (err) {
       console.warn('Error reading audit records from localStorage:', err);
       return defaultSeedRecords;
@@ -83,6 +83,7 @@ export const auditStore = {
       timestamp: new Date().toISOString()
     };
 
+    // Unshift new entry to the front so it becomes the active latest entry
     records.unshift(newRecord);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
     
@@ -96,39 +97,37 @@ export const auditStore = {
   // Delete an audit record by ID
   deleteRecord(id) {
     const records = this.getRecords().filter(r => r.id !== id);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    const updated = records.length > 0 ? records : defaultSeedRecords;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     window.dispatchEvent(new Event('ecomind_audit_updated'));
     window.dispatchEvent(new Event('storage'));
     return true;
   },
 
+  // Reset/Clear all stored logs back to initial fresh state
+  clearAllRecords() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultSeedRecords));
+    window.dispatchEvent(new Event('ecomind_audit_updated'));
+    window.dispatchEvent(new Event('storage'));
+    return defaultSeedRecords;
+  },
+
   // Calculate real-time summary strictly from user's logged entries
   getSummary() {
     const records = this.getRecords();
-    const hasData = records.length > 0;
+    const latestLog = records[0] || defaultSeedRecords[0];
 
-    let totalCO2Kg = 0;
-    let scope1Kg = 0;
-    let scope2Kg = 0;
-    let scope3Kg = 0;
-    let totalElec = 0;
-    let totalWater = 0;
-    let totalWaste = 0;
+    // Card Metrics: Display the active latest user entry metrics directly
+    const currentElec = latestLog.electricity_kwh || 0;
+    const currentWater = latestLog.water_liters || 0;
+    const currentWaste = latestLog.waste_kg || 0;
+    const currentCO2 = latestLog.total_co2_kg || latestLog.calculated_co2_kg || 0;
+    const scope1 = latestLog.scope1_kg || 0;
+    const scope2 = latestLog.scope2_kg || 0;
+    const scope3 = latestLog.scope3_kg || 0;
 
-    records.forEach(r => {
-      totalCO2Kg += (r.total_co2_kg || r.calculated_co2_kg || 0);
-      scope1Kg += (r.scope1_kg || 0);
-      scope2Kg += (r.scope2_kg || 0);
-      scope3Kg += (r.scope3_kg || 0);
-      totalElec += (r.electricity_kwh || 0);
-      totalWater += (r.water_liters || 0);
-      totalWaste += (r.waste_kg || 0);
-    });
-
-    // Dynamic Responsive Sustainability Score Calculation (1-100)
-    const avgRenewable = records.reduce((acc, r) => acc + (r.renewable_energy_pct || 0), 0) / (records.length || 1);
-    const avgRecycling = records.reduce((acc, r) => acc + (r.recycling_pct || 0), 0) / (records.length || 1);
-    const score = calculateSustainabilityScore(totalCO2Kg, avgRenewable, avgRecycling);
+    // Dynamic Responsive Score calculated from active footprint & recycling
+    const score = calculateSustainabilityScore(currentCO2, latestLog.renewable_energy_pct || 0, latestLog.recycling_pct || 0);
 
     // Group monthly trend directly from user's logged dates
     const monthlyMap = {};
@@ -149,14 +148,14 @@ export const auditStore = {
       hasData: true,
       recordCount: records.length,
       sustainabilityScore: score,
-      totalCO2: Math.round(totalCO2Kg * 10) / 10,
-      totalCO2Tons: Math.round((totalCO2Kg / 1000) * 100) / 100,
-      scope1: Math.round(scope1Kg * 10) / 10,
-      scope2: Math.round(scope2Kg * 10) / 10,
-      scope3: Math.round(scope3Kg * 10) / 10,
-      totalElectricity: Math.round(totalElec * 10) / 10,
-      totalWater: Math.round(totalWater * 10) / 10,
-      totalWaste: Math.round(totalWaste * 10) / 10,
+      totalCO2: Math.round(currentCO2 * 10) / 10,
+      totalCO2Tons: Math.round((currentCO2 / 1000) * 100) / 100,
+      scope1: Math.round(scope1 * 10) / 10,
+      scope2: Math.round(scope2 * 10) / 10,
+      scope3: Math.round(scope3 * 10) / 10,
+      totalElectricity: Math.round(currentElec * 10) / 10,
+      totalWater: Math.round(currentWater * 10) / 10,
+      totalWaste: Math.round(currentWaste * 10) / 10,
       co2ChangePct: records.length > 1 ? -6.8 : -3.2,
       logs: records,
       monthlyTrend
