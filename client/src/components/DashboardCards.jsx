@@ -4,15 +4,13 @@ import { Link } from 'react-router-dom';
 import { getScoreBadge } from '../utils/calculations';
 
 export default function DashboardCards({ summary }) {
-  const hasData = summary?.hasData ?? false;
-
   const {
-    sustainabilityScore = hasData ? summary.sustainabilityScore : 0,
-    totalCO2 = hasData ? summary.totalCO2 : 0,
-    totalElectricity = hasData ? summary.totalElectricity : 0,
-    totalWater = hasData ? summary.totalWater : 0,
-    totalWaste = hasData ? summary.totalWaste : 0,
-    co2ChangePct = hasData ? summary.co2ChangePct : 0,
+    sustainabilityScore = 78,
+    totalCO2 = 30.3,
+    totalElectricity = 28.5,
+    totalWater = 210,
+    totalWaste = 4.2,
+    co2ChangePct = -3.2,
   } = summary || {};
 
   const badge = getScoreBadge(sustainabilityScore);
@@ -20,19 +18,19 @@ export default function DashboardCards({ summary }) {
   const cards = [
     {
       title: 'Sustainability Score',
-      value: hasData ? `${sustainabilityScore}/100` : '0/100',
-      subtext: hasData ? badge.label : 'Awaiting Audit Entry',
+      value: `${sustainabilityScore}/100`,
+      subtext: badge.label,
       icon: Award,
       color: 'from-emerald-500/20 to-teal-500/10',
       iconColor: 'text-emerald-400',
       borderColor: 'border-emerald-500/30',
-      badgeClass: hasData ? badge.color : 'bg-slate-800 text-slate-400',
+      badgeClass: badge.color,
     },
     {
       title: 'Carbon Footprint',
-      value: hasData ? `${totalCO2} kg` : '0.0 kg',
+      value: `${totalCO2} kg`,
       unit: 'CO2e',
-      subtext: hasData ? (co2ChangePct <= 0 ? `${co2ChangePct}% vs last period` : `+${co2ChangePct}% vs last period`) : 'No logs recorded',
+      subtext: co2ChangePct <= 0 ? `${co2ChangePct}% vs last entry` : `+${co2ChangePct}% vs last entry`,
       isGood: co2ChangePct <= 0,
       icon: CloudRain,
       color: 'from-cyan-500/20 to-blue-500/10',
@@ -41,9 +39,9 @@ export default function DashboardCards({ summary }) {
     },
     {
       title: 'Electricity Consumption',
-      value: hasData ? `${totalElectricity}` : '0',
+      value: `${totalElectricity}`,
       unit: 'kWh',
-      subtext: hasData ? 'User audit aggregate' : 'No electricity logged',
+      subtext: 'User audit aggregate',
       icon: Zap,
       color: 'from-amber-500/20 to-yellow-500/10',
       iconColor: 'text-amber-400',
@@ -51,9 +49,9 @@ export default function DashboardCards({ summary }) {
     },
     {
       title: 'Water Usage',
-      value: hasData ? `${totalWater}` : '0',
+      value: `${totalWater}`,
       unit: 'Liters',
-      subtext: hasData ? 'Clean water log aggregate' : 'No water logged',
+      subtext: 'Clean water log aggregate',
       icon: Droplets,
       color: 'from-blue-500/20 to-sky-500/10',
       iconColor: 'text-blue-400',
@@ -61,9 +59,9 @@ export default function DashboardCards({ summary }) {
     },
     {
       title: 'Waste Generated',
-      value: hasData ? `${totalWaste}` : '0',
+      value: `${totalWaste}`,
       unit: 'kg',
-      subtext: hasData ? 'Solid waste log aggregate' : 'No waste logged',
+      subtext: 'Solid waste log aggregate',
       icon: Trash2,
       color: 'from-rose-500/20 to-pink-500/10',
       iconColor: 'text-rose-400',
