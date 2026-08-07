@@ -1,97 +1,142 @@
-import React, { useState } from 'react';
-import { Award, Trophy, Star, ShieldCheck, Download, Sparkles, CheckCircle2, Zap, Droplets, Leaf, Flame, TreePine, Gift, ChevronRight, Share2, Medal, Printer, Lock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Award, Trophy, Star, ShieldCheck, Download, Sparkles, CheckCircle2, Zap, Droplets, Leaf, Flame, TreePine, Gift, ChevronRight, Share2, Medal, Printer, Lock, Check } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
 import { authService } from '../services/authService';
+import { auditStore } from '../services/auditStore';
 
 export default function Rewards() {
   const currentUser = authService.getCurrentUser();
-  const userName = currentUser?.name || 'Nikhil Goud';
-  
-  const [showCertificateModal, setShowCertificateModal] = useState(false);
-  const [claimedReward, setClaimedReward] = useState('');
+  const userName = currentUser?.name || 'User';
+  const userEmail = currentUser?.email ? currentUser.email.toLowerCase().trim() : 'default';
 
-  // Performance Appreciation Metrics & Badges (Realistic New User Starting XP)
-  const ecoPoints = 120;
+  // Per-User Storage Keys
+  const pointsKey = `ecomind_user_points_${userEmail}`;
+  const claimedBadgesKey = `ecomind_claimed_badges_${userEmail}`;
+  const claimedRewardsKey = `ecomind_claimed_rewards_${userEmail}`;
+
+  // User Points & Claimed States (Starts 100% Unclaimed for New Accounts)
+  const [userPoints, setUserPoints] = useState(() => {
+    const saved = localStorage.getItem(pointsKey);
+    return saved !== null ? parseInt(saved, 10) : 120;
+  });
+
+  const [claimedBadges, setClaimedBadges] = useState(() => {
+    try {
+      const saved = localStorage.getItem(claimedBadgesKey);
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) { return []; }
+  });
+
+  const [claimedRewards, setClaimedRewards] = useState(() => {
+    try {
+      const saved = localStorage.getItem(claimedRewardsKey);
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) { return []; }
+  });
+
+  const [showCertificateModal, setShowCertificateModal] = useState(false);
+  const [celebrationMsg, setCelebrationMsg] = useState('');
+
+  // Celebration Animation States
+  const [isLeafAnimating, setIsLeafAnimating] = useState(false); // Phase 1: Big Leaf Screen Cover (1 sec)
+  const [isDJAnimating, setIsDJAnimating] = useState(false);     // Phase 2: Colorful DJ Lights (3 sec)
+
+  // Sync points with local storage and dispatch events for Navbar points badge
+  useEffect(() => {
+    localStorage.setItem(pointsKey, userPoints.toString());
+    localStorage.setItem(claimedBadgesKey, JSON.stringify(claimedBadges));
+    localStorage.setItem(claimedRewardsKey, JSON.stringify(claimedRewards));
+    window.dispatchEvent(new Event('ecomind_points_updated'));
+    window.dispatchEvent(new Event('storage'));
+  }, [userPoints, claimedBadges, claimedRewards, pointsKey, claimedBadgesKey, claimedRewardsKey]);
+
+  // Check user audit count for badge unlocks
+  const userAuditSummary = auditStore.getSummary();
+  const hasLoggedData = userAuditSummary.hasData && userAuditSummary.recordCount > 0;
+
+  // Level & XP Metrics
   const currentLevel = 1;
   const nextLevelXP = 500;
-  const currentXP = 120;
+  const currentXP = 120 + (claimedBadges.length * 50);
   const levelTitle = "Eco Starter Pioneer";
 
-  // STRICT CERTIFICATE UNLOCK XP LIMIT
+  // Strict Certificate Unlock (500 XP)
   const minCertificateXP = 500;
   const isCertificateUnlocked = currentXP >= minCertificateXP;
 
-  const badges = [
+  // Badges Definitions (No hardcoded pre-claimed state for new users!)
+  const badgeDefinitions = [
     {
       id: 'badge_1',
       title: 'Welcome Eco Pioneer',
       category: 'Onboarding',
       desc: 'Completed initial account enrolment & sustainability profile setup.',
       unlocked: true,
-      date: 'Earned upon registration',
+      pointsReward: 50,
       color: 'from-emerald-600 to-teal-500',
       icon: Leaf,
-      points: '+50 Eco-Points'
+      badgePointsText: '+50 Eco-Points'
     },
     {
       id: 'badge_2',
       title: 'First Data Logged',
       category: 'Tracking',
-      desc: 'Logged initial electricity or water consumption audit entry.',
-      unlocked: true,
-      date: 'Earned today',
+      desc: 'Logged initial electricity, water, or waste consumption audit entry.',
+      unlocked: hasLoggedData || claimedBadges.includes('badge_2'),
+      pointsReward: 70,
       color: 'from-amber-500 to-emerald-500',
       icon: Zap,
-      points: '+70 Eco-Points'
+      badgePointsText: '+70 Eco-Points'
     },
     {
       id: 'badge_3',
       title: 'Carbon Reduction Champion',
       category: 'Emissions',
       desc: 'Achieve >5% reduction in weekly carbon footprint.',
-      unlocked: false,
-      date: 'Unlock at 250 XP',
+      unlocked: currentXP >= 250,
+      pointsReward: 100,
       color: 'from-slate-700 to-slate-800',
       icon: Trophy,
-      points: '+100 Eco-Points'
+      badgePointsText: '+100 Eco-Points'
     },
     {
       id: 'badge_4',
       title: 'Hydro Conservation Guardian',
       category: 'Water',
       desc: 'Retrofit tap aerators or log water-saving practices.',
-      unlocked: false,
-      date: 'Unlock at 350 XP',
+      unlocked: currentXP >= 350,
+      pointsReward: 120,
       color: 'from-slate-700 to-slate-800',
       icon: Droplets,
-      points: '+120 Eco-Points'
+      badgePointsText: '+120 Eco-Points'
     },
     {
       id: 'badge_5',
       title: 'BRSR ESG Filing Master',
       category: 'Compliance',
       desc: 'Complete statutory ESG disclosure audit readiness.',
-      unlocked: false,
-      date: 'Unlock at 500 XP',
+      unlocked: currentXP >= 500,
+      pointsReward: 150,
       color: 'from-slate-700 to-slate-800',
       icon: ShieldCheck,
-      points: '+150 Eco-Points'
+      badgePointsText: '+150 Eco-Points'
     },
     {
       id: 'badge_6',
       title: 'Zero-Waste Innovator',
       category: 'Waste',
       desc: 'Divert >45% organic and e-waste from landfills.',
-      unlocked: false,
-      date: 'Unlock at 750 XP',
+      unlocked: currentXP >= 750,
+      pointsReward: 200,
       color: 'from-slate-700 to-slate-800',
       icon: TreePine,
-      points: '+200 Eco-Points'
+      badgePointsText: '+200 Eco-Points'
     }
   ];
 
+  // Rewards Store Definitions
   const rewardStore = [
     {
       id: 'r_1',
@@ -119,26 +164,125 @@ export default function Rewards() {
     }
   ];
 
-  const handleRedeem = (title, cost) => {
-    if (ecoPoints >= cost) {
-      setClaimedReward(`🎉 Successfully redeemed "${title}"! Check your profile for claim details.`);
-      setTimeout(() => setClaimedReward(''), 6000);
-    }
+  // Trigger Master Celebration Sequence: 1 Sec Big Leaf Screen Cover -> 3 Sec DJ Laser Lights
+  const triggerCelebrationAnimation = (message) => {
+    setCelebrationMsg(message);
+
+    // Phase 1: 1 Second Big Leaf Screen Cover
+    setIsLeafAnimating(true);
+    setIsDJAnimating(false);
+
+    setTimeout(() => {
+      // End Leaf Cover & Start Phase 2: 3 Second DJ Laser Lights
+      setIsLeafAnimating(false);
+      setIsDJAnimating(true);
+
+      setTimeout(() => {
+        // End DJ Laser Lights Celebration
+        setIsDJAnimating(false);
+      }, 3000);
+    }, 1000);
   };
 
-  const handlePrintCertificate = () => {
-    window.print();
+  // Claim Performance Badge Handler
+  const handleClaimBadge = (badge) => {
+    if (claimedBadges.includes(badge.id)) return;
+
+    const newClaimed = [...claimedBadges, badge.id];
+    setClaimedBadges(newClaimed);
+    setUserPoints(prev => prev + badge.pointsReward);
+
+    triggerCelebrationAnimation(`🎉 BADGE UNLOCKED! Claimed "${badge.title}" (+${badge.pointsReward} Eco-Points added to your balance!)`);
+  };
+
+  // Redeem Reward Store Handler
+  const handleRedeemReward = (reward) => {
+    if (claimedRewards.includes(reward.id)) {
+      setCelebrationMsg(`ℹ️ You have already claimed "${reward.title}"!`);
+      return;
+    }
+
+    if (userPoints < reward.cost) {
+      setCelebrationMsg(`🔒 Insufficient Eco-Points! "${reward.title}" requires ${reward.cost} points (Current: ${userPoints} pts). Log more audit data to earn points!`);
+      return;
+    }
+
+    // Deduct cost and mark claimed
+    setUserPoints(prev => prev - reward.cost);
+    setClaimedRewards(prev => [...prev, reward.id]);
+
+    triggerCelebrationAnimation(`🎁 REWARD REDEEMED! Successfully claimed "${reward.title}" (-${reward.cost} Eco-Points deducted). Check your profile for claim details!`);
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-dark-bg text-slate-100 selection:bg-eco-500 selection:text-white">
+    <div className="min-h-screen flex flex-col bg-dark-bg text-slate-100 selection:bg-eco-500 selection:text-white relative">
       <Navbar />
 
+      {/* ========================================================================= */}
+      {/* 🌿 PHASE 1: BIG LEAF FULL-SCREEN COVER OVERLAY (1 SECOND) */}
+      {/* ========================================================================= */}
+      {isLeafAnimating && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/95 backdrop-blur-2xl transition-all duration-500 overflow-hidden pointer-events-auto">
+          <div className="animate-big-leaf flex flex-col items-center justify-center space-y-4">
+            <div className="w-48 h-48 sm:w-64 sm:h-64 rounded-full bg-gradient-to-tr from-eco-600 via-emerald-400 to-teal-300 p-2 shadow-2xl flex items-center justify-center shadow-glow-eco">
+              <div className="w-full h-full bg-slate-950 rounded-full flex items-center justify-center p-6 border-4 border-eco-500/50">
+                <Leaf className="w-32 h-32 sm:w-40 sm:h-40 text-emerald-400 fill-emerald-400/20 animate-pulse" />
+              </div>
+            </div>
+
+            <div className="text-center space-y-1">
+              <span className="text-xs font-bold uppercase tracking-widest text-emerald-400">Verifying Eco Impact</span>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-white font-display">
+                🌿 CLAIMING SUSTAINABILITY REWARD...
+              </h2>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 🎆 PHASE 2: COLORFUL PARTY DJ LASER LIGHTS ANIMATION (3 SECONDS) */}
+      {/* ========================================================================= */}
+      {isDJAnimating && (
+        <div className="fixed inset-0 z-50 pointer-events-none overflow-hidden flex flex-col items-center justify-start pt-12">
+          {/* DJ Flash Overlay Background */}
+          <div className="absolute inset-0 bg-gradient-to-b from-indigo-950/40 via-purple-950/30 to-transparent animate-dj-flash" />
+
+          {/* Sweeping DJ Laser Beams radiating from top lights */}
+          <div className="absolute top-0 left-1/6 w-4 h-[120vh] bg-gradient-to-b from-rose-500 via-rose-500/40 to-transparent blur-md transform -translate-x-1/2 origin-top animate-laser-red" />
+          <div className="absolute top-0 left-2/6 w-5 h-[120vh] bg-gradient-to-b from-emerald-400 via-emerald-400/40 to-transparent blur-md transform -translate-x-1/2 origin-top animate-laser-green" />
+          <div className="absolute top-0 left-3/6 w-6 h-[120vh] bg-gradient-to-b from-cyan-400 via-cyan-400/40 to-transparent blur-md transform -translate-x-1/2 origin-top animate-laser-blue" />
+          <div className="absolute top-0 left-4/6 w-5 h-[120vh] bg-gradient-to-b from-amber-400 via-amber-400/40 to-transparent blur-md transform -translate-x-1/2 origin-top animate-laser-yellow" />
+          <div className="absolute top-0 left-5/6 w-4 h-[120vh] bg-gradient-to-b from-purple-500 via-purple-500/40 to-transparent blur-md transform -translate-x-1/2 origin-top animate-laser-red" />
+
+          {/* Glowing Top Spotlight Bulbs */}
+          <div className="absolute top-0 w-full flex justify-around px-8">
+            <div className="w-10 h-10 rounded-full bg-rose-500 shadow-[0_0_40px_#f43f5e] animate-pulse" />
+            <div className="w-10 h-10 rounded-full bg-emerald-400 shadow-[0_0_40px_#10b981] animate-pulse" />
+            <div className="w-12 h-12 rounded-full bg-cyan-400 shadow-[0_0_50px_#06b6d4] animate-pulse" />
+            <div className="w-10 h-10 rounded-full bg-amber-400 shadow-[0_0_40px_#f59e0b] animate-pulse" />
+            <div className="w-10 h-10 rounded-full bg-purple-500 shadow-[0_0_40px_#a855f7] animate-pulse" />
+          </div>
+
+          {/* Celebration Banner Card */}
+          <div className="relative z-50 mt-16 p-6 rounded-3xl bg-slate-950/95 border-2 border-emerald-500/80 text-center space-y-2 shadow-2xl max-w-lg mx-4 animate-bounce">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-extrabold border border-emerald-500/40">
+              <Sparkles className="w-4 h-4 text-emerald-400" /> CELEBRATION ACTIVE!
+            </div>
+            <h2 className="text-2xl font-extrabold text-white font-display">
+              🎉 REWARD CLAIMED SUCCESSFULLY!
+            </h2>
+            <p className="text-xs text-slate-200 font-semibold">{celebrationMsg}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Main Page Layout */}
       <div className="flex-1 flex max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 gap-6">
         <Sidebar />
 
         <main className="flex-1 space-y-6 overflow-hidden">
-          {/* Header Banner: Starter Level & Performance Appreciation */}
+          {/* Header Banner */}
           <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-eco-500/40 bg-gradient-to-r from-slate-900 via-dark-bg to-slate-900 shadow-glow-eco relative overflow-hidden">
             <div className="absolute top-0 right-0 w-96 h-96 bg-eco-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -170,7 +314,7 @@ export default function Rewards() {
                 </div>
               </div>
 
-              {/* Eco Points Counter Card with STRICT XP UNLOCK LIMIT */}
+              {/* Eco Points Counter Card */}
               <div className="flex flex-col items-center justify-center p-6 rounded-3xl bg-slate-950/80 border border-eco-500/40 text-center min-w-[220px] shadow-2xl space-y-2">
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-eco-500 to-teal-400 p-0.5 flex items-center justify-center shadow-glow-eco">
                   <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
@@ -178,15 +322,15 @@ export default function Rewards() {
                   </div>
                 </div>
                 <div>
-                  <span className="text-xs text-slate-400 font-semibold block uppercase tracking-wider">Starting Eco-Points</span>
-                  <span className="text-3xl font-extrabold text-white font-mono">{ecoPoints}</span>
+                  <span className="text-xs text-slate-400 font-semibold block uppercase tracking-wider">Available Eco-Points</span>
+                  <span className="text-3xl font-extrabold text-white font-mono">{userPoints}</span>
                 </div>
 
                 {/* CERTIFICATE BUTTON WITH STRICT XP LIMIT ENFORCEMENT */}
                 {isCertificateUnlocked ? (
                   <button
                     onClick={() => setShowCertificateModal(true)}
-                    className="px-3.5 py-1.5 rounded-xl bg-eco-600 hover:bg-eco-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-glow-eco transition-all transform hover:scale-105"
+                    className="px-3.5 py-1.5 rounded-xl bg-eco-600 hover:bg-eco-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-glow-eco transition-all transform hover:scale-105 cursor-pointer"
                   >
                     <Award className="w-4 h-4" /> Download Certificate
                   </button>
@@ -194,86 +338,88 @@ export default function Rewards() {
                   <button
                     type="button"
                     onClick={() => {
-                      setClaimedReward(`🔒 Certificate Locked: Requires 500 XP to unlock your official Certificate of Sustainability Appreciation (Current: ${currentXP}/500 XP). Log emission reduction data to earn ${minCertificateXP - currentXP} more XP!`);
-                      setTimeout(() => setClaimedReward(''), 7000);
+                      setCelebrationMsg(`🔒 Certificate Locked: Requires 500 XP to unlock your official Certificate of Sustainability Appreciation (Current: ${currentXP}/500 XP). Log emission reduction data to earn ${minCertificateXP - currentXP} more XP!`);
+                      setTimeout(() => setCelebrationMsg(''), 7000);
                     }}
                     className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-amber-300 border border-slate-800 hover:border-amber-500/50 font-bold text-[11px] flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
-                    title="Unlocks at 500 XP (Level 2)"
                   >
-                    <Lock className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
-                    <span>Certificate Unlocks at 500 XP</span>
+                    <Lock className="w-3.5 h-3.5 text-amber-400" /> Certificate Locked (500 XP)
                   </button>
                 )}
               </div>
             </div>
           </div>
 
-          {claimedReward && (
-            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-bold flex items-center gap-3 animate-fade-in">
-              <Lock className="w-5 h-5 text-amber-400 flex-shrink-0" />
-              <span className="leading-snug">{claimedReward}</span>
+          {/* Status Message Alert */}
+          {celebrationMsg && !isDJAnimating && (
+            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex items-center gap-2.5 shadow-lg animate-fade-in">
+              <Sparkles className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+              <span>{celebrationMsg}</span>
             </div>
           )}
 
-          {/* Performance Appreciation Badges Showcase Grid */}
+          {/* Performance Badges Grid */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-bold font-display text-white flex items-center gap-2">
-                  <Medal className="w-5 h-5 text-eco-400" /> Performance Badges & Trophies
-                </h3>
-                <p className="text-xs text-slate-400">Awarded automatically based on your real-time carbon reduction milestones</p>
-              </div>
-              <span className="text-xs font-bold text-emerald-400 font-mono px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30">
-                2 of 6 Unlocked
-              </span>
+              <h2 className="text-lg font-bold font-display text-white flex items-center gap-2">
+                <Medal className="w-5 h-5 text-eco-400" />
+                Performance Appreciation Badges ({claimedBadges.length} / {badgeDefinitions.length} Earned)
+              </h2>
+              <span className="text-xs text-slate-400 font-mono">Claim points upon unlocking</span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {badges.map((b) => {
+              {badgeDefinitions.map((b) => {
                 const Icon = b.icon;
+                const isClaimed = claimedBadges.includes(b.id);
+                const canClaim = b.unlocked && !isClaimed;
+
                 return (
                   <div
                     key={b.id}
-                    className={`glass-panel p-5 rounded-3xl border transition-all duration-300 space-y-3 relative overflow-hidden group ${
-                      b.unlocked
-                        ? 'border-slate-800 hover:border-eco-500/50 bg-slate-900/80 hover:bg-slate-900'
-                        : 'border-slate-800/40 bg-slate-950/40 opacity-60'
+                    className={`glass-panel p-5 rounded-3xl border transition-all duration-300 relative space-y-3 ${
+                      isClaimed
+                        ? 'border-emerald-500/40 bg-gradient-to-br from-emerald-950/30 to-slate-900 shadow-glow-eco'
+                        : canClaim
+                        ? 'border-amber-500/50 bg-gradient-to-br from-amber-950/20 to-slate-900 hover:scale-[1.02]'
+                        : 'border-slate-800/80 bg-slate-950/40 opacity-70'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <div className={`w-12 h-12 rounded-2xl bg-gradient-to-tr ${b.color} p-0.5 shadow-md flex items-center justify-center`}>
-                        <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
-                          <Icon className={`w-6 h-6 ${b.unlocked ? 'text-emerald-300' : 'text-slate-600'}`} />
-                        </div>
+                      <div className={`p-3 rounded-2xl bg-gradient-to-tr ${b.color} text-white shadow-lg`}>
+                        <Icon className="w-6 h-6" />
                       </div>
-
-                      <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border font-mono ${
-                        b.unlocked
-                          ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                          : 'bg-slate-800 text-slate-500 border-slate-700'
-                      }`}>
-                        {b.points}
+                      <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-900 text-slate-300 border border-slate-800">
+                        {b.category}
                       </span>
                     </div>
 
-                    <div>
-                      <span className="text-[10px] text-eco-400 font-semibold uppercase tracking-wider block">{b.category}</span>
-                      <h4 className="text-base font-bold text-white font-display group-hover:text-emerald-300 transition-colors">
+                    <div className="space-y-1">
+                      <h3 className="text-sm font-bold text-white font-display flex items-center gap-1.5">
                         {b.title}
-                      </h4>
-                      <p className="text-xs text-slate-400 mt-1 leading-relaxed">{b.desc}</p>
+                        {isClaimed && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
+                      </h3>
+                      <p className="text-xs text-slate-400 leading-relaxed">{b.desc}</p>
                     </div>
 
-                    <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
-                      <span className="text-slate-500 font-mono">{b.date}</span>
-                      {b.unlocked ? (
-                        <span className="text-emerald-400 font-bold flex items-center gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Unlocked
+                    <div className="pt-2 flex items-center justify-between border-t border-slate-800/60 text-xs">
+                      <span className="text-emerald-400 font-bold font-mono">{b.badgePointsText}</span>
+
+                      {isClaimed ? (
+                        <span className="px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 font-bold text-[11px] border border-emerald-500/40 flex items-center gap-1">
+                          <Check className="w-3.5 h-3.5" /> Claimed
                         </span>
+                      ) : canClaim ? (
+                        <button
+                          type="button"
+                          onClick={() => handleClaimBadge(b)}
+                          className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-eco-600 to-teal-500 hover:from-eco-500 hover:to-teal-400 text-white font-bold text-[11px] shadow-glow-eco flex items-center gap-1 transition-all transform hover:scale-105 cursor-pointer"
+                        >
+                          <Gift className="w-3.5 h-3.5" /> Claim Reward
+                        </button>
                       ) : (
-                        <span className="text-slate-500 font-bold flex items-center gap-1">
-                          <Lock className="w-3 h-3 text-slate-500" /> Locked
+                        <span className="text-[11px] text-slate-500 font-semibold flex items-center gap-1">
+                          <Lock className="w-3 h-3" /> Locked
                         </span>
                       )}
                     </div>
@@ -283,42 +429,70 @@ export default function Rewards() {
             </div>
           </div>
 
-          {/* Redeem Eco-Rewards Store */}
-          <div className="space-y-4 pt-4">
+          {/* Redeem Sustainability Rewards Store */}
+          <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-6">
             <div>
-              <h3 className="text-xl font-bold font-display text-white flex items-center gap-2">
-                <Gift className="w-5 h-5 text-eco-400" /> Redeem Sustainability Rewards
-              </h3>
-              <p className="text-xs text-slate-400">Use your accumulated Eco-Points to claim real-world environmental impact rewards</p>
+              <h2 className="text-xl font-bold font-display text-white flex items-center gap-2">
+                <Gift className="w-6 h-6 text-eco-400" />
+                Redeem Sustainability Rewards
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Use your accumulated Eco-Points to claim real-world environmental impact rewards.
+              </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {rewardStore.map((r) => {
                 const Icon = r.icon;
+                const isRedeemed = claimedRewards.includes(r.id);
+                const hasEnoughPoints = userPoints >= r.cost;
+
                 return (
-                  <div key={r.id} className="glass-panel p-6 rounded-3xl border border-slate-800 space-y-4 hover:border-eco-500/40 transition-all flex flex-col justify-between">
-                    <div className="space-y-3">
+                  <div
+                    key={r.id}
+                    className={`p-6 rounded-3xl border transition-all duration-300 space-y-4 relative flex flex-col justify-between ${
+                      isRedeemed
+                        ? 'border-emerald-500/40 bg-gradient-to-br from-emerald-950/40 to-slate-900 shadow-glow-eco'
+                        : 'border-slate-800 bg-slate-900/60 hover:bg-slate-900 hover:border-eco-500/40'
+                    }`}
+                  >
+                    <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <div className="w-10 h-10 rounded-xl bg-eco-500/20 text-eco-400 border border-eco-500/30 flex items-center justify-center">
-                          <Icon className="w-5 h-5" />
+                        <div className="p-3 rounded-2xl bg-eco-500/20 text-eco-400 border border-eco-500/30">
+                          <Icon className="w-6 h-6" />
                         </div>
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-950 text-slate-400 border border-slate-800">
                           {r.tag}
                         </span>
                       </div>
-                      <h4 className="text-base font-bold text-white font-display">{r.title}</h4>
-                      <p className="text-xs text-slate-400 leading-relaxed">{r.desc}</p>
+
+                      <div className="space-y-1">
+                        <h3 className="text-base font-bold text-white font-display">{r.title}</h3>
+                        <p className="text-xs text-slate-400 leading-relaxed">{r.desc}</p>
+                      </div>
                     </div>
 
-                    <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
-                      <span className="text-sm font-extrabold text-emerald-400 font-mono">{r.cost} Points</span>
-                      <button
-                        onClick={() => handleRedeem(r.title, r.cost)}
-                        disabled={ecoPoints < r.cost}
-                        className="px-3.5 py-1.5 rounded-xl bg-eco-600 hover:bg-eco-500 text-white font-bold text-xs shadow-glow-eco transition-all disabled:opacity-40"
-                      >
-                        Redeem Now
-                      </button>
+                    <div className="pt-4 flex items-center justify-between border-t border-slate-800/80">
+                      <span className="text-base font-extrabold text-emerald-400 font-mono">{r.cost} Points</span>
+
+                      {isRedeemed ? (
+                        <span className="px-4 py-2 rounded-xl bg-emerald-500/20 text-emerald-300 font-bold text-xs border border-emerald-500/40 flex items-center gap-1">
+                          <Check className="w-4 h-4" /> Redeemed
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleRedeemReward(r)}
+                          disabled={!hasEnoughPoints}
+                          className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-300 flex items-center gap-1.5 cursor-pointer ${
+                            hasEnoughPoints
+                              ? 'bg-gradient-to-r from-eco-600 via-emerald-500 to-teal-500 hover:from-eco-500 hover:to-teal-400 text-white shadow-glow-eco transform hover:scale-105'
+                              : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
+                          }`}
+                        >
+                          <Gift className="w-4 h-4" /> Redeem Now
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
@@ -327,72 +501,6 @@ export default function Rewards() {
           </div>
         </main>
       </div>
-
-      {/* Official Certificate of Appreciation Printable Modal */}
-      {showCertificateModal && isCertificateUnlocked && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="glass-panel max-w-3xl w-full p-8 rounded-3xl border border-eco-500/50 bg-slate-900 shadow-2xl space-y-6 relative animate-fade-in max-h-[90vh] overflow-y-auto">
-            <button
-              onClick={() => setShowCertificateModal(false)}
-              className="absolute top-5 right-5 text-slate-400 hover:text-white text-xl font-bold p-2"
-            >
-              ✕
-            </button>
-
-            {/* Certificate Canvas Frame */}
-            <div id="printable-certificate" className="p-8 rounded-2xl bg-slate-950 border-4 border-eco-500/40 text-center space-y-6 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
-
-              <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-                <div className="flex items-center gap-2">
-                  <Leaf className="w-6 h-6 text-eco-400" />
-                  <span className="text-lg font-bold font-display text-white">EcoMind AI</span>
-                </div>
-                <span className="text-xs font-mono text-emerald-400 font-bold border border-emerald-500/30 px-3 py-1 rounded-full bg-emerald-500/10">
-                  Ref: CERT-2026-ECO-500
-                </span>
-              </div>
-
-              <div className="space-y-3 py-4">
-                <span className="text-xs font-mono font-bold text-eco-400 uppercase tracking-widest block">
-                  Official Certificate of Environmental Appreciation
-                </span>
-                <h2 className="text-3xl font-extrabold font-display text-white">PROUDLY PRESENTED TO</h2>
-                <h3 className="text-4xl font-extrabold gradient-text font-display underline decoration-eco-400 underline-offset-8 py-2">
-                  {userName}
-                </h3>
-                <p className="text-xs text-slate-300 max-w-lg mx-auto leading-relaxed pt-2">
-                  In recognition of achieving Level 2 Sustainability Status, reducing net carbon emissions, and demonstrating statutory ESG compliance.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4 pt-4 border-t border-slate-800 text-xs font-mono">
-                <div>
-                  <span className="text-slate-500 block text-[10px]">Date of Issue</span>
-                  <span className="text-white font-bold">{new Date().toLocaleDateString()}</span>
-                </div>
-                <div>
-                  <span className="text-slate-500 block text-[10px]">Sustainability Status</span>
-                  <span className="text-emerald-400 font-bold">Level 2 Champion</span>
-                </div>
-                <div>
-                  <span className="text-slate-500 block text-[10px]">Issuing Body</span>
-                  <span className="text-white font-bold">EcoMind AI ESG Committee</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 pt-2">
-              <button
-                onClick={handlePrintCertificate}
-                className="px-5 py-2.5 rounded-xl bg-eco-600 hover:bg-eco-500 text-white font-bold text-xs shadow-glow-eco flex items-center gap-2 transition-all"
-              >
-                <Printer className="w-4 h-4" /> Print / Save PDF Certificate
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <Footer />
     </div>
